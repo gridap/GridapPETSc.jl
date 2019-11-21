@@ -10,6 +10,7 @@ addons:
   apt:
     update: true
     packages:
+    - libopenmpi3
     - petsc-dev
 matrix:
   allow_failures:
