@@ -10,8 +10,7 @@ addons:
   apt:
     update: true
     packages:
-    - libpetsc-real3.10
-    - libpetsc-real-dev
+    - libpetsc-real*
 matrix:
   allow_failures:
     - julia: nightly
