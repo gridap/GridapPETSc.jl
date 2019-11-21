@@ -1,6 +1,4 @@
 using GridapPETSc
 using Test
 
-@testset "GridapPETSc.jl" begin
-    # Write your own tests here.
-end
+@testset "PETSc tests" begin include("PETSc.jl") end

@@ -3,6 +3,11 @@ uuid = "bcdc36c2-0c3e-11ea-095a-c9dadae499f1"
 authors = ["Víctor Sande <vsande@cimne.upc.edu>"]
 version = "0.1.0"
 
+[deps]
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
+
 [compat]
 julia = "1"
 
