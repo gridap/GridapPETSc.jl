@@ -22,8 +22,4 @@ const PETSC_OBJECT       = (Int32)(11)
 const PETSC_FUNCTION     = (Int32)(12)
 const PETSC_STRING       = (Int32)(12)
 
-const PetscScalar        = PETSC_SCALAR_DATATYPE
-const PetscReal          = PETSC_REAL_DATATYPE
-const PetscInt           = PETSC_INT_DATATYPE
-
 

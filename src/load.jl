@@ -47,3 +47,8 @@ macro check_if_loaded()
     end
   end
 end
+
+const PetscScalar        = PETSC_SCALAR_DATATYPE
+const PetscReal          = PETSC_REAL_DATATYPE
+const PetscInt           = PETSC_INT_DATATYPE
+

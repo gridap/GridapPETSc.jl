@@ -1,15 +1,21 @@
+const_jl = joinpath(@__DIR__, "..", "src", "const.jl")
+
+if isfile(const_jl)
+  include(const_jl)
+end
+
 
 PETSC_FOUND = true
 PETSC_DIR   = haskey(ENV,"PETSC_DIR") ? ENV["PETSC_DIR"] : "/usr/lib/petsc"
 PETSC_ARCH  = haskey(ENV,"PETSC_ARCH") ? ENV["PETSC_ARCH"] : ""
 
-PETSC_LIB         = nothing
-PETSC_LIB_DIR     = nothing
-PETSC_INCLUDE_DIR = nothing
-PETSC_HEADER      = nothing
-PETSC_SCALAR      = nothing
-PETSC_REAL        = nothing
-PETSC_INT         = nothing
+PETSC_LIB             = nothing
+PETSC_LIB_DIR         = nothing
+PETSC_INCLUDE_DIR     = nothing
+PETSC_HEADER          = nothing
+PETSC_SCALAR_DATATYPE = nothing
+PETSC_REAL_DATATYPE   = nothing
+PETSC_INT_DATATYPE    = nothing
 
 
 # Check PETSC_DIR exists
@@ -58,10 +64,6 @@ if isdir(PETSC_DIR)
     # Detect PETSc base data types
     if !(PETSC_LIB === nothing) && isfile(PETSC_LIB)
         const PETSC = PETSC_LIB
-        # Basic PETSc data type enums
-        PETSC_INT    = (Int32)(0)
-        PETSC_DOUBLE = (Int32)(1)
-        PETSC_FLOAT  = (Int32)(5)
 
         # Returns PETSc data type given a string
         function PetscDataTypeFromString(name::AbstractString)
@@ -88,21 +90,21 @@ if isdir(PETSC_DIR)
         end
 
         # Define types that depend on the options PETSc was compiled with
-        (petsc_real_datatype, found_real)      = PetscDataTypeFromString("Real")
+        (petsc_real_data_type, found_real)      = PetscDataTypeFromString("Real")
         (petsc_scalar_data_type, found_scalar) = PetscDataTypeFromString("Scalar")
         petsc_int_size                         = PetscDataTypeGetSize(PETSC_INT)
 
         @assert(found_real & found_scalar)
 
-        petsc_scalar_data_type != petsc_real_datatype && throw(ErrorException("[ERROR] Only Real PetscScalar type is supported"))
+        petsc_scalar_data_type != petsc_real_data_type && throw(ErrorException("[ERROR] Only Real PetscScalar type is supported"))
 
         # Figure out equivalent Julia types for PETSc
-        if petsc_real_datatype == PETSC_DOUBLE
+        if petsc_real_data_type == PETSC_DOUBLE
             PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float64
-        elseif petsc_real_datatype == PETSC_FLOAT
+        elseif petsc_real_data_type == PETSC_FLOAT
             PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float32
         else
-            @warn "Unknown type of Real. Petsc real data type is $petsc_real_datatype"
+            @warn "Unknown type of Real. Petsc real data type is $petsc_real_data_type"
             throw(ErrorException("Unsupported PetscReal type"))
         end
 
