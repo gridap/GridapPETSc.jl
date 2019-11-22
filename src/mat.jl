@@ -7,7 +7,7 @@ struct PetscMat
     end
 end
 
-function  MatCreateSeqAIJWithArrays(
+function  MatCreateSeqAIJWithArrays!(
         comm::MPI.Comm,
         m::Int,
         n::Int,
@@ -29,7 +29,7 @@ function  MatCreateSeqAIJWithArrays(
     @assert iszero(error)
 end
 
-function MatDestroy(mat::PetscMat)
+function MatDestroy!(mat::PetscMat)
     error = ccall( 
             (:MatDestroy, PETSC_LIB), 
             PetscErrorCode, 
@@ -39,7 +39,7 @@ function MatDestroy(mat::PetscMat)
 end
 
 
-function MatView(mat::PetscMat,viewer::PetscViewer=C_NULL)
+function MatView(mat::PetscMat, viewer::PetscViewer=C_NULL)
     error = ccall( 
             (:MatView,  PETSC_LIB), 
             PetscErrorCode, 

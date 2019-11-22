@@ -1,5 +1,5 @@
 
-struct PetscKSP #<: AbstractMatrix{PetscScalar}
+struct PetscKSP
 
     ksp::Ref{Ptr{Cvoid}}
 
@@ -9,7 +9,7 @@ struct PetscKSP #<: AbstractMatrix{PetscScalar}
     end
 end
 
-function KSPCreate(comm::MPI.Comm, ksp::PetscKSP)
+function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     @check_if_loaded
     error = ccall( KSPCreate_ptr[],
         PetscInt,
@@ -21,7 +21,7 @@ end
 
 
 
-function KSPSetOperators(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
+function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     @check_if_loaded
     error = ccall( KSPSetOperators_ptr[],
         PetscErrorCode,
@@ -33,7 +33,7 @@ function KSPSetOperators(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
 end
 
 
-function KSPSolve(ksp::PetscKSP, b::PetscVec, x::PetscVec)
+function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
     @check_if_loaded
     error = ccall( KSPSolve_ptr[],
         PetscErrorCode,
@@ -45,7 +45,7 @@ function KSPSolve(ksp::PetscKSP, b::PetscVec, x::PetscVec)
 end
 
 
-function KSPSolveTranspose(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
+function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
     @check_if_loaded
     error = ccall( KSPSolveTranspose_ptr[],
         PetscErrorCode,
@@ -56,7 +56,7 @@ function KSPSolveTranspose(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::Abstract
     return error
 end
 
-function KSPDestroy(ksp::PetscKSP)
+function KSPDestroy!(ksp::PetscKSP)
     @check_if_loaded
     error = ccall( KSPDestroy_ptr[],
         PetscErrorCode,

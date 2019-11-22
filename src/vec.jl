@@ -1,5 +1,5 @@
 
-struct PetscVec #<: AbstractMatrix{PetscScalar}
+struct PetscVec 
     vec::Ref{Ptr{Cvoid}}
     function PetscVec()
         vec = Ref{Ptr{Cvoid}}()
@@ -7,7 +7,7 @@ struct PetscVec #<: AbstractMatrix{PetscScalar}
     end
 end
 
-function VecCreateSeqWithArray(
+function VecCreateSeqWithArray!(
         comm::MPI.Comm,
         bs::Int,
         n::Int,
@@ -26,7 +26,7 @@ function VecCreateSeqWithArray(
     @assert iszero(error)
 end
 
-function VecDestroy(vec::PetscVec)
+function VecDestroy!(vec::PetscVec)
     error = ccall( 
             (:VecDestroy, PETSC_LIB), 
             PetscErrorCode, 
@@ -35,7 +35,7 @@ function VecDestroy(vec::PetscVec)
     @assert iszero(error)
 end
 
-function VecView(vec::PetscVec,viewer::PetscViewer=C_NULL)
+function VecView(vec::PetscVec, viewer::PetscViewer=C_NULL)
   error = ccall( ( :VecView,  PETSC_LIB), PetscErrorCode, (Ptr{Cvoid},Int64),vec.vec[],viewer);
 end
 
