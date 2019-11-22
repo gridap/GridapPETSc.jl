@@ -3,25 +3,21 @@ module GridapPETSc
 using Libdl
 using MPI
 
-# Initialization / Finalization
-export PetscInitialize
-export PetscFinalize
-
 # Mat
-export MatCreateSeqAIJWithArrays
-export MatDestroy
+export MatCreateSeqAIJWithArrays!
+export MatDestroy!
 export MatView
 
 # Vec
-export VecCreateSeqWithArray
-export VecDestroy
+export VecCreateSeqWithArray!
+export VecDestroy!
 export VecView
 
 # KSP
-export KSPCreate
-export KSPSetOperators
-export KSPSolve
-export KSPDestroy
+export KSPCreate!
+export KSPSetOperators!
+export KSPSolve!
+export KSPDestroy!
 
 # GridapPETSc datatypes
 export PetscMat

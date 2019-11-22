@@ -38,13 +38,13 @@ Ksp = PetscKSP()
 #####################################
 # Initialization
 MPI.Init()
-PetscInitialize(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
+GridapPETSc.init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
 
 # Create objects
-VecCreateSeqWithArray(MPI.COMM_SELF,1,m,bvector,b)
-VecCreateSeqWithArray(MPI.COMM_SELF,1,n,xvector,x)
-MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A), Mat)
-KSPCreate(MPI.COMM_SELF, Ksp)
+VecCreateSeqWithArray!(MPI.COMM_SELF,1,m,bvector,b)
+VecCreateSeqWithArray!(MPI.COMM_SELF,1,n,xvector,x)
+MatCreateSeqAIJWithArrays!(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A), Mat)
+KSPCreate!(MPI.COMM_SELF, Ksp)
 
 # Show data objects
 VecView(x)
@@ -52,17 +52,17 @@ VecView(b)
 MatView(Mat)
 
 # Solve
-KSPSetOperators(Ksp, Mat, Mat)
-KSPSolve(Ksp, b, x)
+KSPSetOperators!(Ksp, Mat, Mat)
+KSPSolve!(Ksp, b, x)
 
 @test maximum(abs.(A*xvector-bvector)) < tol
 
 # Destroy objects
-KSPDestroy(Ksp)
-MatDestroy(Mat)
-VecDestroy(b)
-VecDestroy(x)
+KSPDestroy!(Ksp)
+MatDestroy!(Mat)
+VecDestroy!(b)
+VecDestroy!(x)
 
 # Finlization
-PetscFinalize()
+GridapPETSc.finalize!()
 MPI.Finalize()
