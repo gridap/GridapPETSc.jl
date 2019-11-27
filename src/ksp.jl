@@ -7,6 +7,11 @@ struct PetscKSP
     end
 end
 
+"""
+    function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
+
+Creates the default KSP context. 
+"""
 function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     @check_if_loaded
     error = ccall( KSPCreate_ptr[],
@@ -17,6 +22,11 @@ function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     return error
 end
 
+"""
+    function KSPCreate(comm::MPI.Comm)
+
+Returns the default KSP context. 
+"""
 function KSPCreate(comm::MPI.Comm)
     ksp = PetscKSP()
     error = KSPCreate!(comm, ksp)
@@ -24,6 +34,11 @@ function KSPCreate(comm::MPI.Comm)
     return ksp
 end
 
+"""
+    function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
+
+Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner. 
+"""
 function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     @check_if_loaded
     error = ccall( KSPSetOperators_ptr[],
@@ -35,7 +50,11 @@ function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     return error
 end
 
+"""
+    function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
 
+Solves linear system.
+"""
 function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
     @check_if_loaded
     error = ccall( KSPSolve_ptr[],
@@ -47,7 +66,11 @@ function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
     return error
 end
 
+"""
+    function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
 
+Solves the transpose of a linear system. 
+"""
 function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
     @check_if_loaded
     error = ccall( KSPSolveTranspose_ptr[],
@@ -59,6 +82,11 @@ function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::Abstrac
     return error
 end
 
+"""
+    function KSPDestroy!(ksp::PetscKSP)
+
+Destroys KSP context. 
+"""
 function KSPDestroy!(ksp::PetscKSP)
     @check_if_loaded
     error = ccall( KSPDestroy_ptr[],

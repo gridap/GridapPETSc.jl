@@ -1,4 +1,8 @@
+"""
+    function PetscInitialized()
 
+Determine whether PETSc is initialized. 
+"""
 function PetscInitialized()
     init = Array{PetscBool}(undef,1);
     error = ccall( 
@@ -10,7 +14,11 @@ function PetscInitialized()
     return init[1] == PETSC_TRUE
 end
 
+"""
+    function PetscFinalized()
 
+Determine whether PetscFinalize() has been called yet 
+"""
 function PetscFinalized()
     init = Array{PetscBool}(undef,1);
     error = ccall( 
@@ -22,7 +30,17 @@ function PetscFinalized()
     return init[1] == PETSC_TRUE
 end
 
+"""
+    function PetscInitializeNoPointers!(args::Vector{String}, filename::String, help::String)
 
+Calls PetscInitialize() without the pointers to argc and args.
+This is called only by the PETSc Julia interface. 
+Even though it might start MPI it sets the flag to
+indicate that it did NOT start MPI so that the PetscFinalize() 
+does not end MPI, thus allowing PetscInitialize() to
+be called multiple times from Julia without the problem 
+of trying to initialize MPI more than once.
+"""
 function PetscInitializeNoPointers!(args::Vector{String}, filename::String, help::String)
     nargs = Cint(length(args))
     error = ccall(
@@ -36,21 +54,35 @@ function PetscInitializeNoPointers!(args::Vector{String}, filename::String, help
     return error
 end
 
+"""
+    function PetscInitializeNoArguments!()
 
+Calls PetscInitialize() without the command line arguments. 
+"""
 function PetscInitializeNoArguments!()
     @check_if_loaded
     error = ccall( PetscInitializeNoArguments_ptr[], Int, ())
     return error
 end
 
+"""
+    function PetscFinalize!()
 
+Checks for options to be called at the conclusion of the program. 
+MPI_Finalize() is called only if the user had not called MPI_Init() 
+before calling PetscInitialize(). 
+"""
 function PetscFinalize!()
     @check_if_loaded
     error = ccall( PetscFinalize_ptr[], Int, ())
     return error
 end
 
+"""
+    function Init!()
 
+Initialize Petsc library.
+"""
 function Init!()
     if (PetscInitialized()) 
         error = PetscFinalize!() 
@@ -60,12 +92,21 @@ function Init!()
     @assert iszero(error)
 end
 
+"""
+    function Init!(args)
 
+Initialize Petsc library.
+"""
 function Init!(args)
     Init!(args, "", "")
 end
 
 
+"""
+    function Init!(args::Vector{String}, filename::String, help::String)
+
+Initialize Petsc library.
+"""
 function Init!(args::Vector{String}, filename::String, help::String)
     args = ["julia";args];
 
@@ -79,6 +120,11 @@ function Init!(args::Vector{String}, filename::String, help::String)
 end
 
 
+"""
+    function Finalize!()
+
+Finalize Petsc library.
+"""
 function Finalize!()
     if (!PetscFinalized()) 
         error = PetscFinalize!() 

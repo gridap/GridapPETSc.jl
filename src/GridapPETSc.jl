@@ -20,6 +20,7 @@ export KSPCreate!
 export KSPCreate
 export KSPSetOperators!
 export KSPSolve!
+export KSPSolveTranspose!
 export KSPDestroy!
 
 # GridapPETSc datatypes
