@@ -29,6 +29,20 @@ function  MatCreateSeqAIJWithArrays!(
     return error
 end
 
+function  MatCreateSeqAIJWithArrays(
+        comm::MPI.Comm,
+        m::Int,
+        n::Int,
+        i::Vector{PetscInt},
+        j::Vector{PetscInt},
+        a::Vector{Float64})
+    Mat = PetscMat()
+    error = MatCreateSeqAIJWithArrays!(comm, m, n, i, j, a, Mat)
+    @assert iszero(error)
+    return Mat
+end
+
+
 function MatDestroy!(mat::PetscMat)
     error = ccall( 
             (:MatDestroy, PETSC_LIB), 

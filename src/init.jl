@@ -51,23 +51,22 @@ function PetscFinalize!()
 end
 
 
-function init!()
+function Init!()
     if (PetscInitialized()) 
         error = PetscFinalize!() 
         @assert iszero(error)
     end
-
     error = PetscInitializeNoArguments!()
     @assert iszero(error)
 end
 
 
-function init!(args)
-    init!(args, "", "")
+function Init!(args)
+    Init!(args, "", "")
 end
 
 
-function init!(args::Vector{String}, filename::String, help::String)
+function Init!(args::Vector{String}, filename::String, help::String)
     args = ["julia";args];
 
     if (PetscInitialized()) 
@@ -80,7 +79,7 @@ function init!(args::Vector{String}, filename::String, help::String)
 end
 
 
-function finalize!()
+function Finalize!()
     if (!PetscFinalized()) 
         error = PetscFinalize!() 
         @assert iszero(error)

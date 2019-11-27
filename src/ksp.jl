@@ -17,6 +17,12 @@ function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     return error
 end
 
+function KSPCreate(comm::MPI.Comm)
+    ksp = PetscKSP()
+    error = KSPCreate!(comm, ksp)
+    @assert iszero(error)
+    return ksp
+end
 
 function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     @check_if_loaded

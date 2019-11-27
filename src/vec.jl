@@ -26,6 +26,18 @@ function VecCreateSeqWithArray!(
     return error
 end
 
+
+function VecCreateSeqWithArray(
+        comm::MPI.Comm,
+        bs::Int,
+        n::Int,
+        array::Vector{PetscScalar})
+    Vec = PetscVec()
+    error = VecCreateSeqWithArray!(comm, bs, n, array, Vec)
+    @assert iszero(error)
+    return Vec
+end
+
 function VecDestroy!(vec::PetscVec)
     error = ccall( 
             (:VecDestroy, PETSC_LIB), 

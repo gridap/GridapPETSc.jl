@@ -5,16 +5,19 @@ using MPI
 
 # Mat
 export MatCreateSeqAIJWithArrays!
+export MatCreateSeqAIJWithArrays
 export MatDestroy!
 export MatView
 
 # Vec
 export VecCreateSeqWithArray!
+export VecCreateSeqWithArray
 export VecDestroy!
 export VecView
 
 # KSP
 export KSPCreate!
+export KSPCreate
 export KSPSetOperators!
 export KSPSolve!
 export KSPDestroy!

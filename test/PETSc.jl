@@ -18,37 +18,27 @@ J = Vector{GridapPETSc.PetscInt}()
 V = Vector{GridapPETSc.PetscScalar}()
 
 for (ik, jk, vk) in zip(I_, J_, V_)
-    push_coo!(SparseMatrixCSR,I,J,V,ik,jk,vk)
+    push_coo!(SparseMatrixCSR, I, J, V, ik, jk, vk)
 end
 
-A = sparsecsr(SparseMatrixCSR{0},I, J, V,m,n)
+A = sparsecsr(SparseMatrixCSR{0}, I, J, V, m, n)
 
-# Define vectors
-bvector = ones(GridapPETSc.PetscScalar,m)
-xvector = ones(GridapPETSc.PetscScalar,n)
-
-# Define PETSc data types wrappers
-Mat = PetscMat()
-b   = PetscVec()
-x   = PetscVec()
-Ksp = PetscKSP()
+# Define native Julia vectors
+B = ones(GridapPETSc.PetscScalar, m)
+X = ones(GridapPETSc.PetscScalar, n)
 
 #####################################
 # PETSc basic workflow
 #####################################
 # Initialization
 MPI.Init()
-GridapPETSc.init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
+GridapPETSc.Init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
 
 # Create objects
-error = VecCreateSeqWithArray!(MPI.COMM_SELF,1,m,bvector,b)
-@test iszero(error)
-error = VecCreateSeqWithArray!(MPI.COMM_SELF,1,n,xvector,x)
-@test iszero(error)
-error = MatCreateSeqAIJWithArrays!(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A), Mat)
-@test iszero(error)
-error = KSPCreate!(MPI.COMM_SELF, Ksp)
-@test iszero(error)
+b = VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
+x = VecCreateSeqWithArray(MPI.COMM_SELF, 1, n, X)
+Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A))
+Ksp = KSPCreate(MPI.COMM_SELF)
 
 # Show data objects
 error = VecView(x)
@@ -64,7 +54,7 @@ error = KSPSetOperators!(Ksp, Mat, Mat)
 error = KSPSolve!(Ksp, b, x)
 @test iszero(error)
 
-@test maximum(abs.(A*xvector-bvector)) < tol
+@test maximum(abs.(A*X-B)) < tol
 
 # Destroy objects
 error = KSPDestroy!(Ksp)
@@ -77,5 +67,5 @@ error = VecDestroy!(x)
 @test iszero(error)
 
 # Finlization
-GridapPETSc.finalize!()
+GridapPETSc.Finalize!()
 MPI.Finalize()
