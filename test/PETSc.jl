@@ -41,27 +41,40 @@ MPI.Init()
 GridapPETSc.init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
 
 # Create objects
-VecCreateSeqWithArray!(MPI.COMM_SELF,1,m,bvector,b)
-VecCreateSeqWithArray!(MPI.COMM_SELF,1,n,xvector,x)
-MatCreateSeqAIJWithArrays!(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A), Mat)
-KSPCreate!(MPI.COMM_SELF, Ksp)
+error = VecCreateSeqWithArray!(MPI.COMM_SELF,1,m,bvector,b)
+@test iszero(error)
+error = VecCreateSeqWithArray!(MPI.COMM_SELF,1,n,xvector,x)
+@test iszero(error)
+error = MatCreateSeqAIJWithArrays!(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A), Mat)
+@test iszero(error)
+error = KSPCreate!(MPI.COMM_SELF, Ksp)
+@test iszero(error)
 
 # Show data objects
-VecView(x)
-VecView(b)
-MatView(Mat)
+error = VecView(x)
+@test iszero(error)
+error = VecView(b)
+@test iszero(error)
+error = MatView(Mat)
+@test iszero(error)
 
 # Solve
-KSPSetOperators!(Ksp, Mat, Mat)
-KSPSolve!(Ksp, b, x)
+error = KSPSetOperators!(Ksp, Mat, Mat)
+@test iszero(error)
+error = KSPSolve!(Ksp, b, x)
+@test iszero(error)
 
 @test maximum(abs.(A*xvector-bvector)) < tol
 
 # Destroy objects
-KSPDestroy!(Ksp)
-MatDestroy!(Mat)
-VecDestroy!(b)
-VecDestroy!(x)
+error = KSPDestroy!(Ksp)
+@test iszero(error)
+error = MatDestroy!(Mat)
+@test iszero(error)
+error = VecDestroy!(b)
+@test iszero(error)
+error = VecDestroy!(x)
+@test iszero(error)
 
 # Finlization
 GridapPETSc.finalize!()

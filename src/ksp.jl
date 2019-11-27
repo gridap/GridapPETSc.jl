@@ -1,8 +1,6 @@
 
 struct PetscKSP
-
     ksp::Ref{Ptr{Cvoid}}
-
     function PetscKSP()
         ksp = Ref{Ptr{Cvoid}}()
         new(ksp)
@@ -18,7 +16,6 @@ function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
         comm, ksp.ksp)
     return error
 end
-
 
 
 function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)

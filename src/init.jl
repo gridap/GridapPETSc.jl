@@ -33,30 +33,32 @@ function PetscInitializeNoPointers!(args::Vector{String}, filename::String, help
                 Cstring, 
                 Cstring), 
             nargs, args, filename, help)
-    @assert iszero(error)
+    return error
 end
 
 
 function PetscInitializeNoArguments!()
     @check_if_loaded
     error = ccall( PetscInitializeNoArguments_ptr[], Int, ())
-    @assert iszero(error)
+    return error
 end
 
 
 function PetscFinalize!()
     @check_if_loaded
     error = ccall( PetscFinalize_ptr[], Int, ())
-    @assert iszero(error)
+    return error
 end
 
 
 function init!()
     if (PetscInitialized()) 
-        PetscFinalize!() 
+        error = PetscFinalize!() 
+        @assert iszero(error)
     end
 
-    PetscInitializeNoArguments!()
+    error = PetscInitializeNoArguments!()
+    @assert iszero(error)
 end
 
 
@@ -69,16 +71,19 @@ function init!(args::Vector{String}, filename::String, help::String)
     args = ["julia";args];
 
     if (PetscInitialized()) 
-        PetscFinalize!() 
+        error = PetscFinalize!() 
+        @assert iszero(error)
     end
 
-    PetscInitializeNoPointers!(args,filename,help);
+    error = PetscInitializeNoPointers!(args,filename,help);
+    @assert iszero(error)
 end
 
 
 function finalize!()
     if (!PetscFinalized()) 
-        PetscFinalize!() 
+        error = PetscFinalize!() 
+        @assert iszero(error)
     end
 end
 

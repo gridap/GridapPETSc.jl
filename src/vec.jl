@@ -23,7 +23,7 @@ function VecCreateSeqWithArray!(
                 Ptr{PetscScalar},
                 Ptr{Cvoid}),
             comm, bs, n, array, vec.vec)
-    @assert iszero(error)
+    return error
 end
 
 function VecDestroy!(vec::PetscVec)
@@ -32,10 +32,16 @@ function VecDestroy!(vec::PetscVec)
             PetscErrorCode, 
                 (Ptr{Cvoid},), 
             vec.vec)
-    @assert iszero(error)
+    return error
 end
 
 function VecView(vec::PetscVec, viewer::PetscViewer=C_NULL)
-  error = ccall( ( :VecView,  PETSC_LIB), PetscErrorCode, (Ptr{Cvoid},Int64),vec.vec[],viewer);
+    error = ccall( 
+        ( :VecView, PETSC_LIB), 
+            PetscErrorCode, 
+                (Ptr{Cvoid},
+                Int64),
+            vec.vec[],viewer);
+    return error
 end
 

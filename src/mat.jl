@@ -26,7 +26,7 @@ function  MatCreateSeqAIJWithArrays!(
                 Ptr{PetscScalar},
                 Ptr{Cvoid}),
             comm, m, n, i, j, a, mat.mat)
-    @assert iszero(error)
+    return error
 end
 
 function MatDestroy!(mat::PetscMat)
@@ -35,7 +35,7 @@ function MatDestroy!(mat::PetscMat)
             PetscErrorCode, 
                 (Ptr{Cvoid},), 
             mat.mat)
-    @assert iszero(error)
+    return error
 end
 
 
@@ -46,6 +46,6 @@ function MatView(mat::PetscMat, viewer::PetscViewer=C_NULL)
                 (Ptr{Cvoid}, 
                 Ptr{Cvoid}), 
             mat.mat[], viewer);
-    @assert iszero(error)
+    return error
 end
 
