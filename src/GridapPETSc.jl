@@ -2,6 +2,14 @@ module GridapPETSc
 
 using Libdl
 using MPI
+using SparseArrays
+using SparseMatricesCSR
+
+# LinearSolver
+import Gridap: LinearSolver
+import Gridap: symbolic_setup, SymbolicSetup
+import Gridap: numerical_setup, numerical_setup!, NumericalSetup
+import Gridap: solve, solve!
 
 # Mat
 export MatCreateSeqAIJWithArrays!
@@ -27,6 +35,9 @@ export KSPDestroy!
 export PetscMat
 export PetscVec
 export PetscKSP
+export PETScSolver
+export PETScSymbolicSetup
+export PETScNumericalSetup
 
 include("load.jl")
 include("const.jl")
@@ -34,5 +45,6 @@ include("init.jl")
 include("vec.jl")
 include("mat.jl")
 include("ksp.jl")
+include("LinearSolver.jl")
 
 end # module
