@@ -76,27 +76,26 @@ solve!(x, ns, b)
 #                                            11.d0,        &
 #                                                   5.d0 /)
 #####################################################
-#I_ = [1,1,1,1,2,2,2,3,3,4,4,5,5,5,6,6,7,8] 
-#J_ = [1,3,6,7,2,3,5,3,8,4,7,5,6,7,6,8,7,8]
-#V_ = [7,1,2,7,-4,8,2,1,5,7,9,5,1,5,-1,5,11,5]
-#m  = 8
-#n  = 8
-#
+I_ = [1,1,1,1,2,2,2,3,3,4,4,5,5,5,6,6,7,8] 
+J_ = [1,3,6,7,2,3,5,3,8,4,7,5,6,7,6,8,7,8]
+V_ = [7,1,2,7,-4,8,2,1,5,7,9,5,1,5,-1,5,11,5]
+m  = 8
+n  = 8
+
 # PETSC! 
-#I = Vector{GridapPETSc.PetscInt}(); J = Vector{GridapPETSc.PetscInt}(); V = Vector{GridapPETSc.PetscScalar}()
-#for (ik, jk, vk) in zip(I_, J_, V_)
-#    push_coo!(SymSparseMatrixCSR, I, J, V, ik, jk, vk)
-#end
-#finalize_coo!(SymSparseMatrixCSR, I, J, V, m, n)
-#A = symsparsecsr(SymSparseMatrixCSR{0}, I, J, V, m, n)
-#b = ones(size(A,2))
-#x = similar(b)
-#Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A))
-#ps = PETScSolver()
-#ss = symbolic_setup(ps, Mat)
-#ns = numerical_setup(ss, Mat)
-#solve!(x, ns, b)
-#@test maximum(abs.(A*x-b)) < tol
+I = Vector{GridapPETSc.PetscInt}(); J = Vector{GridapPETSc.PetscInt}(); V = Vector{GridapPETSc.PetscScalar}()
+for (ik, jk, vk) in zip(I_, J_, V_)
+    push_coo!(SymSparseMatrixCSR, I, J, V, ik, jk, vk)
+end
+finalize_coo!(SymSparseMatrixCSR, I, J, V, m, n)
+A = symsparsecsr(SymSparseMatrixCSR{0}, I, J, V, m, n)
+b = ones(size(A,2))
+x = similar(b)
+ps = PETScSolver()
+ss = symbolic_setup(ps, A)
+ns = numerical_setup(ss, A)
+solve!(x, ns, b)
+@test maximum(abs.(A*x-b)) < tol
 #test_linear_solver(ps, A, b, x)
 
 GridapPETSc.Finalize!()

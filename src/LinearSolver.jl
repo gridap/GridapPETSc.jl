@@ -18,7 +18,7 @@ end
 
 function PETScSymbolicSetup(mat::AbstractSparseMatrix{PetscScalar,PetscInt}, solver::PETScSolver)
     m, n = size(mat)
-    Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     PetscSymbolicSetyp(Mat, solver)
 end
 
@@ -29,9 +29,19 @@ end
 
 function symbolic_setup(
         ps::PETScSolver, 
-        mat::AbstractSparseMatrix{PetscScalar,PetscInt})
+        mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
-    Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    error = KSPSetOperators!(ps.ksp, Mat, Mat)
+    @assert iszero(error)
+    return PETScSymbolicSetup(Mat, ps)
+end
+
+function symbolic_setup(
+        ps::PETScSolver, 
+        mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
+    m, n = size(mat)
+    Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     error = KSPSetOperators!(ps.ksp, Mat, Mat)
     @assert iszero(error)
     return PETScSymbolicSetup(Mat, ps)
@@ -45,12 +55,20 @@ end
 
 function numerical_setup(
         pss::PETScSymbolicSetup, 
-        mat::AbstractSparseMatrix{PetscScalar,PetscInt})
+        mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
-    Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
 end
 
+
+function numerical_setup(
+        pss::PETScSymbolicSetup, 
+        mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
+    m, n = size(mat)
+    Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
+end
 
 function solve!(
         x::Vector{PetscScalar}, 
