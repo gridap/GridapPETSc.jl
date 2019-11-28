@@ -147,8 +147,7 @@ Frees space taken by a matrix.
 function MatDestroy!(mat::PetscMat)
     @check_if_loaded
     @check_if_initialized
-    error = ccall( 
-            (:MatDestroy, PETSC_LIB), 
+    error = ccall( MatDestroy_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid},), 
             mat.mat)
@@ -163,12 +162,13 @@ Visualizes a matrix object.
 function MatView(mat::PetscMat, viewer::PetscViewer=C_NULL)
     @check_if_loaded
     @check_if_initialized
-    error = ccall( 
-            (:MatView,  PETSC_LIB), 
+    error = ccall( MatView_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid}, 
                 Ptr{Cvoid}), 
             mat.mat[], viewer);
     return error
 end
+
+
 

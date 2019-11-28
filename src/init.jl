@@ -21,8 +21,7 @@ Determine whether PETSc is initialized.
 """
 function PetscInitialized()
     init = Array{PetscBool}(undef,1);
-    error = ccall( 
-        (:PetscInitialized,  PETSC_LIB),
+    error = ccall( PetscInitialized_ptr[],
             PetscErrorCode, 
                 (Ptr{PetscBool},), 
             init);
@@ -37,8 +36,7 @@ Determine whether PetscFinalize() has been called yet
 """
 function PetscFinalized()
     init = Array{PetscBool}(undef,1);
-    error = ccall( 
-        (:PetscFinalized,  PETSC_LIB),
+    error = ccall( PetscFinalized_ptr[],
             PetscErrorCode, 
                 (Ptr{PetscBool},), 
             init);
@@ -59,8 +57,7 @@ of trying to initialize MPI more than once.
 """
 function PetscInitializeNoPointers!(args::Vector{String}, filename::String, help::String)
     nargs = Cint(length(args))
-    error = ccall(
-        (:PetscInitializeNoPointers, PETSC_LIB), 
+    error = ccall( PetscInitializeNoPointers_ptr[],
             PetscErrorCode, 
                 (Cint, 
                 Ptr{Ptr{UInt8}}, 

@@ -26,8 +26,7 @@ function VecCreateSeqWithArray!(
         vec::PetscVec)
     @check_if_loaded
     @check_if_initialized
-    error = ccall( 
-        VecCreateSeqWithArray_ptr[],
+    error = ccall( VecCreateSeqWithArray_ptr[],
             PetscErrorCode,
                 (MPI.Comm,
                 PetscInt,
@@ -67,8 +66,7 @@ Destroys a vector.
 function VecDestroy!(vec::PetscVec)
     @check_if_loaded
     @check_if_initialized
-    error = ccall( 
-            (:VecDestroy, PETSC_LIB), 
+    error = ccall( VecDestroy_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid},), 
             vec.vec)
@@ -83,8 +81,7 @@ Views a vector object.
 function VecView(vec::PetscVec, viewer::PetscViewer=C_NULL)
     @check_if_loaded
     @check_if_initialized
-    error = ccall( 
-        ( :VecView, PETSC_LIB), 
+    error = ccall( VecView_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid},
                 Int64),
