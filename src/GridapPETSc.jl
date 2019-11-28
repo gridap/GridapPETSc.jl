@@ -12,8 +12,10 @@ import Gridap: numerical_setup, numerical_setup!, NumericalSetup
 import Gridap: solve, solve!
 
 # Mat
-export MatCreateSeqAIJWithArrays!
-export MatCreateSeqAIJWithArrays
+export MatCreateSeqBAIJWithArrays!
+export MatCreateSeqBAIJWithArrays
+export MatCreateSeqSBAIJWithArrays!
+export MatCreateSeqSBAIJWithArrays
 export MatDestroy!
 export MatView
 

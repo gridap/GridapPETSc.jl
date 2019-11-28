@@ -36,7 +36,7 @@ GridapPETSc.Init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_v
 # Create objects
 b = VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
 x = VecCreateSeqWithArray(MPI.COMM_SELF, 1, n, X)
-Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A))
+Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(A), getindices(A), nonzeros(A))
 Ksp = KSPCreate(MPI.COMM_SELF)
 
 # Show data objects
