@@ -4,8 +4,10 @@ using Libdl
 using MPI
 
 # Mat
-export MatCreateSeqAIJWithArrays!
-export MatCreateSeqAIJWithArrays
+export MatCreateSeqBAIJWithArrays!
+export MatCreateSeqBAIJWithArrays
+export MatCreateSeqSBAIJWithArrays!
+export MatCreateSeqSBAIJWithArrays
 export MatDestroy!
 export MatView
 

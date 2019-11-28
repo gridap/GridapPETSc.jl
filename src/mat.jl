@@ -8,8 +8,9 @@ struct PetscMat
 end
 
 """
-    function  MatCreateSeqAIJWithArrays!(
+    function  MatCreateSeqBAIJWithArrays!(
         comm::MPI.Comm,
+        bs::Int,
         m::Int,
         n::Int,
         i::Vector{PetscInt},
@@ -17,10 +18,12 @@ end
         a::Vector{PetscScalar},
         mat::PetscMat)
 
-Creates a sequential AIJ matrix using matrix elements (in CSR format) provided by the user. 
+Creates a sequential block AIJ matrix using matrix elements 
+(in CSR format) provided by the user. 
 """
-function  MatCreateSeqAIJWithArrays!(
+function  MatCreateSeqBAIJWithArrays!(
         comm::MPI.Comm,
+        bs::Int,
         m::Int,
         n::Int,
         i::Vector{PetscInt},
@@ -28,39 +31,108 @@ function  MatCreateSeqAIJWithArrays!(
         a::Vector{PetscScalar},
         mat::PetscMat)
     @check_if_loaded
-    error = ccall( MatCreateSeqAIJWithArrays_ptr[],
+    error = ccall( MatCreateSeqBAIJWithArrays_ptr[],
             PetscErrorCode,
                 (MPI.Comm,
+                PetscInt,
                 PetscInt,
                 PetscInt,
                 Ptr{PetscInt},
                 Ptr{PetscInt},
                 Ptr{PetscScalar},
                 Ptr{Cvoid}),
-            comm, m, n, i, j, a, mat.mat)
+            comm, bs, m, n, i, j, a, mat.mat)
     return error
 end
 
 """
-    function  MatCreateSeqAIJWithArrays(
+    function  MatCreateSeqBAIJWithArrays(
         comm::MPI.Comm,
+        bs::Int,
         m::Int,
         n::Int,
         i::Vector{PetscInt},
         j::Vector{PetscInt},
         a::Vector{PetscScalar})
 
-Returns a sequential AIJ matrix using matrix elements (in CSR format) provided by the user. 
+Returns a sequential block AIJ matrix using matrix elements 
+(in CSR format) provided by the user. 
 """
-function  MatCreateSeqAIJWithArrays(
+function  MatCreateSeqBAIJWithArrays(
         comm::MPI.Comm,
+        bs::Int,
         m::Int,
         n::Int,
         i::Vector{PetscInt},
         j::Vector{PetscInt},
         a::Vector{PetscScalar})
     Mat = PetscMat()
-    error = MatCreateSeqAIJWithArrays!(comm, m, n, i, j, a, Mat)
+    error = MatCreateSeqBAIJWithArrays!(comm, bs, m, n, i, j, a, Mat)
+    @assert iszero(error)
+    return Mat
+end
+
+"""
+    function  MatCreateSeqSBAIJWithArrays!(
+        comm::MPI.Comm,
+        bs::Int,
+        m::Int,
+        n::Int,
+        i::Vector{PetscInt},
+        j::Vector{PetscInt},
+        a::Vector{PetscScalar},
+        mat::PetscMat)
+
+Creates a sequential symmetric block AIJ matrix using 
+matrix elements (in CSR format) provided by the user. 
+"""
+function  MatCreateSeqSBAIJWithArrays!(
+        comm::MPI.Comm,
+        bs::Int,
+        m::Int,
+        n::Int,
+        i::Vector{PetscInt},
+        j::Vector{PetscInt},
+        a::Vector{PetscScalar},
+        mat::PetscMat)
+    @check_if_loaded
+    error = ccall( MatCreateSeqSBAIJWithArrays_ptr[],
+            PetscErrorCode,
+                (MPI.Comm,
+                PetscInt,
+                PetscInt,
+                PetscInt,
+                Ptr{PetscInt},
+                Ptr{PetscInt},
+                Ptr{PetscScalar},
+                Ptr{Cvoid}),
+            comm, bs, m, n, i, j, a, mat.mat)
+    return error
+end
+
+"""
+    function  MatCreateSeqSBAIJWithArrays(
+        comm::MPI.Comm,
+        bs::Int,
+        m::Int,
+        n::Int,
+        i::Vector{PetscInt},
+        j::Vector{PetscInt},
+        a::Vector{PetscScalar})
+
+Returns a sequential symmetric block AIJ matrix using 
+matrix elements (in CSR format) provided by the user. 
+"""
+function  MatCreateSeqSBAIJWithArrays(
+        comm::MPI.Comm,
+        bs::Int,
+        m::Int,
+        n::Int,
+        i::Vector{PetscInt},
+        j::Vector{PetscInt},
+        a::Vector{PetscScalar})
+    Mat = PetscMat()
+    error = MatCreateSeqSBAIJWithArrays!(comm, bs, m, n, i, j, a, Mat)
     @assert iszero(error)
     return Mat
 end
