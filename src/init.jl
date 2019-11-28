@@ -1,3 +1,19 @@
+macro check_if_mpi_initialized()
+  quote
+    if ! MPI.Initialized()
+        error("MPI is not initialized. Please use MPI.Init() method.")
+    end
+  end
+end
+
+macro check_if_initialized()
+  quote
+    if ! PetscInitialized()
+      error("PETSc is not initialized. Please use GridapPETSc.Init!() method.")
+    end
+  end
+end
+
 """
     function PetscInitialized()
 
@@ -84,6 +100,7 @@ end
 Initialize Petsc library.
 """
 function Init!()
+    @check_if_mpi_initialized
     if (PetscInitialized()) 
         error = PetscFinalize!() 
         @assert iszero(error)
@@ -108,13 +125,12 @@ end
 Initialize Petsc library.
 """
 function Init!(args::Vector{String}, filename::String, help::String)
-    args = ["julia";args];
-
+    @check_if_mpi_initialized
     if (PetscInitialized()) 
         error = PetscFinalize!() 
         @assert iszero(error)
     end
-
+    args = ["julia";args];
     error = PetscInitializeNoPointers!(args,filename,help);
     @assert iszero(error)
 end
@@ -131,6 +147,4 @@ function Finalize!()
         @assert iszero(error)
     end
 end
-
-
 

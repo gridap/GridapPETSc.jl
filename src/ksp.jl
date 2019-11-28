@@ -14,6 +14,7 @@ Creates the default KSP context.
 """
 function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( KSPCreate_ptr[],
         PetscInt,
             (MPI.Comm,
@@ -41,6 +42,7 @@ Sets the matrix associated with the linear system and a (possibly) different one
 """
 function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( KSPSetOperators_ptr[],
         PetscErrorCode,
             (Ptr{Cvoid},
@@ -57,6 +59,7 @@ Solves linear system.
 """
 function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( KSPSolve_ptr[],
         PetscErrorCode,
             (Ptr{Cvoid},
@@ -73,6 +76,7 @@ Solves the transpose of a linear system.
 """
 function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( KSPSolveTranspose_ptr[],
         PetscErrorCode,
             (Ptr{Cvoid},
@@ -89,6 +93,7 @@ Destroys KSP context.
 """
 function KSPDestroy!(ksp::PetscKSP)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( KSPDestroy_ptr[],
         PetscErrorCode,
             (Ptr{Ptr{Cvoid}},),
