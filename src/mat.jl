@@ -31,6 +31,7 @@ function  MatCreateSeqBAIJWithArrays!(
         a::Vector{PetscScalar},
         mat::PetscMat)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( MatCreateSeqBAIJWithArrays_ptr[],
             PetscErrorCode,
                 (MPI.Comm,
@@ -96,6 +97,7 @@ function  MatCreateSeqSBAIJWithArrays!(
         a::Vector{PetscScalar},
         mat::PetscMat)
     @check_if_loaded
+    @check_if_initialized
     error = ccall( MatCreateSeqSBAIJWithArrays_ptr[],
             PetscErrorCode,
                 (MPI.Comm,
@@ -143,8 +145,9 @@ end
 Frees space taken by a matrix. 
 """
 function MatDestroy!(mat::PetscMat)
-    error = ccall( 
-            (:MatDestroy, PETSC_LIB), 
+    @check_if_loaded
+    @check_if_initialized
+    error = ccall( MatDestroy_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid},), 
             mat.mat)
@@ -157,12 +160,15 @@ end
 Visualizes a matrix object. 
 """
 function MatView(mat::PetscMat, viewer::PetscViewer=C_NULL)
-    error = ccall( 
-            (:MatView,  PETSC_LIB), 
+    @check_if_loaded
+    @check_if_initialized
+    error = ccall( MatView_ptr[],
             PetscErrorCode, 
                 (Ptr{Cvoid}, 
                 Ptr{Cvoid}), 
             mat.mat[], viewer);
     return error
 end
+
+
 
