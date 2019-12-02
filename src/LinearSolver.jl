@@ -29,13 +29,11 @@ function numerical_setup!(
         pns::PETScNumericalSetup, 
         mat::PetscMat)
     if pns.mat.mat[] != mat.mat[] 
-        if !(MatGetSize(mat) == MatGetSize(pns.mat) && MatEqual(mat, pns.mat))
-            error = MatDestroy!(pns.mat)
-            @assert iszero(error)
-            pns.mat.mat[] = Mat.mat[]
-            error = KSPSetOperators!(pns.solver.ksp, Mat, Mat)
-            @assert iszero(error)
-        end
+        error = MatDestroy!(pns.mat)
+        @assert iszero(error)
+        pns.mat.mat[] = mat.mat[]
+        error = KSPSetOperators!(pns.solver.ksp, mat, mat)
+        @assert iszero(error)
     end
     return pns
 end
@@ -61,8 +59,6 @@ function numerical_setup(
         mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
-    error = KSPSetOperators!(pss.solver.ksp, Mat, Mat)
-    @assert iszero(error)
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
 end
 
@@ -71,8 +67,6 @@ function numerical_setup(
         mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
-    error = KSPSetOperators!(pss.solver.ksp, Mat, Mat)
-    @assert iszero(error)
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
 end
 
