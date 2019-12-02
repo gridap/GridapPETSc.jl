@@ -31,7 +31,7 @@ X = ones(GridapPETSc.PetscScalar, n)
 # PETSc basic workflow
 #####################################
 # Initialization
-GridapPETSc.Init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
+GridapPETSc.init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
 
 # Create objects
 b = GridapPETSc.VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
@@ -66,5 +66,5 @@ error = GridapPETSc.VecDestroy!(x)
 @test iszero(error)
 
 # Finalization
-GridapPETSc.Finalize!()
+GridapPETSc.finalize!()
 

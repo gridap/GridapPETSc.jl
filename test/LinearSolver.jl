@@ -9,7 +9,7 @@ using Test
 
 tol = 1.0e-13
 
-GridapPETSc.Init!()
+GridapPETSc.init!()
 #####################################################
 # SparseMatrixCSR
 #####################################################
@@ -100,5 +100,5 @@ solve!(x, ns, b)
 @test maximum(abs.(A*x-b)) < tol
 #test_linear_solver(ps, A, b, x)
 
-GridapPETSc.Finalize!()
+GridapPETSc.finalize!()
 end
