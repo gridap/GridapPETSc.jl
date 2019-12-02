@@ -104,6 +104,7 @@ function Init!()
     end
     error = PetscInitializeNoArguments!()
     @assert iszero(error)
+    atexit(Finalize!)
 end
 
 """
@@ -130,6 +131,7 @@ function Init!(args::Vector{String}, filename::String, help::String)
     args = ["julia";args];
     error = PetscInitializeNoPointers!(args,filename,help);
     @assert iszero(error)
+    atexit(Finalize!)
 end
 
 
