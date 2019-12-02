@@ -140,6 +140,45 @@ function  MatCreateSeqSBAIJWithArrays(
 end
 
 """
+    function MatGetSize(A::PetscMat)
+
+Returns the numbers of rows and columns in a matrix.
+"""
+function MatGetSize(A::PetscMat)
+    @check_if_loaded
+    @check_if_initialized
+    m = Vector{PetscInt}(undef,1)
+    n = Vector{PetscInt}(undef,1)
+    error = ccall( MatGetSize_ptr[],
+            PetscErrorCode, 
+                (Ptr{Cvoid},
+                Ptr{PetscInt},
+                Ptr{PetscInt}), 
+            A.mat[], m, n)
+    @assert iszero(error)
+    return (m[1], n[1])
+end
+
+"""
+    function MatEqual!(A::PetscMat, B::PetscMat)
+
+Compare two matrices.
+"""
+function MatEqual(A::PetscMat, B::PetscMat)
+    @check_if_loaded
+    @check_if_initialized
+    is_equal = Vector{PetscBool}(undef,1)
+    error = ccall( MatEqual_ptr[],
+            PetscErrorCode, 
+                (Ptr{Cvoid},
+                Ptr{Cvoid},
+                Ptr{PetscBool}), 
+            A.mat[], B.mat[], is_equal)
+    @assert iszero(error)
+    return is_equal[1] == PETSC_TRUE
+end
+
+"""
     function MatDestroy!(mat::PetscMat)
 
 Frees space taken by a matrix. 
