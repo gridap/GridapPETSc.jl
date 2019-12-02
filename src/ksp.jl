@@ -36,6 +36,36 @@ function KSPCreate(comm::MPI.Comm)
 end
 
 """
+    function KSPSetFromOptions!(ksp::PetscKSP)
+
+Sets KSP options from the options database.
+"""
+function KSPSetFromOptions!(ksp::PetscKSP)
+    @check_if_loaded
+    @check_if_initialized
+    error = ccall( KSPSetFromOptions_ptr[],
+        PetscErrorCode,
+            (Ptr{Cvoid},),
+        ksp.ksp[])
+    return error
+end
+
+"""
+    function KSPSetUp!(ksp::PetscKSP)
+
+Sets up the internal data structures for the later use of an iterative solver.
+"""
+function KSPSetUp!(ksp::PetscKSP)
+    @check_if_loaded
+    @check_if_initialized
+    error = ccall( KSPSetUp_ptr[],
+        PetscErrorCode,
+            (Ptr{Cvoid},),
+        ksp.ksp[])
+    return error
+end
+
+"""
     function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
 
 Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner. 

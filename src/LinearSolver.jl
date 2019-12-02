@@ -34,6 +34,10 @@ function numerical_setup!(
         pns.mat.mat[] = mat.mat[]
         error = KSPSetOperators!(pns.solver.ksp, mat, mat)
         @assert iszero(error)
+        error = KSPSetFromOptions!(pns.solver.ksp)
+        @assert iszero(error)
+        error = KSPSetUp!(pns.solver.ksp)
+        @assert iszero(error)
     end
     return pns
 end

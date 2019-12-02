@@ -50,6 +50,10 @@ error = GridapPETSc.MatView(Mat)
 # Solve
 error = GridapPETSc.KSPSetOperators!(Ksp, Mat, Mat)
 @test iszero(error)
+error = GridapPETSc.KSPSetFromOptions!(Ksp)
+@test iszero(error)
+error = GridapPETSc.KSPSetUp!(Ksp)
+@test iszero(error)
 error = GridapPETSc.KSPSolve!(Ksp, b, x)
 @test iszero(error)
 
