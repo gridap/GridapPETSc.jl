@@ -34,35 +34,35 @@ X = ones(GridapPETSc.PetscScalar, n)
 GridapPETSc.Init!(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_view", "::ascii_info_detail"]) 
 
 # Create objects
-b = VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
-x = VecCreateSeqWithArray(MPI.COMM_SELF, 1, n, X)
-Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(A), getindices(A), nonzeros(A))
-Ksp = KSPCreate(MPI.COMM_SELF)
+b = GridapPETSc.VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
+x = GridapPETSc.VecCreateSeqWithArray(MPI.COMM_SELF, 1, n, X)
+Mat = GridapPETSc.MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(A), getindices(A), nonzeros(A))
+Ksp = GridapPETSc.KSPCreate(MPI.COMM_SELF)
 
 # Show data objects
-error = VecView(x)
+error = GridapPETSc.VecView(x)
 @test iszero(error)
-error = VecView(b)
+error = GridapPETSc.VecView(b)
 @test iszero(error)
-error = MatView(Mat)
+error = GridapPETSc.MatView(Mat)
 @test iszero(error)
 
 # Solve
-error = KSPSetOperators!(Ksp, Mat, Mat)
+error = GridapPETSc.KSPSetOperators!(Ksp, Mat, Mat)
 @test iszero(error)
-error = KSPSolve!(Ksp, b, x)
+error = GridapPETSc.KSPSolve!(Ksp, b, x)
 @test iszero(error)
 
 @test maximum(abs.(A*X-B)) < tol
 
 # Destroy objects
-error = KSPDestroy!(Ksp)
+error = GridapPETSc.KSPDestroy!(Ksp)
 @test iszero(error)
-error = MatDestroy!(Mat)
+error = GridapPETSc.MatDestroy!(Mat)
 @test iszero(error)
-error = VecDestroy!(b)
+error = GridapPETSc.VecDestroy!(b)
 @test iszero(error)
-error = VecDestroy!(x)
+error = GridapPETSc.VecDestroy!(x)
 @test iszero(error)
 
 # Finalization

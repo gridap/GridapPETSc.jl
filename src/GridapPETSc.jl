@@ -12,31 +12,31 @@ import Gridap: numerical_setup, numerical_setup!, NumericalSetup
 import Gridap: solve, solve!
 
 # Mat
-export MatCreateSeqBAIJWithArrays!
-export MatCreateSeqBAIJWithArrays
-export MatCreateSeqSBAIJWithArrays!
-export MatCreateSeqSBAIJWithArrays
-export MatDestroy!
-export MatView
+#export MatCreateSeqBAIJWithArrays!
+#export MatCreateSeqBAIJWithArrays
+#export MatCreateSeqSBAIJWithArrays!
+#export MatCreateSeqSBAIJWithArrays
+#export MatDestroy!
+#export MatView
 
 # Vec
-export VecCreateSeqWithArray!
-export VecCreateSeqWithArray
-export VecDestroy!
-export VecView
+#export VecCreateSeqWithArray!
+#export VecCreateSeqWithArray
+#export VecDestroy!
+#export VecView
 
 # KSP
-export KSPCreate!
-export KSPCreate
-export KSPSetOperators!
-export KSPSolve!
-export KSPSolveTranspose!
-export KSPDestroy!
+#export KSPCreate!
+#export KSPCreate
+#export KSPSetOperators!
+#export KSPSolve!
+#export KSPSolveTranspose!
+#export KSPDestroy!
 
 # GridapPETSc datatypes
-export PetscMat
-export PetscVec
-export PetscKSP
+#export PetscMat
+#export PetscVec
+#export PetscKSP
 export PETScSolver
 export PETScSymbolicSetup
 export PETScNumericalSetup
