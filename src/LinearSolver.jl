@@ -11,15 +11,7 @@ PETScSolver() = PETScSolver(MPI.COMM_SELF)
 
 
 struct PETScSymbolicSetup <: SymbolicSetup 
-    mat :: PetscMat
     solver :: PETScSolver
-end
-
-
-function PETScSymbolicSetup(mat::AbstractSparseMatrix{PetscScalar,PetscInt}, solver::PETScSolver)
-    m, n = size(mat)
-    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
-    PetscSymbolicSetyp(Mat, solver)
 end
 
 struct PETScNumericalSetup <: NumericalSetup
@@ -29,28 +21,41 @@ end
 
 function symbolic_setup(
         ps::PETScSolver, 
-        mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
-    m, n = size(mat)
-    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
-    error = KSPSetOperators!(ps.ksp, Mat, Mat)
-    @assert iszero(error)
-    return PETScSymbolicSetup(Mat, ps)
-end
-
-function symbolic_setup(
-        ps::PETScSolver, 
-        mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
-    m, n = size(mat)
-    Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
-    error = KSPSetOperators!(ps.ksp, Mat, Mat)
-    @assert iszero(error)
-    return PETScSymbolicSetup(Mat, ps)
+        mat::AbstractSparseMatrix)
+    return PETScSymbolicSetup(ps)
 end
 
 function numerical_setup!(
         pns::PETScNumericalSetup, 
         mat::PetscMat)
+    if pns.mat.mat[] != mat.mat[] 
+        error = MatDestroy!(pns.mat)
+        @assert iszero(error)
+        pns.mat.mat[] = mat.mat[]
+        error = KSPSetOperators!(pns.solver.ksp, mat, mat)
+        @assert iszero(error)
+        error = KSPSetFromOptions!(pns.solver.ksp)
+        @assert iszero(error)
+        error = KSPSetUp!(pns.solver.ksp)
+        @assert iszero(error)
+    end
     return pns
+end
+
+function numerical_setup!(
+        pns::PETScNumericalSetup, 
+        mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
+    m, n = size(mat)
+    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    return numerical_setup!(pns, Mat)
+end
+
+function numerical_setup!(
+        pns::PETScNumericalSetup, 
+        mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
+    m, n = size(mat)
+    Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    return numerical_setup!(pns, Mat)
 end
 
 function numerical_setup(
@@ -60,7 +65,6 @@ function numerical_setup(
     Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
 end
-
 
 function numerical_setup(
         pss::PETScSymbolicSetup, 

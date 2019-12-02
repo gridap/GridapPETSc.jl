@@ -2,13 +2,21 @@ using GridapPETSc
 using MPI
 using Test
 
-if !MPI.Initialized()
-    MPI.Init()
-end
+# Skip tests if library was not properly loaded
+if GridapPETSc.PETSC_LOADED[]
+    if !MPI.Initialized()
+        MPI.Init()
+    end
 
-@testset "PETSc tests" begin include("PETSc.jl") end
-@testset "Linear Solver tests" begin include("LinearSolver.jl") end
+    @testset "PETSc tests" begin include("PETSc.jl") end
+    @testset "Linear Solver tests" begin include("LinearSolver.jl") end
 
-if MPI.Initialized() & !MPI.Finalized()
-    MPI.Finalize()
+    if MPI.Initialized() & !MPI.Finalized()
+        MPI.Finalize()
+    end
+else
+    @warn   """
+            PETSc library is not properly loaded. 
+            GridapPETSc tests are not going to be performed.
+            """
 end

@@ -9,7 +9,7 @@ using Test
 
 tol = 1.0e-13
 
-GridapPETSc.Init!()
+GridapPETSc.init!()
 #####################################################
 # SparseMatrixCSR
 #####################################################
@@ -48,6 +48,7 @@ x = similar(b)
 ps = PETScSolver()
 ss = symbolic_setup(ps, A)
 ns = numerical_setup(ss, A)
+ns = numerical_setup!(ns, A)
 solve!(x, ns, b)
 @test maximum(abs.(A*x-b)) < tol
 #test_linear_solver(ps, A, b, x)
@@ -94,9 +95,10 @@ x = similar(b)
 ps = PETScSolver()
 ss = symbolic_setup(ps, A)
 ns = numerical_setup(ss, A)
+ns = numerical_setup!(ns, A)
 solve!(x, ns, b)
 @test maximum(abs.(A*x-b)) < tol
 #test_linear_solver(ps, A, b, x)
 
-GridapPETSc.Finalize!()
+GridapPETSc.finalize!()
 end
