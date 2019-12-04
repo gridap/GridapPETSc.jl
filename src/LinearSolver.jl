@@ -44,10 +44,36 @@ end
 
 function numerical_setup!(
         pns::PETScNumericalSetup, 
+        mat::AbstractSparseMatrix)
+    GridapPETSC_mat_type = SparseMatrixCSR{0,PetscScalar,PetscInt}
+    mat_type = typeof(mat)
+    @warn """
+GridapPETSc internally works with $GridapPETSC_mat_type sparse matrices.
+If you want to avoid extra conversions, please use the GridapPETSc native sparse matrix type.
+Converting $mat_type to $GridapPETSC_mat_type...
+"""
+    return numerical_setup!(pns, convert(SparseMatrixCSR{0,PetscScalar,PetscInt}, mat))
+end
+
+function numerical_setup!(
+        pns::PETScNumericalSetup, 
         mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(pns, Mat)
+end
+
+function numerical_setup!(
+        pns::PETScNumericalSetup, 
+        mat::SymSparseMatrixCSR{1})
+    GridapPETSC_mat_type = SymSparseMatrixCSR{0,PetscScalar,PetscInt}
+    mat_type = typeof(mat)
+    @warn """
+GridapPETSc internally works with $GridapPETSC_mat_type sparse matrices.
+If you want to avoid extra conversions, please use the GridapPETSc native sparse matrix type.
+Converting $mat_type to $GridapPETSC_mat_type...
+"""
+    return numerical_setup!(pns, convert(SymSparseMatrixCSR{0,PetscScalar,PetscInt}, mat))
 end
 
 function numerical_setup!(
@@ -60,10 +86,36 @@ end
 
 function numerical_setup(
         pss::PETScSymbolicSetup, 
+        mat::AbstractSparseMatrix)
+    GridapPETSC_mat_type = SparseMatrixCSR{0,PetscScalar,PetscInt}
+    mat_type = typeof(mat)
+    @warn """
+GridapPETSc internally works with $GridapPETSC_mat_type sparse matrices.
+If you want to avoid extra conversions, please use the GridapPETSc native sparse matrix type.
+Converting $mat_type to $GridapPETSC_mat_type...
+"""
+    return numerical_setup(pss, convert(SparseMatrixCSR{0,PetscScalar,PetscInt}, mat))
+end
+
+function numerical_setup(
+        pss::PETScSymbolicSetup, 
         mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
+end
+
+function numerical_setup(
+        pss::PETScSymbolicSetup, 
+        mat::SymSparseMatrixCSR{1})
+    GridapPETSC_mat_type = SymSparseMatrixCSR{0,PetscScalar,PetscInt}
+    mat_type = typeof(mat)
+    @warn """
+GridapPETSc internally works with $GridapPETSC_mat_type sparse matrices.
+If you want to avoid extra conversions, please use the GridapPETSc native sparse matrix type.
+Converting $mat_type to $GridapPETSC_mat_type.
+"""
+    return numerical_setup(pss, convert(SymSparseMatrixCSR{0,PetscScalar,PetscInt}, mat))
 end
 
 function numerical_setup(
