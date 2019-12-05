@@ -83,6 +83,25 @@ function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
 end
 
 """
+    function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
+
+Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner. 
+"""
+function KSPSetTolerances!(ksp::PetscKSP, rtol::AbstractFloat, abstol::AbstractFloat, dtol::AbstractFloat, maxits::Integer)
+    @check_if_loaded
+    @check_if_initialized
+    error = ccall( KSPSetTolerances_ptr[],
+        PetscErrorCode,
+            (Ptr{Cvoid},
+            PetscReal,
+            PetscReal,
+            PetscReal,
+            PetscInt),
+        ksp.ksp[], rtol, abstol, dtol, maxits)
+    return error
+end
+
+"""
     function KSPSolve!(ksp::PetscKSP, b::PetscVec, x::PetscVec)
 
 Solves linear system.
