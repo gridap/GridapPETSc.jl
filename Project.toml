@@ -12,7 +12,7 @@ SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
 
 [compat]
 Gridap = "0.5.2"
-SparseMatricesCSR = "0.4.0"
+SparseMatricesCSR = "0.4.2"
 julia = "1.1"
 
 [extras]
