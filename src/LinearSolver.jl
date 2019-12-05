@@ -32,13 +32,13 @@ function numerical_setup!(
         error = MatDestroy!(pns.mat)
         @assert iszero(error)
         pns.mat.mat[] = mat.mat[]
-        error = KSPSetOperators!(pns.solver.ksp, mat, mat)
-        @assert iszero(error)
-        error = KSPSetFromOptions!(pns.solver.ksp)
-        @assert iszero(error)
-        error = KSPSetUp!(pns.solver.ksp)
-        @assert iszero(error)
     end
+    error = KSPSetOperators!(pns.solver.ksp, pns.mat, pns.mat)
+    @assert iszero(error)
+    error = KSPSetFromOptions!(pns.solver.ksp)
+    @assert iszero(error)
+    error = KSPSetUp!(pns.solver.ksp)
+    @assert iszero(error)
     return pns
 end
 
