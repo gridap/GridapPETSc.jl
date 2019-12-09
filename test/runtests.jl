@@ -1,9 +1,9 @@
 using GridapPETSc
-using MPI
 using Test
 
 # Skip tests if library was not properly loaded
 if GridapPETSc.PETSC_LOADED[]
+    using MPI
     if !MPI.Initialized()
         MPI.Init()
     end
