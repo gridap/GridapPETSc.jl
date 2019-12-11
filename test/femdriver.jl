@@ -3,6 +3,7 @@ module FEMDriver
 using Test
 using Gridap
 using GridapPETSc
+using SparseMatricesCSR
 
 tol = 1e-10
 
@@ -26,7 +27,7 @@ t_Ω = AffineFETerm(
   (v) -> inner(v, (x) -> x[1]*x[2] ),
   trian, quad)
 
-op = LinearFEOperator(V,U,t_Ω)
+op = LinearFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},V,U,t_Ω)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)

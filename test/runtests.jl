@@ -11,6 +11,7 @@ if GridapPETSc.PETSC_LOADED[]
     @testset "PETSc tests" begin include("PETSc.jl") end
     @testset "Linear Solver tests" begin include("LinearSolver.jl") end
     @testset "FEM driver" begin include("femdriver.jl") end
+    @testset "Symmetric Sparse Matrix FEM driver" begin include("symfemdriver.jl") end
 
     if MPI.Initialized() & !MPI.Finalized()
         MPI.Finalize()
