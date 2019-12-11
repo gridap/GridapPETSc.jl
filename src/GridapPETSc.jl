@@ -11,6 +11,11 @@ import Gridap: symbolic_setup, SymbolicSetup
 import Gridap: numerical_setup, numerical_setup!, NumericalSetup
 import Gridap: solve, solve!
 
+# Supported PETSc data types 
+export PetscInt
+export PetscReal
+export PetscScalar
+
 # Mat
 #export MatCreateSeqBAIJWithArrays!
 #export MatCreateSeqBAIJWithArrays
