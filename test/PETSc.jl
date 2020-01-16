@@ -3,7 +3,7 @@ using Test
 
 using MPI
 using SparseArrays
-using SparseMatricesCSR
+using Gridap.Algebra
 
 tol = 1.0e-13
 

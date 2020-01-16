@@ -3,13 +3,13 @@ module GridapPETSc
 using Libdl
 using MPI
 using SparseArrays
-using SparseMatricesCSR
+using Gridap.Algebra
 
 # LinearSolver
-import Gridap: LinearSolver
-import Gridap: symbolic_setup, SymbolicSetup
-import Gridap: numerical_setup, numerical_setup!, NumericalSetup
-import Gridap: solve, solve!
+import Gridap.Algebra: LinearSolver
+import Gridap.Algebra: symbolic_setup, SymbolicSetup
+import Gridap.Algebra: numerical_setup, numerical_setup!, NumericalSetup
+import Gridap.Algebra: solve, solve!
 
 # Supported PETSc data types 
 export PetscInt
