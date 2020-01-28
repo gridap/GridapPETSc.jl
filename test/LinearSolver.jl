@@ -1,10 +1,9 @@
 module LinearSolverTests
 
-using Gridap
+using Gridap.Algebra
 using GridapPETSc
 using MPI
 using SparseArrays
-using SparseMatricesCSR
 using Test
 
 tol = 1.0e-13
