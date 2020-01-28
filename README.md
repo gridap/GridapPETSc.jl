@@ -34,7 +34,6 @@ MPI.Finalize()
 ```julia
 using Gridap
 using GridapPETSc
-using SparseMatricesCSR
 
 MPI.Init()
 GridapPETSc.init!()
@@ -42,30 +41,26 @@ GridapPETSc.init!()
 # Define the FE problem
 # -Δu = x*y in (0,1)^3, u = 0 on the boundary.
 
-model = CartesianDiscreteModel(
-  domain=(0,1,0,1,0,1), partition=(10,10,10))
+model = CartesianDiscreteModel((0,1,0,1,0,1), (10,10,10))
 
-fespace = FESpace(
-  reffe=:Lagrangian, order=1, valuetype=Float64,
-  conformity=:H1, model=model, diritags="boundary")
+V = TestFESpace(reffe=:Lagrangian, order=1, valuetype=Float64,
+  conformity=:H1, model=model, dirichlet_tags="boundary")
 
-V = TestFESpace(fespace)
-U = TrialFESpace(fespace,0.0)
+U = TrialFESpace(V)
 
-trian = Triangulation(model)
-quad = CellQuadrature(trian,degree=2)
+trian = get_triangulation(model)
+quad = CellQuadrature(trian,2)
 
 t_Ω = AffineFETerm(
   (v,u) -> inner(∇(v),∇(u)),
   (v) -> inner(v, (x) -> x[1]*x[2] ),
   trian, quad)
 
-op = LinearFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},V,U,t_Ω)
+op = AffineFEOperator(V,U,t_Ω)
 
-# Use Pardiso to solve the problem
-
-ls = PardisoSolver() # Pardiso with default values
+ls = PETScSolver()
 solver = LinearFESolver(ls)
+
 uh = solve(solver,op)
 
 GridapPETSc.finalize!()
