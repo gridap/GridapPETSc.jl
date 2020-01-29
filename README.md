@@ -15,7 +15,7 @@ using Gridap
 using GridapPETSC
 
 MPI.Init()
-GridapPETSc.init!()
+GridapPETSc.Init()
 
 A = sparse([1,2,3,4,5],[1,2,3,4,5],[1.0,2.0,3.0,4.0,5.0])
 b = ones(A.n)
@@ -25,7 +25,7 @@ ss = symbolic_setup(ps, A)
 ns = numerical_setup(ss, A)
 solve!(x, ns, b)
 
-GridapPETSc.finalize!()
+GridapPETSc.Finalize()
 MPI.Finalize()
 ```
 
@@ -36,7 +36,7 @@ using Gridap
 using GridapPETSc
 
 MPI.Init()
-GridapPETSc.init!()
+GridapPETSc.Init()
 
 # Define the FE problem
 # -Δu = x*y in (0,1)^3, u = 0 on the boundary.
@@ -63,7 +63,7 @@ solver = LinearFESolver(ls)
 
 uh = solve(solver,op)
 
-GridapPETSc.finalize!()
+GridapPETSc.Finalize()
 MPI.Finalize()
 ```
 

@@ -6,7 +6,7 @@ using GridapPETSc
 
 tol = 1e-10
 
-GridapPETSc.init!(["-ksp_rtol","$tol"]) 
+GridapPETSc.Init(["-ksp_rtol","$tol"]) 
 
 model = CartesianDiscreteModel((0,1,0,1,0,1), (10,10,10))
 
@@ -37,6 +37,6 @@ b = op.op.vector
 r = A*x - b
 @test maximum(abs.(r)) < tol
 
-GridapPETSc.finalize!()
+GridapPETSc.Finalize()
 
 end #module
