@@ -6,7 +6,7 @@ using GridapPETSc
 
 tol = 1e-10
 
-GridapPETSc.init!(["-ksp_rtol","$tol"]) 
+GridapPETSc.Init(["-ksp_rtol","$tol"]) 
 
 model = CartesianDiscreteModel((0,1,0,1,0,1), (10,10,10))
 
@@ -23,8 +23,7 @@ t_Ω = AffineFETerm(
   (v) -> inner(v, (x) -> x[1]*x[2] ),
   trian, quad)
 
-#op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},V,U,t_Ω)
-op = AffineFEOperator(V,U,t_Ω)
+op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},V,U,t_Ω)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
@@ -38,6 +37,6 @@ b = op.op.vector
 r = A*x - b
 @test maximum(abs.(r)) < tol
 
-GridapPETSc.finalize!()
+GridapPETSc.Finalize()
 
 end #module

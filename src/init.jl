@@ -9,7 +9,7 @@ end
 macro check_if_initialized()
   quote
     if ! PetscInitialized()
-      error("PETSc is not initialized. Please use GridapPETSc.init!() method.")
+      error("PETSc is not initialized. Please use GridapPETSc.Init() method.")
     end
   end
 end
@@ -92,11 +92,11 @@ function PetscFinalize!()
 end
 
 """
-    function init!()
+    function Init()
 
 Initialize Petsc library.
 """
-function init!()
+function Init()
     @check_if_mpi_initialized
     if (PetscInitialized()) 
         error = PetscFinalize!() 
@@ -104,25 +104,25 @@ function init!()
     end
     error = PetscInitializeNoArguments!()
     @assert iszero(error)
-    atexit(finalize!)
+    atexit(Finalize)
 end
 
 """
-    function init!(args)
+    function Init(args)
 
 Initialize Petsc library.
 """
-function init!(args)
-    init!(args, "", "")
+function Init(args)
+    Init(args, "", "")
 end
 
 
 """
-    function init!(args::Vector{String}, filename::String, help::String)
+    function Init(args::Vector{String}, filename::String, help::String)
 
 Initialize Petsc library.
 """
-function init!(args::Vector{String}, filename::String, help::String)
+function Init(args::Vector{String}, filename::String, help::String)
     @check_if_mpi_initialized
     if (PetscInitialized()) 
         error = PetscFinalize!() 
@@ -131,16 +131,16 @@ function init!(args::Vector{String}, filename::String, help::String)
     args = ["julia";args];
     error = PetscInitializeNoPointers!(args,filename,help);
     @assert iszero(error)
-    atexit(finalize!)
+    atexit(Finalize)
 end
 
 
 """
-    function finalize!()
+    function Finalize()
 
 Finalize Petsc library.
 """
-function finalize!()
+function Finalize()
     if (!PetscFinalized()) 
         error = PetscFinalize!() 
         @assert iszero(error)

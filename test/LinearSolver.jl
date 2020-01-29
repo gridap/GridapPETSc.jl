@@ -8,7 +8,7 @@ using Test
 
 tol = 1.0e-13
 
-GridapPETSc.init!()
+GridapPETSc.Init()
 
 #####################################################
 # SparseMatrixCSC
@@ -147,5 +147,5 @@ for Bi in (0,1)
     test_linear_solver(ps, A, b, x)
 end
 
-GridapPETSc.finalize!()
+GridapPETSc.Finalize()
 end
