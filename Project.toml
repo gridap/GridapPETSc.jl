@@ -1,7 +1,7 @@
 name = "GridapPETSc"
 uuid = "bcdc36c2-0c3e-11ea-095a-c9dadae499f1"
 authors = ["Víctor Sande <vsande@cimne.upc.edu>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Gridap = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
@@ -12,7 +12,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 [compat]
 Gridap = "0.7.0"
 MPI = "0.10.1"
-julia = "1.1"
+julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
