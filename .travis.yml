@@ -18,6 +18,8 @@ matrix:
   fast_finish: true
 notifications:
   email: false
+before_script:
+  - export JULIA_MPI_BINARY="system"
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 jobs:
