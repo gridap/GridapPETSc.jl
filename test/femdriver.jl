@@ -23,7 +23,7 @@ t_Ω = AffineFETerm(
   (v) -> inner(v, (x) -> x[1]*x[2] ),
   trian, quad)
 
-op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},V,U,t_Ω)
+op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},U,V,t_Ω)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
