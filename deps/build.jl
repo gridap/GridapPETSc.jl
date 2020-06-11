@@ -13,9 +13,9 @@ PETSC_LIB             = nothing
 PETSC_LIB_DIR         = nothing
 PETSC_INCLUDE_DIR     = nothing
 PETSC_HEADER          = nothing
-PETSC_SCALAR_DATATYPE = nothing
-PETSC_REAL_DATATYPE   = nothing
-PETSC_INT_DATATYPE    = nothing
+PETSC_SCALAR_DATATYPE = Float64
+PETSC_REAL_DATATYPE   = Float64
+PETSC_INT_DATATYPE    = Int32
 
 
 # Check PETSC_DIR exists
