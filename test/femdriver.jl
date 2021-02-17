@@ -6,24 +6,30 @@ using GridapPETSc
 
 tol = 1e-10
 
-GridapPETSc.Init(["-ksp_rtol","$tol"]) 
+GridapPETSc.Init(["-ksp_rtol","$tol"])
 
-model = CartesianDiscreteModel((0,1,0,1,0,1), (10,10,10))
+domain = (0,1,0,1,0,1)
+cells  = (10,10,10)
+model  = CartesianDiscreteModel(domain,cells)
 
-V = TestFESpace(reffe=:Lagrangian, order=1, valuetype=Float64,
-  conformity=:H1, model=model, dirichlet_tags="boundary")
-
+order = 1
+V = TestFESpace( model,
+      ReferenceFE(lagrangian,Float64,order),
+      conformity=:H1, dirichlet_tags="boundary" )
 U = TrialFESpace(V)
 
-trian = get_triangulation(model)
-quad = CellQuadrature(trian,2)
+Ω = Triangulation(model)
 
-t_Ω = AffineFETerm(
-  (v,u) -> inner(∇(v),∇(u)),
-  (v) -> inner(v, (x) -> x[1]*x[2] ),
-  trian, quad)
+degree = 2*order
+dΩ = Measure(Ω,degree)
 
-op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},U,V,t_Ω)
+f(x) = x[1]*x[2]
+
+a(u,v) = ∫( ∇(v)⋅∇(u) )*dΩ
+l(v) = ∫( v*f )*dΩ
+
+ass = SparseMatrixAssembler(SparseMatrixCSR{0,PetscReal,PetscInt},U,V)
+op = AffineFEOperator(a,l,ass)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
@@ -31,8 +37,8 @@ solver = LinearFESolver(ls)
 uh = solve(solver,op)
 
 x = get_free_values(uh)
-A = op.op.matrix
-b = op.op.vector
+A = get_matrix(op)
+b = get_vector(op)
 
 r = A*x - b
 @test maximum(abs.(r)) < tol

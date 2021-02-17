@@ -17,7 +17,6 @@ PETSC_SCALAR_DATATYPE = Float64
 PETSC_REAL_DATATYPE   = Float64
 PETSC_INT_DATATYPE    = Int32
 
-
 # Check PETSC_DIR exists
 if isdir(PETSC_DIR)
     @info "PETSc directory found at: $PETSC_DIR"
@@ -73,7 +72,7 @@ if isdir(PETSC_DIR)
                 Cint,
                     (Cstring,
                     Ptr{Cint},
-                    Ptr{UInt32}), 
+                    Ptr{UInt32}),
                 name, ptype, found)
             return ptype[1], convert(Bool, found[1])
         end
@@ -84,13 +83,13 @@ if isdir(PETSC_DIR)
             ccall( (:PetscDataTypeGetSize, PETSC),
                 Cint,
                     (Cint,
-                    Ptr{Csize_t}), 
+                    Ptr{Csize_t}),
                 dtype, datasize)
             return datasize[1]
         end
 
         # Define types that depend on the options PETSc was compiled with
-        (petsc_real_data_type, found_real)      = PetscDataTypeFromString("Real")
+        (petsc_real_data_type, found_real)     = PetscDataTypeFromString("Real")
         (petsc_scalar_data_type, found_scalar) = PetscDataTypeFromString("Scalar")
         petsc_int_size                         = PetscDataTypeGetSize(PETSC_INT)
 
@@ -161,4 +160,3 @@ PETSc configuration:
   - PETSC_REAL_DATATYPE   = $PETSC_REAL_DATATYPE
   - PETSC_INT_DATATYPE    = $PETSC_INT_DATATYPE
 """
-

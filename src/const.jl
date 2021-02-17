@@ -9,7 +9,7 @@ const MatFactorType       = UInt32
 
 const PETSC_FALSE         = (UInt32)(0)
 const PETSC_TRUE          = (UInt32)(1)
-const PETSC_INT           = (Int32)(0)
+const PETSC_INT           = (Int32)(16)
 const PETSC_DOUBLE        = (Int32)(1)
 const PETSC_COMPLEX       = (Int32)(2)
 const PETSC_LONG          = (Int32)(3)
