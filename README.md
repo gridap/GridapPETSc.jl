@@ -83,7 +83,7 @@ julia> using GridapPETSc
 If, for any reason, you need to manually build the project, write down the following commands in Julia REPL:
 ```
 pkg> add GridapPETSc
-pkg> build GridPETSc
+pkg> build GridapPETSc
 julia> using GridapPETSc
 ```
 
