@@ -14,6 +14,7 @@ const PetscFinalized_ptr              = Ref{Ptr}()
 const VecCreateSeqWithArray_ptr       = Ref{Ptr}()
 const VecDestroy_ptr                  = Ref{Ptr}()
 const VecView_ptr                     = Ref{Ptr}()
+const MatCreateSeqAIJWithArrays_ptr   = Ref{Ptr}()
 const MatCreateSeqBAIJWithArrays_ptr  = Ref{Ptr}()
 const MatCreateSeqSBAIJWithArrays_ptr = Ref{Ptr}()
 const MatGetSize_ptr                  = Ref{Ptr}()
@@ -45,6 +46,7 @@ function __init__()
         GridapPETSc.VecDestroy_ptr[]                  = Libdl.dlsym(PETSC,:VecDestroy)
         GridapPETSc.VecView_ptr[]                     = Libdl.dlsym(PETSC,:VecView)
         # Mat
+        GridapPETSc.MatCreateSeqAIJWithArrays_ptr[]   = Libdl.dlsym(PETSC,:MatCreateSeqAIJWithArrays)
         GridapPETSc.MatCreateSeqBAIJWithArrays_ptr[]  = Libdl.dlsym(PETSC,:MatCreateSeqBAIJWithArrays)
         GridapPETSc.MatCreateSeqSBAIJWithArrays_ptr[] = Libdl.dlsym(PETSC,:MatCreateSeqSBAIJWithArrays)
         GridapPETSc.MatGetSize_ptr[]                  = Libdl.dlsym(PETSC,:MatGetSize)
@@ -77,4 +79,3 @@ end
 const PetscScalar        = PETSC_SCALAR_DATATYPE
 const PetscReal          = PETSC_REAL_DATATYPE
 const PetscInt           = PETSC_INT_DATATYPE
-

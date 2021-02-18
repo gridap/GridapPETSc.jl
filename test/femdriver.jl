@@ -5,8 +5,24 @@ using Gridap
 using GridapPETSc
 
 tol = 1e-10
-
-GridapPETSc.Init(["-ksp_rtol","$tol"])
+maxits = 1000
+GridapPETSc.Init(["-ksp_type", "cg",
+                  "-ksp_monitor",
+                  "-ksp_rtol", "$tol",
+                  "-ksp_converged_reason",
+                  "-ksp_max_it", "$maxits",
+                  "-ksp_norm_type", "unpreconditioned",
+                  "-ksp_view",
+                  "-pc_type","gamg",
+                  "-pc_gamg_type","agg",
+                  "-pc_gamg_est_ksp_type","cg",
+                  "-mg_levels_esteig_ksp_type","cg",
+                  "-mg_coarse_sub_pc_type","cholesky",
+                  "-mg_coarse_sub_pc_factor_mat_ordering_type","nd",
+                  "-pc_gamg_process_eq_limit","50",
+                  "-pc_gamg_square_graph","0",
+                  "-pc_gamg_agg_nsmooths","1",
+                  "-build_twosided","redscatter"])
 
 domain = (0,1,0,1,0,1)
 cells  = (10,10,10)
