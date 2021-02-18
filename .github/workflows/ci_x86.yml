@@ -16,7 +16,7 @@ jobs:
         version:
           - '1.5'
         os:
-          - ubuntu-latest
+          - ubuntu-18.04
         arch:
           - x86 
     steps:
