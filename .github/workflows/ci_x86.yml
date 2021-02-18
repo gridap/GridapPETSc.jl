@@ -16,7 +16,7 @@ jobs:
         version:
           - '1.5'
         os:
-          - ubuntu-latest
+          - ubuntu-18.04
         arch:
           - x86 
     steps:
@@ -40,5 +40,4 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
         env:
           JULIA_MPI_BINARY: system
-          JULIA_MPI_PATH: /usr/local
       - uses: julia-actions/julia-runtest@v1
