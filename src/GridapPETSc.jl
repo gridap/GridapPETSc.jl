@@ -21,6 +21,8 @@ export PETScSolver
 export PETScSymbolicSetup
 export PETScNumericalSetup
 
+export PETSc_get_number_of_iterations
+
 include("load.jl")
 include("const.jl")
 include("init.jl")

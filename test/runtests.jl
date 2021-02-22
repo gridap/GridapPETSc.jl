@@ -8,8 +8,8 @@ if GridapPETSc.PETSC_LOADED[]
         MPI.Init()
     end
 
-    # @testset "PETSc tests" begin include("PETSc.jl") end
-    # @testset "Linear Solver tests" begin include("LinearSolver.jl") end
+    @testset "PETSc tests" begin include("PETSc.jl") end
+    @testset "Linear Solver tests" begin include("LinearSolver.jl") end
     @testset "FEM driver" begin include("femdriver.jl") end
 
     if MPI.Initialized() & !MPI.Finalized()

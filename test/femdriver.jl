@@ -15,14 +15,13 @@ GridapPETSc.Init(["-ksp_type", "cg",
                   "-ksp_view",
                   "-pc_type","gamg",
                   "-pc_gamg_type","agg",
-                  "-pc_gamg_est_ksp_type","cg",
+                  "-pc_gamg_esteig_ksp_type","cg",
                   "-mg_levels_esteig_ksp_type","cg",
                   "-mg_coarse_sub_pc_type","cholesky",
                   "-mg_coarse_sub_pc_factor_mat_ordering_type","nd",
                   "-pc_gamg_process_eq_limit","50",
                   "-pc_gamg_square_graph","0",
-                  "-pc_gamg_agg_nsmooths","1",
-                  "-build_twosided","redscatter"])
+                  "-pc_gamg_agg_nsmooths","1"])
 
 domain = (0,1,0,1,0,1)
 cells  = (10,10,10)
@@ -51,6 +50,8 @@ ls = PETScSolver()
 solver = LinearFESolver(ls)
 
 uh = solve(solver,op)
+
+iters = PETSc_get_number_of_iterations(ls)
 
 x = get_free_values(uh)
 A = get_matrix(op)

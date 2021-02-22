@@ -9,7 +9,6 @@ end
 
 PETScSolver() = PETScSolver(MPI.COMM_SELF)
 
-
 struct PETScSymbolicSetup <: SymbolicSetup
     solver :: PETScSolver
 end
@@ -17,6 +16,10 @@ end
 struct PETScNumericalSetup <: NumericalSetup
     mat :: PetscMat
     solver :: PETScSolver
+end
+
+function PETSc_get_number_of_iterations(ps::PETScSolver)
+    KSPGetIterationNumber!(ps.ksp)
 end
 
 function symbolic_setup(

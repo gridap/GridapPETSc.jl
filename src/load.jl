@@ -29,6 +29,7 @@ const KSPSetUp_ptr                    = Ref{Ptr}()
 const KSPSolve_ptr                    = Ref{Ptr}()
 const KSPSolveTranspose_ptr           = Ref{Ptr}()
 const KSPDestroy_ptr                  = Ref{Ptr}()
+const KSPGetIterationNumber_ptr       = Ref{Ptr}()
 const PETSC_LOADED                    = Ref(false)
 
 function __init__()
@@ -62,6 +63,7 @@ function __init__()
         GridapPETSc.KSPSolve_ptr[]                    = Libdl.dlsym(PETSC,:KSPSolve)
         GridapPETSc.KSPSolveTranspose_ptr[]           = Libdl.dlsym(PETSC,:KSPSolveTranspose)
         GridapPETSc.KSPDestroy_ptr[]                  = Libdl.dlsym(PETSC,:KSPDestroy)
+        GridapPETSc.KSPGetIterationNumber_ptr[]       = Libdl.dlsym(PETSC,:KSPGetIterationNumber)
 
         PETSC_LOADED[] = true
     end
