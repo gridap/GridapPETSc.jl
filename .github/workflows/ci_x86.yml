@@ -10,12 +10,12 @@ jobs:
         version:
           - '1.5'
         os:
-          - ubuntu-18.04
+          - ubuntu-20.04
         arch:
           - x86 
     steps:
       - name: Install dependencies
-        run: sudo apt-get update; sudo apt-get install openmpi-bin petsc-dev
+        run: sudo apt-get update; sudo apt-get install libopenmpi-dev petsc-dev
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
@@ -34,5 +34,4 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
         env:
           JULIA_MPI_BINARY: system
-          JULIA_MPI_PATH: /usr
       - uses: julia-actions/julia-runtest@v1
