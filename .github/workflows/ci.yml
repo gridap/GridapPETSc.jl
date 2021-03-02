@@ -10,7 +10,7 @@ jobs:
         version:
           - '1.5'
         os:
-          - ubuntu-20.04
+          - ubuntu-18.04
         arch:
           - x64
     steps:
