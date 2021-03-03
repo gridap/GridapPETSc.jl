@@ -14,6 +14,7 @@ const PetscFinalized_ptr              = Ref{Ptr}()
 const VecCreateSeqWithArray_ptr       = Ref{Ptr}()
 const VecDestroy_ptr                  = Ref{Ptr}()
 const VecView_ptr                     = Ref{Ptr}()
+const MatCreateSeqAIJWithArrays_ptr   = Ref{Ptr}()
 const MatCreateSeqBAIJWithArrays_ptr  = Ref{Ptr}()
 const MatCreateSeqSBAIJWithArrays_ptr = Ref{Ptr}()
 const MatGetSize_ptr                  = Ref{Ptr}()
@@ -28,6 +29,7 @@ const KSPSetUp_ptr                    = Ref{Ptr}()
 const KSPSolve_ptr                    = Ref{Ptr}()
 const KSPSolveTranspose_ptr           = Ref{Ptr}()
 const KSPDestroy_ptr                  = Ref{Ptr}()
+const KSPGetIterationNumber_ptr       = Ref{Ptr}()
 const PETSC_LOADED                    = Ref(false)
 
 function __init__()
@@ -45,6 +47,7 @@ function __init__()
         GridapPETSc.VecDestroy_ptr[]                  = Libdl.dlsym(PETSC,:VecDestroy)
         GridapPETSc.VecView_ptr[]                     = Libdl.dlsym(PETSC,:VecView)
         # Mat
+        GridapPETSc.MatCreateSeqAIJWithArrays_ptr[]   = Libdl.dlsym(PETSC,:MatCreateSeqAIJWithArrays)
         GridapPETSc.MatCreateSeqBAIJWithArrays_ptr[]  = Libdl.dlsym(PETSC,:MatCreateSeqBAIJWithArrays)
         GridapPETSc.MatCreateSeqSBAIJWithArrays_ptr[] = Libdl.dlsym(PETSC,:MatCreateSeqSBAIJWithArrays)
         GridapPETSc.MatGetSize_ptr[]                  = Libdl.dlsym(PETSC,:MatGetSize)
@@ -60,6 +63,7 @@ function __init__()
         GridapPETSc.KSPSolve_ptr[]                    = Libdl.dlsym(PETSC,:KSPSolve)
         GridapPETSc.KSPSolveTranspose_ptr[]           = Libdl.dlsym(PETSC,:KSPSolveTranspose)
         GridapPETSc.KSPDestroy_ptr[]                  = Libdl.dlsym(PETSC,:KSPDestroy)
+        GridapPETSc.KSPGetIterationNumber_ptr[]       = Libdl.dlsym(PETSC,:KSPGetIterationNumber)
 
         PETSC_LOADED[] = true
     end
@@ -77,4 +81,3 @@ end
 const PetscScalar        = PETSC_SCALAR_DATATYPE
 const PetscReal          = PETSC_REAL_DATATYPE
 const PetscInt           = PETSC_INT_DATATYPE
-

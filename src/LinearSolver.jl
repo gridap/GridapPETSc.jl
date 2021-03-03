@@ -9,8 +9,7 @@ end
 
 PETScSolver() = PETScSolver(MPI.COMM_SELF)
 
-
-struct PETScSymbolicSetup <: SymbolicSetup 
+struct PETScSymbolicSetup <: SymbolicSetup
     solver :: PETScSolver
 end
 
@@ -19,16 +18,20 @@ struct PETScNumericalSetup <: NumericalSetup
     solver :: PETScSolver
 end
 
+function PETSc_get_number_of_iterations(ps::PETScSolver)
+    KSPGetIterationNumber!(ps.ksp)
+end
+
 function symbolic_setup(
-        ps::PETScSolver, 
+        ps::PETScSolver,
         mat::AbstractSparseMatrix)
     return PETScSymbolicSetup(ps)
 end
 
 function numerical_setup!(
-        pns::PETScNumericalSetup, 
+        pns::PETScNumericalSetup,
         mat::PetscMat)
-    if pns.mat.mat[] != mat.mat[] 
+    if pns.mat.mat[] != mat.mat[]
         error = MatDestroy!(pns.mat)
         @assert iszero(error)
         pns.mat.mat[] = mat.mat[]
@@ -43,7 +46,7 @@ function numerical_setup!(
 end
 
 function numerical_setup!(
-        pns::PETScNumericalSetup, 
+        pns::PETScNumericalSetup,
         mat::AbstractSparseMatrix)
     GridapPETSC_mat_type = SparseMatrixCSR{0,PetscScalar,PetscInt}
     mat_type = typeof(mat)
@@ -56,15 +59,15 @@ Converting $mat_type to $GridapPETSC_mat_type...
 end
 
 function numerical_setup!(
-        pns::PETScNumericalSetup, 
+        pns::PETScNumericalSetup,
         mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
-    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(pns, Mat)
 end
 
 function numerical_setup!(
-        pns::PETScNumericalSetup, 
+        pns::PETScNumericalSetup,
         mat::SymSparseMatrixCSR{1})
     GridapPETSC_mat_type = SymSparseMatrixCSR{0,PetscScalar,PetscInt}
     mat_type = typeof(mat)
@@ -77,7 +80,7 @@ Converting $mat_type to $GridapPETSC_mat_type...
 end
 
 function numerical_setup!(
-        pns::PETScNumericalSetup, 
+        pns::PETScNumericalSetup,
         mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
@@ -85,7 +88,7 @@ function numerical_setup!(
 end
 
 function numerical_setup(
-        pss::PETScSymbolicSetup, 
+        pss::PETScSymbolicSetup,
         mat::AbstractSparseMatrix)
     GridapPETSC_mat_type = SparseMatrixCSR{0,PetscScalar,PetscInt}
     mat_type = typeof(mat)
@@ -98,15 +101,15 @@ Converting $mat_type to $GridapPETSC_mat_type...
 end
 
 function numerical_setup(
-        pss::PETScSymbolicSetup, 
+        pss::PETScSymbolicSetup,
         mat::SparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
-    Mat = MatCreateSeqBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
+    Mat = MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(mat), getindices(mat), nonzeros(mat))
     return numerical_setup!(PETScNumericalSetup(Mat, pss.solver), Mat)
 end
 
 function numerical_setup(
-        pss::PETScSymbolicSetup, 
+        pss::PETScSymbolicSetup,
         mat::SymSparseMatrixCSR{1})
     GridapPETSC_mat_type = SymSparseMatrixCSR{0,PetscScalar,PetscInt}
     mat_type = typeof(mat)
@@ -119,7 +122,7 @@ Converting $mat_type to $GridapPETSC_mat_type.
 end
 
 function numerical_setup(
-        pss::PETScSymbolicSetup, 
+        pss::PETScSymbolicSetup,
         mat::SymSparseMatrixCSR{0,PetscScalar,PetscInt})
     m, n = size(mat)
     Mat = MatCreateSeqSBAIJWithArrays(MPI.COMM_SELF, 1, m, n, getptr(mat), getindices(mat), nonzeros(mat))
@@ -127,8 +130,8 @@ function numerical_setup(
 end
 
 function solve!(
-        x::Vector{PetscScalar}, 
-        ns::PETScNumericalSetup, 
+        x::Vector{PetscScalar},
+        ns::PETScNumericalSetup,
         b::Vector{PetscScalar})
     B = VecCreateSeqWithArray(MPI.COMM_SELF, 1, length(b), b)
     X = VecCreateSeqWithArray(MPI.COMM_SELF, 1, length(x), x)
@@ -139,4 +142,3 @@ function solve!(
     error = VecDestroy!(X)
     @assert iszero(error)
 end
-

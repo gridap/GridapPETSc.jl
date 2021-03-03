@@ -2,7 +2,7 @@
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://gridap.github.io/GridapPETSc.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://gridap.github.io/GridapPETSc.jl/dev)
-[![Build Status](https://travis-ci.com/gridap/GridapPETSc.jl.svg?branch=master)](https://travis-ci.com/gridap/GridapPETSc.jl)
+[![Build Status](https://github.com/gridap/GridapPETSc.jl/workflows/CI/badge.svg?branch=master)](https://github.com/gridap/GridapPETSc.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/gridap/GridapPETSc.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gridap/GridapPETSc.jl)
 
 [Gridap](https://github.com/gridap/Gridap.jl) (Grid-based approximation of partial differential equations in Julia) plugin to use PETSC ([Portable, Extensible Toolkit for Scientific Computation](https://www.mcs.anl.gov/petsc/)).
@@ -12,7 +12,8 @@
 ```julia
 using MPI
 using Gridap
-using GridapPETSC
+using GridapPETSc
+using SparseArrays
 
 MPI.Init()
 GridapPETSc.Init()
@@ -32,31 +33,37 @@ MPI.Finalize()
 ## Usage in a Finite Element computation
 
 ```julia
+using MPI
 using Gridap
 using GridapPETSc
 
+tol = 1e-10
+
 MPI.Init()
-GridapPETSc.Init()
+GridapPETSc.Init(["-ksp_rtol","$tol"])
 
-# Define the FE problem
-# -Δu = x*y in (0,1)^3, u = 0 on the boundary.
+domain = (0,1,0,1,0,1)
+cells  = (10,10,10)
+model  = CartesianDiscreteModel(domain,cells)
 
-model = CartesianDiscreteModel((0,1,0,1,0,1), (10,10,10))
-
-V = TestFESpace(reffe=:Lagrangian, order=1, valuetype=Float64,
-  conformity=:H1, model=model, dirichlet_tags="boundary")
-
+order = 1
+V = TestFESpace( model,
+      ReferenceFE(lagrangian,Float64,order),
+      conformity=:H1, dirichlet_tags="boundary" )
 U = TrialFESpace(V)
 
-trian = get_triangulation(model)
-quad = CellQuadrature(trian,2)
+Ω = Triangulation(model)
 
-t_Ω = AffineFETerm(
-  (u,v) -> inner(∇(v),∇(u)),
-  (v) -> inner(v, (x) -> x[1]*x[2] ),
-  trian, quad)
+degree = 2*order
+dΩ = Measure(Ω,degree)
 
-op = AffineFEOperator(SparseMatrixCSR{0,PetscReal,PetscInt},U,V,t_Ω)
+f(x) = x[1]*x[2]
+
+a(u,v) = ∫( ∇(v)⋅∇(u) )*dΩ
+l(v) = ∫( v*f )*dΩ
+
+ass = SparseMatrixAssembler(SparseMatrixCSR{0,PetscReal,PetscInt},U,V)
+op = AffineFEOperator(a,l,ass)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
@@ -71,7 +78,7 @@ MPI.Finalize()
 
 **GridPETSc** itself is installed when you add and use it into another project.
 
-Please, ensure that your system fulfill the requirements.
+Please, ensure that your system fulfills the requirements.
 
 To include into your project form Julia REPL, use the following commands:
 
@@ -83,7 +90,7 @@ julia> using GridapPETSc
 If, for any reason, you need to manually build the project, write down the following commands in Julia REPL:
 ```
 pkg> add GridapPETSc
-pkg> build GridPETSc
+pkg> build GridapPETSc
 julia> using GridapPETSc
 ```
 
@@ -108,7 +115,7 @@ Basic `PETSc` installation in order to use it from `GridapPETSc` julia package i
 
 ```
 $ sudo apt-get update
-$ sudo apt-get openmpi petsc-dev
+$ sudo apt-get install openmpi-bin petsc-dev
 ```
 
 ## Continuous integration
@@ -124,6 +131,14 @@ addons:
     packages:
     - openmpi-bin
     - petsc-dev
+```
+
+If your CI process is based on `GitHub Actions` you can add the following block at the beginning of the test steps in the `.github/workflows/ci.yml` file:
+
+```
+steps:
+  - name: Install dependencies
+    run: sudo apt-get update; sudo apt-get install openmpi-bin petsc-dev
 ```
 
 ## Notes

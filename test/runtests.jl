@@ -17,7 +17,7 @@ if GridapPETSc.PETSC_LOADED[]
     end
 else
     @warn   """
-            PETSc library is not properly loaded. 
+            PETSc library is not properly loaded.
             GridapPETSc tests are not going to be performed.
             """
 end

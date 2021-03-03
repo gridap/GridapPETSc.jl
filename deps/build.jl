@@ -17,7 +17,6 @@ PETSC_SCALAR_DATATYPE = Float64
 PETSC_REAL_DATATYPE   = Float64
 PETSC_INT_DATATYPE    = Int32
 
-
 # Check PETSC_DIR exists
 if isdir(PETSC_DIR)
     @info "PETSc directory found at: $PETSC_DIR"
@@ -73,7 +72,7 @@ if isdir(PETSC_DIR)
                 Cint,
                     (Cstring,
                     Ptr{Cint},
-                    Ptr{UInt32}), 
+                    Ptr{UInt32}),
                 name, ptype, found)
             return ptype[1], convert(Bool, found[1])
         end
@@ -84,24 +83,27 @@ if isdir(PETSC_DIR)
             ccall( (:PetscDataTypeGetSize, PETSC),
                 Cint,
                     (Cint,
-                    Ptr{Csize_t}), 
+                    Ptr{Csize_t}),
                 dtype, datasize)
             return datasize[1]
         end
 
         # Define types that depend on the options PETSc was compiled with
-        (petsc_real_data_type, found_real)      = PetscDataTypeFromString("Real")
+        (petsc_real_data_type, found_real)     = PetscDataTypeFromString("Real")
         (petsc_scalar_data_type, found_scalar) = PetscDataTypeFromString("Scalar")
-        petsc_int_size                         = PetscDataTypeGetSize(PETSC_INT)
+        (petsc_int_data_type, found_int)       = PetscDataTypeFromString("Int")
 
-        @assert(found_real & found_scalar)
+        petsc_real_size                        = PetscDataTypeGetSize(petsc_real_data_type)
+        petsc_int_size                         = PetscDataTypeGetSize(petsc_int_data_type)
+
+        @assert(found_real & found_scalar & found_int)
 
         petsc_scalar_data_type != petsc_real_data_type && throw(ErrorException("[ERROR] Only Real PetscScalar type is supported"))
 
         # Figure out equivalent Julia types for PETSc
-        if petsc_real_data_type == PETSC_DOUBLE
+        if petsc_real_size == 8
             PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float64
-        elseif petsc_real_data_type == PETSC_FLOAT
+        elseif petsc_real_size == 4
             PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float32
         else
             @warn "Unknown type of Real. Petsc real data type is $petsc_real_data_type"
@@ -161,4 +163,3 @@ PETSc configuration:
   - PETSC_REAL_DATATYPE   = $PETSC_REAL_DATATYPE
   - PETSC_INT_DATATYPE    = $PETSC_INT_DATATYPE
 """
-

@@ -10,7 +10,7 @@ end
 """
     function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
 
-Creates the default KSP context. 
+Creates the default KSP context.
 """
 function KSPCreate!(comm::MPI.Comm, ksp::PetscKSP)
     @check_if_loaded
@@ -26,7 +26,7 @@ end
 """
     function KSPCreate(comm::MPI.Comm)
 
-Returns the default KSP context. 
+Returns the default KSP context.
 """
 function KSPCreate(comm::MPI.Comm)
     ksp = PetscKSP()
@@ -68,7 +68,7 @@ end
 """
     function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
 
-Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner. 
+Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner.
 """
 function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
     @check_if_loaded
@@ -85,7 +85,7 @@ end
 """
     function KSPSetOperators!(ksp::PetscKSP, A::PetscMat, P:: PetscMat)
 
-Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner. 
+Sets the matrix associated with the linear system and a (possibly) different one associated with the preconditioner.
 """
 function KSPSetTolerances!(ksp::PetscKSP, rtol::AbstractFloat, abstol::AbstractFloat, dtol::AbstractFloat, maxits::Integer)
     @check_if_loaded
@@ -121,7 +121,7 @@ end
 """
     function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
 
-Solves the transpose of a linear system. 
+Solves the transpose of a linear system.
 """
 function KSPSolveTranspose!(arg1::Ptr{Cvoid}, arg2::AbstractArray, arg3::AbstractArray)
     @check_if_loaded
@@ -138,7 +138,7 @@ end
 """
     function KSPDestroy!(ksp::PetscKSP)
 
-Destroys KSP context. 
+Destroys KSP context.
 """
 function KSPDestroy!(ksp::PetscKSP)
     @check_if_loaded
@@ -150,4 +150,19 @@ function KSPDestroy!(ksp::PetscKSP)
     return error
 end
 
+"""
+    function KSPGetIterationNumber!(ksp::PetscKSP, its::Integer)
 
+Gets the current iteration number; if the KSPSolve() is complete, returns the number of iterations used.
+"""
+function KSPGetIterationNumber!(ksp::PetscKSP)
+    @check_if_loaded
+    @check_if_initialized
+    its = Vector{PetscInt}(undef,1)
+    error = ccall( KSPGetIterationNumber_ptr[],
+        PetscErrorCode,
+            (Ptr{Cvoid},Ptr{PetscInt}),
+        ksp.ksp[], its )
+    @assert iszero(error)
+    return its[1]
+end
