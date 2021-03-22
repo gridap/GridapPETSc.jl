@@ -1,3 +1,5 @@
+module GridapPETScTests
+
 using GridapPETSc
 using Test
 
@@ -12,12 +14,14 @@ if GridapPETSc.PETSC_LOADED[]
     @testset "Linear Solver tests" begin include("LinearSolver.jl") end
     @testset "FEM driver" begin include("femdriver.jl") end
 
-    if MPI.Initialized() & !MPI.Finalized()
-        MPI.Finalize()
-    end
+    #if MPI.Initialized() & !MPI.Finalized()
+    #    MPI.Finalize()
+    #end
 else
     @warn   """
             PETSc library is not properly loaded.
             GridapPETSc tests are not going to be performed.
             """
 end
+
+end # module

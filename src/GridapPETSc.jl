@@ -4,6 +4,8 @@ using Libdl
 using MPI
 using SparseArrays
 using Gridap.Algebra
+using SparseMatricesCSR
+using SparseMatricesCSR: getrowptr
 
 # LinearSolver
 import Gridap.Algebra: LinearSolver

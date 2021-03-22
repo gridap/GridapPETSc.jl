@@ -4,6 +4,7 @@ using Gridap.Algebra
 using GridapPETSc
 using MPI
 using SparseArrays
+using SparseMatricesCSR
 using Test
 
 tol = 1.0e-13
@@ -86,7 +87,7 @@ for Bi in (0,1)
         push_coo!(SparseMatrixCSR, I, J, V, ik, jk, vk)
     end
     finalize_coo!(SparseMatrixCSR, I, J, V, m, n)
-    A = sparsecsr(SparseMatrixCSR{Bi}, I, J, V,  m, n)
+    A = sparsecsr(Val(Bi), I, J, V,  m, n)
     b = ones(size(A,2))
     x = similar(b)
     ps = PETScSolver()
@@ -135,7 +136,7 @@ for Bi in (0,1)
         push_coo!(SymSparseMatrixCSR, I, J, V, ik, jk, vk)
     end
     finalize_coo!(SymSparseMatrixCSR, I, J, V, m, n)
-    A = symsparsecsr(SymSparseMatrixCSR{Bi}, I, J, V, m, n)
+    A = symsparsecsr(Val(Bi), I, J, V, m, n)
     b = ones(size(A,2))
     x = similar(b)
     ps = PETScSolver()

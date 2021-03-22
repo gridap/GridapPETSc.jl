@@ -4,6 +4,7 @@ using Test
 using MPI
 using SparseArrays
 using Gridap.Algebra
+using SparseMatricesCSR
 
 tol = 1.0e-13
 
@@ -21,7 +22,7 @@ for (ik, jk, vk) in zip(I_, J_, V_)
     push_coo!(SparseMatrixCSR, I, J, V, ik, jk, vk)
 end
 
-A = sparsecsr(SparseMatrixCSR{0}, I, J, V, m, n)
+A = sparsecsr(Val(0), I, J, V, m, n)
 
 # Define native Julia vectors
 B = ones(GridapPETSc.PetscScalar, m)
@@ -36,7 +37,7 @@ GridapPETSc.Init(["-info","-malloc_debug","-malloc_dump","-malloc_test","-mat_vi
 # Create objects
 b = GridapPETSc.VecCreateSeqWithArray(MPI.COMM_SELF, 1, m, B)
 x = GridapPETSc.VecCreateSeqWithArray(MPI.COMM_SELF, 1, n, X)
-Mat = GridapPETSc.MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, getptr(A), getindices(A), nonzeros(A))
+Mat = GridapPETSc.MatCreateSeqAIJWithArrays(MPI.COMM_SELF, m, n, A.rowptr, A.colval, nonzeros(A))
 Ksp = GridapPETSc.KSPCreate(MPI.COMM_SELF)
 
 # Show data objects

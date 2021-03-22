@@ -3,6 +3,7 @@ module FEMDriver
 using Test
 using Gridap
 using GridapPETSc
+using SparseMatricesCSR
 
 tol = 1e-10
 maxits = 1000
@@ -44,7 +45,7 @@ a(u,v) = ∫( ∇(v)⋅∇(u) )*dΩ
 l(v) = ∫( v*f )*dΩ
 
 ass = SparseMatrixAssembler(SparseMatrixCSR{0,PetscReal,PetscInt},U,V)
-op = AffineFEOperator(a,l,ass)
+op = AffineFEOperator(a,l,U,V,ass)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
@@ -53,7 +54,7 @@ uh = solve(solver,op)
 
 iters = PETSc_get_number_of_iterations(ls)
 
-x = get_free_values(uh)
+x = get_free_dof_values(uh)
 A = get_matrix(op)
 b = get_vector(op)
 
