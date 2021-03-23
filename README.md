@@ -36,6 +36,7 @@ MPI.Finalize()
 using MPI
 using Gridap
 using GridapPETSc
+using SparseMatricesCSR
 
 tol = 1e-10
 
@@ -63,7 +64,7 @@ a(u,v) = ∫( ∇(v)⋅∇(u) )*dΩ
 l(v) = ∫( v*f )*dΩ
 
 ass = SparseMatrixAssembler(SparseMatrixCSR{0,PetscReal,PetscInt},U,V)
-op = AffineFEOperator(a,l,ass)
+op = AffineFEOperator(a,l,U,V,ass)
 
 ls = PETScSolver()
 solver = LinearFESolver(ls)
