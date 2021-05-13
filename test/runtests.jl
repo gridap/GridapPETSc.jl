@@ -2,6 +2,6 @@ module GridapPETScTests
 
 using Test
 
-@time @testset "Bindings" begin include("BindingsTests.jl") end
+@time @testset "PETSC" begin include("PETSCTests.jl") end
 
 end # module
