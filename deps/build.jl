@@ -1,8 +1,8 @@
 using Libdl
 
-@static if haskey(ENV,"JULIA_PETSC_LIBRARY")
+@static if haskey(ENV,"JULIA_PETSC_LIBRARY") && !isempty(rstrip(ENV["JULIA_PETSC_LIBRARY"]))
 
-  @info """ JULIA_PETSC_LIBRARY environment variable found.
+  @info """ Non-empty JULIA_PETSC_LIBRARY environment variable found.
   Trying to use the PETSc installation it points to.
   JULIA_PETSC_LIBRARY=$(ENV["JULIA_PETSC_LIBRARY"])
   """
@@ -14,7 +14,7 @@ using Libdl
 
 else
 
-  @info """ JULIA_PETSC_LIBRARY environment variable NOT found.
+  @info """ Non-empty JULIA_PETSC_LIBRARY environment variable NOT found.
   Trying to use the PETSc installation provided by PETSc_jll.
   """
   using PETSc_jll

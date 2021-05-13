@@ -185,7 +185,7 @@ end
 """
     VecSetValues(x,ni,ix,y,iora)
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html#VecSetValues)
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html)
 """
 function VecSetValues(x,ni,ix,y,iora)
   ccall(
@@ -194,3 +194,36 @@ function VecSetValues(x,ni,ix,y,iora)
     x,ni,ix,y,iora)
 end
 
+"""
+    VecGetValues(x,ni,ix,y)
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetValues.html)
+"""
+function VecGetValues(x,ni,ix,y)
+  ccall(
+    Libdl.dlsym(libpetsc_handle[],:VecGetValues),
+    PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),
+    x,ni,ix,y)
+end
+
+"""
+    VecAssemblyBegin(vec)
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyBegin.html)
+"""
+function VecAssemblyBegin(vec)
+  ccall(
+    Libdl.dlsym(libpetsc_handle[],:VecAssemblyBegin),
+    PetscErrorCode,(Vec,), vec)
+end
+
+"""
+    VecAssemblyEnd(vec)
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html)
+"""
+function VecAssemblyEnd(vec)
+  ccall(
+    Libdl.dlsym(libpetsc_handle[],:VecAssemblyEnd),
+    PetscErrorCode,(Vec,), vec)
+end
