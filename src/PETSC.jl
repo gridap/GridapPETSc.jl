@@ -1,3 +1,11 @@
+"""
+Low level interface with PETSC.
+"""
+module PETSC
+
+using Libdl
+using GridapPETSc: libpetsc_handle
+using MPI
 
 include("Config.jl")
 
@@ -227,3 +235,5 @@ function VecAssemblyEnd(vec)
     Libdl.dlsym(libpetsc_handle[],:VecAssemblyEnd),
     PetscErrorCode,(Vec,), vec)
 end
+
+end # module

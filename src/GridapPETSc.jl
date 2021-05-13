@@ -53,6 +53,6 @@ function __init__()
 
 end
 
-include("Bindings.jl")
+include("PETSC.jl")
 
 end # module
