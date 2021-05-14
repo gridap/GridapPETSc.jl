@@ -421,4 +421,28 @@ function MatAssemblyEnd(mat,typ)
     PetscErrorCode,(Mat,MatAssemblyType), mat, typ)
 end
 
+"""
+    MatGetSize(mat,m,n)
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetSize.html)
+"""
+function MatGetSize(mat,m,n)
+  ccall(
+    Libdl.dlsym(libpetsc_handle[],:MatGetSize),
+    PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),
+    mat,m,n)
+end
+
+"""
+    MatEqual(A,B,flg)
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html)
+"""
+function MatEqual(A,B,flg)
+  ccall(
+    Libdl.dlsym(libpetsc_handle[],:MatEqual),
+    PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),
+    A,B,flg)
+end
+
 end # module

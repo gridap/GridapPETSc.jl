@@ -97,6 +97,15 @@ a = A.nzval
 
 @check_error_code PETSC.MatView(mat[],C_NULL)
 
+@check_error_code PETSC.MatEqual(mat[],mat[],flag)
+@test flag[] == PETSC.PETSC_TRUE
+
+m2 = Ref{PetscInt}()
+n2 = Ref{PetscInt}()
+@check_error_code PETSC.MatGetSize(mat[],m2,n2)
+@test m2[] == m
+@test n2[] == n
+
 @check_error_code PETSC.MatDestroy(mat)
 
 @check_error_code PETSC.PetscInitialized(flag)
