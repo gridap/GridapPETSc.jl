@@ -4,13 +4,14 @@ const _REFS = Set{Ref}()
 
 function _manage_mem(x)
   push!(_REFS,x)
-  finalizer(x) do y
-    if y in _REFS
-      _destroy(y)
-      delete!(_REFS,y)
-    end
-    nothing
-  end
+  #finalizer(x) do y
+  #  if y in _REFS
+  #    _destroy(y)
+  #    delete!(_REFS,y)
+  #  end
+  #  nothing
+  #end
+  x
 end
 
 _destroy(x::Ref{Vec}) = @check_error_code PETSC.VecDestroy(x)
