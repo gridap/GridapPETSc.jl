@@ -16,7 +16,7 @@ flag = Ref{PetscBool}()
 if flag[] == PETSC.PETSC_TRUE
   @check_error_code PETSC.PetscFinalize()
 end
-args = ["julia"]#,"-info"]
+args = ["julia","-info"]
 argc = length(args)
 file = ""
 help = ""
@@ -122,16 +122,21 @@ sol = Ref{Vec}()
 @check_error_code PETSC.VecCreateSeqWithArray(comm,1,m,x2,sol)
 
 @check_error_code PETSC.KSPCreate(comm,ksp)
-@check_error_code PETSC.KSPSetOperators(ksp[],mat[],mat[])
+@check_error_code PETSC.KSPSetFromOptions(ksp[])
 @check_error_code PETSC.KSPGetPC(ksp[],pc)
 @check_error_code PETSC.PCSetType(pc[],PETSC.PCJACOBI)
-@check_error_code PETSC.KSPSetFromOptions(ksp[])
 
+@check_error_code PETSC.KSPSetOperators(ksp[],mat[],mat[])
+@check_error_code PETSC.KSPSetUp(ksp[])
+@check_error_code PETSC.KSPSolve(ksp[],rhs[],sol[])
+@test x ≈ x2
+
+@check_error_code PETSC.KSPSetOperators(ksp[],mat[],mat[])
+@check_error_code PETSC.KSPSetUp(ksp[])
 @check_error_code PETSC.KSPSolve(ksp[],rhs[],sol[])
 @test x ≈ x2
 
 @check_error_code PETSC.VecPlaceArray(rhs[],bt)
-
 @check_error_code PETSC.KSPSolveTranspose(ksp[],rhs[],sol[])
 @test x ≈ x2
 

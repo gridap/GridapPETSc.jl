@@ -2,6 +2,8 @@ module GridapPETSc
 
 using Libdl
 using MPI
+using Gridap.Algebra
+using SparseMatricesCSR
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
 
@@ -42,17 +44,54 @@ end
 
 const libpetsc_handle = Ref{Ptr{Cvoid}}()
 
-function __init__()
 
+include("PETSC.jl")
+
+using GridapPETSc.PETSC: @check_error_code
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+
+function Init(;args=String[],file="",help="")
+  if !MPI.Initialized()
+      MPI.Init()
+  end
+  flag = Ref{PetscBool}()
+  @check_error_code PETSC.PetscInitialized(flag)
+  if flag[] == PETSC.PETSC_TRUE
+    @check_error_code PETSC.PetscFinalize()
+  end
+  _args = ["GridapPETSc"]
+  append!(_args,args)
+  @check_error_code PETSC.PetscInitializeNoPointers(length(_args),_args,file,help)
+  nothing
+end
+
+function Initialized()
+  flag = Ref{PetscBool}()
+  @check_error_code PETSC.PetscInitialized(flag)
+  flag[] == PETSC.PETSC_TRUE
+end
+
+function Finalize()
+  flag = Ref{PetscBool}()
+  @check_error_code PETSC.PetscInitialized(flag)
+  if flag[] == PETSC.PETSC_TRUE
+   @check_error_code PETSC.PetscFinalize()
+  end
+  nothing
+end
+
+function __init__()
   if libpetsc_provider == "JULIA_PETSC_LIBRARY"
     flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
     libpetsc_handle[] = Libdl.dlopen(libpetsc_path, flags)
   else
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
   end
-
+  atexit(Finalize)
 end
 
-include("PETSC.jl")
+export PETScSolver
+
+include("PETScSolvers.jl")
 
 end # module
