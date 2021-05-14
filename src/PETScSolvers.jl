@@ -5,7 +5,7 @@ struct PETScSolver <: LinearSolver
 end
 
 function PETScSolver(comm::MPI.Comm)
-  ksp = finalizer(PETSC.KSPDestroy,Ref{KSP}())
+  ksp = _manage_mem(Ref{KSP}())
   @check_error_code PETSC.KSPCreate(comm,ksp)
   PETScSolver(ksp,comm)
 end
@@ -34,9 +34,9 @@ function Algebra.numerical_setup(
 
   ksp = ss.ksp
   comm = ss.comm
-  mat = finalizer(PETSC.MatDestroy,Ref{Mat}())
-  rhs = finalizer(PETSC.VecDestroy,Ref{Vec}())
-  sol = finalizer(PETSC.VecDestroy,Ref{Vec}())
+  mat = _manage_mem(Ref{Mat}())
+  rhs = _manage_mem(Ref{Vec}())
+  sol = _manage_mem(Ref{Vec}())
   bs = 1
   nrows, ncols = size(A)
   i = A.rowptr
@@ -59,8 +59,36 @@ function Algebra.solve!(x::Vector{PetscScalar},ns::PETScSolverNS,b::Vector{Petsc
   x
 end
 
-function Algebra.numerical_setup!(ns::PETScSolverNS,mat::AbstractMatrix)
+function Algebra.numerical_setup!(ns::PETScSolverNS,A::SparseMatrixCSR{0,PetscScalar,PetscInt})
+  nrows, ncols = size(A)
+  i = A.rowptr
+  j = A.colval
+  a = A.nzval
+  @check_error_code PETSC.MatDestroy(ns.mat)
+  @check_error_code PETSC.MatCreateSeqAIJWithArrays(ns.comm,nrows,ncols,i,j,a,ns.mat)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.mat[],ns.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   ns
+end
+
+# with conversions
+
+function Algebra.numerical_setup(ss::PETScSolverSS,A::AbstractMatrix)
+  _A = convert(SparseMatrixCSR{0,PetscScalar,PetscInt},A)
+  numerical_setup(ss,_A)
+end
+
+function Algebra.solve!(x::AbstractVector,ns::PETScSolverNS,b::AbstractVector)
+  _x = convert(Vector{PetscScalar},x)
+  _b = convert(Vector{PetscScalar},b)
+  solve!(_x,ns,_b)
+  if x !== _x
+    x.=_x
+  end
+  x
+end
+
+function Algebra.numerical_setup!(ns::PETScSolverNS,A::AbstractMatrix)
+  _A = convert(SparseMatrixCSR{0,PetscScalar,PetscInt},A)
+  numerical_setup!(ns,_A)
 end

@@ -1,5 +1,6 @@
 module PETScSolversTests
 
+using SparseArrays
 using SparseMatricesCSR
 using Gridap.Algebra
 using GridapPETSc
@@ -37,6 +38,23 @@ solve!(x2,ns,b)
 test_linear_solver(solver,A,b,x)
 test_linear_solver(solver,A,b,x)
 
+B = sparsecsr(Val(0),I,J,PetscInt(2)*V,m,n)
+c = B*x
+
+numerical_setup!(ns,B)
+solve!(x2,ns,B*x)
+@test x ≈ x2
+
+C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
+x2 = solve(solver,C,C*x)
+@test x ≈ x2
+test_linear_solver(solver,C,C*x,x)
+
+C = sparse(I,J,V,m,n)
+x2 = solve(solver,C,C*x)
+@test x ≈ x2
+test_linear_solver(solver,C,C*x,x)
+
 # Setup solver via low level PETSC API calls
 solver = PETScSolver()
 pc = Ref{PETSC.PC}()
@@ -56,5 +74,7 @@ x2 = solve(solver,A,b)
 
 solver = nothing
 GC.gc()
+
+GridapPETSc.Finalize()
 
 end # module
