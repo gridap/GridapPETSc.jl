@@ -36,60 +36,40 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
   include(types_jl)
 end
 
+macro wrapper(fn,rt,argts,args,url)
+  sargs = "$(args)"
+  if length(args.args) == 1
+    sargs = sargs[1:end-2]*")"
+  end
+  if isempty(rstrip(url))
+    str = """
+        $(fn.value)$(sargs)
+    """
+  else
+    str = """
+        $(fn.value)$(sargs)
+
+    See [PETSc manual]($url).
+    """
+  end
+  expr = quote
+    @doc $str
+    function $(fn.value)($(args.args...))
+      ccall(
+        Libdl.dlsym(libpetsc_handle[],$fn),
+        $rt,$argts,$(args.args...))
+    end
+  end
+  esc(expr)
+end
+
 #Petsc init related functions
 
-"""
-    PetscInitializeNoArguments()
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitializeNoArguments.html).
-"""
-function PetscInitializeNoArguments()
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PetscInitializeNoArguments),
-    PetscErrorCode,())
-end
-
-"""
-    PetscInitializeNoPointers(argc,args,filename,help)
-"""
-function PetscInitializeNoPointers(argc,args,filename,help)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PetscInitializeNoPointers),
-    PetscErrorCode,(Cint,Ptr{Cstring},Cstring,Cstring),
-    argc,args,filename,help)
-end
-
-"""
-    PetscFinalize()
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalize.html).
-"""
-function PetscFinalize()
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PetscFinalize),PetscErrorCode,())
-end
-
-"""
-    PetscFinalized(flag)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalized.html).
-"""
-function PetscFinalized(flag)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PetscFinalized),
-    PetscErrorCode,(Ptr{PetscBool},),flag)
-end
-
-"""
-    PetscInitialized(flag)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitialized.html).
-"""
-function PetscInitialized(flag)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PetscInitialized),
-    PetscErrorCode,(Ptr{PetscBool},),flag)
-end
+@wrapper(:PetscInitializeNoArguments,PetscErrorCode,(),(),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html")
+@wrapper(:PetscInitializeNoPointers,PetscErrorCode,(Cint,Ptr{Cstring},Cstring,Cstring),(argc,args,filename,help),"")
+@wrapper(:PetscFinalize,PetscErrorCode,(),(),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalize.html")
+@wrapper(:PetscFinalized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalized.html")
+@wrapper(:PetscInitialized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitialized.html")
 
 # viewer related functions
 
@@ -104,16 +84,8 @@ end
 PetscViewer() = PetscViewer(Ptr{Cvoid}())
 Base.convert(::Type{PetscViewer},p::Ptr{Cvoid}) = PetscViewer(p)
 
-"""
-    PETSC_VIEWER_STDOUT_(comm)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_.html).
-"""
-function PETSC_VIEWER_STDOUT_(comm)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PETSC_VIEWER_STDOUT_),
-    PetscViewer,(MPI.Comm,),comm)
-end
+@wrapper(:PETSC_VIEWER_STDOUT_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_.html")
+@wrapper(:PETSC_VIEWER_DRAW_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_.html")
 
 """
     @PETSC_VIEWER_STDOUT_SELF
@@ -136,17 +108,6 @@ macro PETSC_VIEWER_STDOUT_WORLD()
     PETSC_VIEWER_STDOUT_(MPI.COMM_WORLD)
   end
 end 
-
-"""
-    PETSC_VIEWER_DRAW_(comm)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_.html).
-"""
-function PETSC_VIEWER_DRAW_(comm)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:PETSC_VIEWER_DRAW_),
-    PetscViewer,(MPI.Comm,),comm)
-end
 
 """
     @PETSC_VIEWER_DRAW_SELF
@@ -200,86 +161,13 @@ end
 Vec() = Vec(Ptr{Cvoid}())
 Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 
-"""
-    VecCreateSeqWithArray(comm,bs,n,array,vec)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html).
-"""
-function VecCreateSeqWithArray(comm,bs,n,array,vec)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecCreateSeqWithArray),
-    PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),
-    comm,bs,n,array,vec)
-end
-
-"""
-    VecDestroy(vec)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDestroy.html).
-"""
-function VecDestroy(vec)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecDestroy),
-    PetscErrorCode,(Ptr{Vec},),
-    vec)
-end
-
-"""
-    VecView(vec,viewer)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecView.html).
-"""
-function VecView(vec,viewer)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecView),
-    PetscErrorCode,(Vec,PetscViewer),vec,viewer)
-end
-
-"""
-    VecSetValues(x,ni,ix,y,iora)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html).
-"""
-function VecSetValues(x,ni,ix,y,iora)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecSetValues),
-    PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),
-    x,ni,ix,y,iora)
-end
-
-"""
-    VecGetValues(x,ni,ix,y)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetValues.html).
-"""
-function VecGetValues(x,ni,ix,y)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecGetValues),
-    PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),
-    x,ni,ix,y)
-end
-
-"""
-    VecAssemblyBegin(vec)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyBegin.html).
-"""
-function VecAssemblyBegin(vec)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecAssemblyBegin),
-    PetscErrorCode,(Vec,), vec)
-end
-
-"""
-    VecAssemblyEnd(vec)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html).
-"""
-function VecAssemblyEnd(vec)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:VecAssemblyEnd),
-    PetscErrorCode,(Vec,), vec)
-end
+@wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html")
+@wrapper(:VecDestroy,PetscErrorCode,(Ptr{Vec},),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDestroy.html")
+@wrapper(:VecView,PetscErrorCode,(Vec,PetscViewer),(vec,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecView.html")
+@wrapper(:VecSetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(x,ni,ix,y,iora),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html")
+@wrapper(:VecGetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(x,ni,ix,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetValues.html")
+@wrapper(:VecAssemblyBegin,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyBegin.html")
+@wrapper(:VecAssemblyEnd,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html")
 
 # Matrix related functions
 
@@ -326,123 +214,15 @@ end
 Mat() = Mat(Ptr{Cvoid}())
 Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 
-"""
-    MatCreateSeqAIJ(comm,m,n,nz,nnz,mat)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html).
-"""
-function MatCreateSeqAIJ(comm,m,n,nz,nnz,mat)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatCreateSeqAIJ),
-    PetscErrorCode,
-    (MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),
-    comm,m,n,nz,nnz,mat)
-end
-
-"""
-    MatCreateSeqAIJWithArrays(comm,m,n,i,j,a,mat)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJWithArrays.html).
-"""
-function MatCreateSeqAIJWithArrays(comm,m,n,i,j,a,mat)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatCreateSeqAIJWithArrays),
-    PetscErrorCode,
-    (MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),
-    comm,m,n,i,j,a,mat)
-end
-
-"""
-    MatDestroy(A)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDestroy.html).
-"""
-function MatDestroy(A)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatDestroy),
-    PetscErrorCode,(Ptr{Mat},),
-    A)
-end
-
-"""
-    MatView(mat,viewer)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatView.html).
-"""
-function MatView(mat,viewer)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatView),
-    PetscErrorCode,(Mat,PetscViewer),mat,viewer)
-end
-
-"""
-    MatSetValues(mat,m,idxm,n,idxn,v,addv)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetValues.html).
-"""
-function MatSetValues(mat,m,idxm,n,idxn,v,addv)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatSetValues),
-    PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),
-    mat,m,idxm,n,idxn,v,addv)
-end
-
-"""
-    MatGetValues(mat,m,idxm,n,idxn,v)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetValues.html).
-"""
-function MatGetValues(mat,m,idxm,n,idxn,v)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatGetValues),
-    PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),
-    mat,m,idxm,n,idxn,v)
-end
-
-"""
-    MatAssemblyBegin(mat,typ)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyBegin.html).
-"""
-function MatAssemblyBegin(mat,typ)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatAssemblyBegin),
-    PetscErrorCode,(Mat,MatAssemblyType), mat, typ)
-end
-
-"""
-    MatAssemblyEnd(mat,typ)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyEnd.html).
-"""
-function MatAssemblyEnd(mat,typ)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatAssemblyEnd),
-    PetscErrorCode,(Mat,MatAssemblyType), mat, typ)
-end
-
-"""
-    MatGetSize(mat,m,n)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetSize.html)
-"""
-function MatGetSize(mat,m,n)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatGetSize),
-    PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),
-    mat,m,n)
-end
-
-"""
-    MatEqual(A,B,flg)
-
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html)
-"""
-function MatEqual(A,B,flg)
-  ccall(
-    Libdl.dlsym(libpetsc_handle[],:MatEqual),
-    PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),
-    A,B,flg)
-end
+@wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html")
+@wrapper(:MatCreateSeqAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,i,j,a,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJWithArrays.html")
+@wrapper(:MatDestroy,PetscErrorCode,(Ptr{Mat},),(A,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDestroy.html")
+@wrapper(:MatView,PetscErrorCode,(Mat,PetscViewer),(mat,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatView.html")
+@wrapper(:MatSetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(mat,m,idxm,n,idxn,v,addv),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetValues.html")
+@wrapper(:MatGetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(mat,m,idxm,n,idxn,v),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetValues.html")
+@wrapper(:MatAssemblyBegin,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyBegin.html")
+@wrapper(:MatAssemblyEnd,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyEnd.html")
+@wrapper(:MatGetSize,PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),(mat,m,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetSize.html")
+@wrapper(:MatEqual,PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),(A,B,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html")
 
 end # module
