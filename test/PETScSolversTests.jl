@@ -23,57 +23,56 @@ b = A*x
 
 # Setup solver via cml options
 solver = PETScSolver()
-@check_error_code PETSC.KSPSetFromOptions(solver.ksp[])
 
-x2 = solve(solver,A,b)
-@test x ≈ x2
+# Call Finalize(solver) implicitly
+before_finalizing(solver) do
 
-ss = symbolic_setup(solver,A)
-ns = numerical_setup(ss,A)
-x2 .= 0
-solve!(x2,ns,b)
-solve!(x2,ns,b)
-@test x ≈ x2
+  x2 = solve(solver,A,b)
+  @test x ≈ x2
+  
+  ss = symbolic_setup(solver,A)
+  ns = numerical_setup(ss,A)
+  x2 .= 0
+  solve!(x2,ns,b)
+  solve!(x2,ns,b)
+  @test x ≈ x2
+  
+  test_linear_solver(solver,A,b,x)
+  test_linear_solver(solver,A,b,x)
+  
+  B = sparsecsr(Val(0),I,J,PetscInt(2)*V,m,n)
+  c = B*x
+  
+  numerical_setup!(ns,B)
+  solve!(x2,ns,B*x)
+  @test x ≈ x2
+  
+  C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
+  x2 = solve(solver,C,C*x)
+  @test x ≈ x2
+  test_linear_solver(solver,C,C*x,x)
+  
+  C = sparse(I,J,V,m,n)
+  x2 = solve(solver,C,C*x)
+  @test x ≈ x2
+  test_linear_solver(solver,C,C*x,x)
 
-test_linear_solver(solver,A,b,x)
-test_linear_solver(solver,A,b,x)
-
-B = sparsecsr(Val(0),I,J,PetscInt(2)*V,m,n)
-c = B*x
-
-numerical_setup!(ns,B)
-solve!(x2,ns,B*x)
-@test x ≈ x2
-
-C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
-x2 = solve(solver,C,C*x)
-@test x ≈ x2
-test_linear_solver(solver,C,C*x,x)
-
-C = sparse(I,J,V,m,n)
-x2 = solve(solver,C,C*x)
-@test x ≈ x2
-test_linear_solver(solver,C,C*x,x)
+end
 
 # Setup solver via low level PETSC API calls
-solver = PETScSolver()
-pc = Ref{PETSC.PC}()
-@check_error_code PETSC.KSPSetType(solver.ksp[],PETSC.KSPGMRES)
-@check_error_code PETSC.KSPGetPC(solver.ksp[],pc)
-@check_error_code PETSC.PCSetType(pc[],PETSC.PCJACOBI)
-@check_error_code PETSC.KSPView(solver.ksp[],C_NULL)
+function mykspsetup(ksp)
+  pc = Ref{PETSC.PC}()
+  @check_error_code PETSC.KSPSetType(ksp[],PETSC.KSPGMRES)
+  @check_error_code PETSC.KSPGetPC(ksp[],pc)
+  @check_error_code PETSC.PCSetType(pc[],PETSC.PCJACOBI)
+  @check_error_code PETSC.KSPView(ksp[],C_NULL)
+end
+solver = PETScSolver(mykspsetup)
 
 x2 = solve(solver,A,b)
 @test x ≈ x2
 
-# Default solver
-solver = PETScSolver()
-
-x2 = solve(solver,A,b)
-@test x ≈ x2
-
-solver = nothing
-GC.gc()
+GridapPETSc.Finalize(solver)
 
 GridapPETSc.Finalize()
 
