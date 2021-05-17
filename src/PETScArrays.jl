@@ -163,6 +163,14 @@ function Base.similar(::Type{PETScMatrix},ax::Tuple{<:Base.OneTo,<:Base.OneTo})
   PETScMatrix(map(length,ax))
 end
 
+function Base.similar(::PETScMatrix,::Type{PetscScalar},ax::Tuple{Int})
+  similar(PETScVector,ax)
+end
+
+function Base.similar(a::PETScMatrix,::Type{PetscScalar},ax::Tuple{<:Base.OneTo})
+  similar(PETScVector,ax)
+end
+
 function Base.copy(a::PETScMatrix)
   v = PETScMatrix()
   @check_error_code PETSC.MatConvert(
