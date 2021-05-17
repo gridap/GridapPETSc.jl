@@ -40,6 +40,22 @@ GridapPETSc.with(args=split(options)) do
   C = petsc_sparse(I,J,V,m,n)
   display(C)
 
+  x = similar(v,size(C,2))
+  fill!(x,1)
+  y = C*x
+  @test typeof(y) == typeof(x)
+  @test y == [2,3,3,3]
+
+  y = 2*x
+  @test typeof(y) == typeof(x)
+  y = x*2
+  @test typeof(y) == typeof(x)
+
+  D = 2*C
+  @test typeof(D) == typeof(C)
+  D = C*3
+  @test typeof(D) == typeof(C)
+
 end
 
 end # module

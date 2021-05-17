@@ -71,6 +71,13 @@ function Base.similar(::Type{PETScVector},ax::Tuple{<:Base.OneTo})
   PETScVector(map(length,ax))
 end
 
+function Base.copy(a::PETScVector)
+  v = PETScVector()
+  @check_error_code PETSC.VecDuplicate(a.vec[],v.vec)
+  @check_error_code PETSC.VecCopy(a.vec[],v.vec[])
+  Init(v)
+end
+
 # Matrix
 
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
@@ -156,11 +163,18 @@ function Base.similar(::Type{PETScMatrix},ax::Tuple{<:Base.OneTo,<:Base.OneTo})
   PETScMatrix(map(length,ax))
 end
 
+function Base.copy(a::PETScMatrix)
+  v = PETScMatrix()
+  @check_error_code PETSC.MatConvert(
+    a.mat[],PETSC.MATSAME,PETSC.MAT_INITIAL_MATRIX,v.mat)
+  Init(v)
+end
+
 function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
   a
 end
 
-function Base.convert(::Type{PETScMatrix},a::AbstractMatrix)
+function Base.convert(::Type{PETScMatrix},a::AbstractSparseMatrix)
   Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
   csr = convert(Tm,a)
   m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
@@ -175,5 +189,39 @@ end
 function petsc_sparse(i,j,v,m,n)
   csr = sparsecsr(Val(0),i,j,v,m,n)
   convert(PETScMatrix,csr)
+end
+
+# Operations
+# TODO implement more ops including broadcasting
+
+function Base.fill!(x::PETScVector,a)
+  @check_error_code PETSC.VecSet(x.vec[],a)
+  x
+end
+
+function LinearAlgebra.mul!(c::PETScVector,a::PETScMatrix,b::PETScVector)
+  @assert c !== b
+  @check_error_code PETSC.MatMult(a.mat[],b.vec[],c.vec[])
+  c
+end
+
+function Base.:*(a::Number,b::PETScVector)
+  c = copy(b)
+  @check_error_code PETSC.VecScale(c.vec[],a)
+  c
+end
+
+function Base.:*(b::PETScVector,a::Number)
+  a*b
+end
+
+function Base.:*(a::Number,b::PETScMatrix)
+  c = copy(b)
+  @check_error_code PETSC.MatScale(c.mat[],a)
+  c
+end
+
+function Base.:*(b::PETScMatrix,a::Number)
+  a*b
 end
 

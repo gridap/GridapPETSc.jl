@@ -3,6 +3,7 @@ module GridapPETSc
 using MPI
 using Libdl
 using Gridap.Algebra
+using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
 
