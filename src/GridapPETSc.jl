@@ -2,6 +2,7 @@ module GridapPETSc
 
 using MPI
 using Libdl
+using Gridap.Helpers
 using Gridap.Algebra
 using LinearAlgebra
 using SparseArrays
@@ -72,5 +73,7 @@ include("PETScArrays.jl")
 
 export PETScSolver
 include("PETScSolvers.jl")
+
+include("PETScAssembly.jl")
 
 end # module

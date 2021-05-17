@@ -86,5 +86,4 @@ GridapPETSc.with(args=options) do
 
 end
 
-
 end # module

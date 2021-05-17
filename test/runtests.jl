@@ -8,6 +8,8 @@ using Test
 
 @time @testset "PETScSolvers" begin include("PETScSolversTests.jl") end
 
+@time @testset "PETScAssembly" begin include("PETScAssemblyTests.jl") end
+
 @time @testset "PoissonDriver" begin include("PoissonDriver.jl") end
 
 end # module
