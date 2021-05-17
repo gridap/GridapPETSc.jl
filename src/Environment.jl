@@ -33,8 +33,3 @@ function Finalize()
   nothing
 end
 
-function before_finalizing(f,args...)
-  f()
-  map(Finalize,args)
-end
-

@@ -58,7 +58,6 @@ include("PETSC.jl")
 using GridapPETSc.PETSC: @check_error_code
 using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
 
-export before_finalizing
 include("Environment.jl")
 
 #export PETScVector
