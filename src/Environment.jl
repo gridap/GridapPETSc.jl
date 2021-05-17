@@ -19,8 +19,15 @@ function Initialized()
   flag[] == PETSC.PETSC_TRUE
 end
 
+const _NREFS = Ref(0)
+
 function Finalize()
   if Initialized()
+    GC.gc() # Finalize all object out of scope at this point
+    if _NREFS[] != 0
+      @warn "$(_NREFS[]) objects still not finalized before calling GridapPETSc.Finalize()"
+    end
+    _NREFS[] = 0
     @check_error_code PETSC.PetscFinalize()
   end
   nothing
@@ -30,3 +37,4 @@ function before_finalizing(f,args...)
   f()
   map(Finalize,args)
 end
+

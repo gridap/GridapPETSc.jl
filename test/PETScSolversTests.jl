@@ -24,40 +24,39 @@ b = A*x
 # Setup solver via cml options
 solver = PETScSolver()
 
-# Call Finalize(solver) implicitly
-before_finalizing(solver) do
+x2 = solve(solver,A,b)
+@test x ≈ x2
 
-  x2 = solve(solver,A,b)
-  @test x ≈ x2
-  
-  ss = symbolic_setup(solver,A)
-  ns = numerical_setup(ss,A)
-  x2 .= 0
-  solve!(x2,ns,b)
-  solve!(x2,ns,b)
-  @test x ≈ x2
-  
-  test_linear_solver(solver,A,b,x)
-  test_linear_solver(solver,A,b,x)
-  
-  B = sparsecsr(Val(0),I,J,PetscInt(2)*V,m,n)
-  c = B*x
-  
-  numerical_setup!(ns,B)
-  solve!(x2,ns,B*x)
-  @test x ≈ x2
-  
-  C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
-  x2 = solve(solver,C,C*x)
-  @test x ≈ x2
-  test_linear_solver(solver,C,C*x,x)
-  
-  C = sparse(I,J,V,m,n)
-  x2 = solve(solver,C,C*x)
-  @test x ≈ x2
-  test_linear_solver(solver,C,C*x,x)
+ss = symbolic_setup(solver,A)
+ns = numerical_setup(ss,A)
+x2 .= 0
+solve!(x2,ns,b)
+solve!(x2,ns,b)
+@test x ≈ x2
 
-end
+test_linear_solver(solver,A,b,x)
+test_linear_solver(solver,A,b,x)
+
+B = sparsecsr(Val(0),I,J,PetscInt(2)*V,m,n)
+c = B*x
+
+numerical_setup!(ns,B)
+solve!(x2,ns,B*x)
+@test x ≈ x2
+
+# Move ns out of scope before calling GridapPETSc.Finalize()
+ns = nothing
+
+C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
+x2 = solve(solver,C,C*x)
+@test x ≈ x2
+test_linear_solver(solver,C,C*x,x)
+
+C = sparse(I,J,V,m,n)
+x2 = solve(solver,C,C*x)
+@test x ≈ x2
+test_linear_solver(solver,C,C*x,x)
+
 
 # Setup solver via low level PETSC API calls
 function mykspsetup(ksp)
@@ -71,8 +70,6 @@ solver = PETScSolver(mykspsetup)
 
 x2 = solve(solver,A,b)
 @test x ≈ x2
-
-GridapPETSc.Finalize(solver)
 
 GridapPETSc.Finalize()
 
