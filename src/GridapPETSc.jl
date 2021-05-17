@@ -3,6 +3,7 @@ module GridapPETSc
 using MPI
 using Libdl
 using Gridap.Algebra
+using SparseArrays
 using SparseMatricesCSR
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
@@ -57,11 +58,15 @@ include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
 using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+#export PETSC
+export @check_error_code
+export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
 
 include("Environment.jl")
 
 export PETScVector
 export PETScMatrix
+export petsc_sparse
 include("PETScArrays.jl")
 
 export PETScSolver

@@ -76,7 +76,8 @@ end
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   mat::Ref{Mat}
   initialized::Bool
-  PETScMatrix() = new(Ref{Mat}(),false)
+  ownership::Any
+  PETScMatrix() = new(Ref{Mat}(),false,nothing)
 end
 
 function Init(a::PETScMatrix)
@@ -154,3 +155,25 @@ end
 function Base.similar(::Type{PETScMatrix},ax::Tuple{<:Base.OneTo,<:Base.OneTo})
   PETScMatrix(map(length,ax))
 end
+
+function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
+  a
+end
+
+function Base.convert(::Type{PETScMatrix},a::AbstractMatrix)
+  Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
+  csr = convert(Tm,a)
+  m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
+  A = PETScMatrix()
+  A.ownership = csr
+  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
+  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  Init(A)
+end
+
+function petsc_sparse(i,j,v,m,n)
+  csr = sparsecsr(Val(0),i,j,v,m,n)
+  convert(PETScMatrix,csr)
+end
+

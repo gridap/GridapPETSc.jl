@@ -2,7 +2,7 @@ module PETScVectorsTests
 
 using GridapPETSc
 using Test
-using GridapPETSc: PetscScalar
+using GridapPETSc: PetscScalar, PetscInt
 
 options = "-info"
 GridapPETSc.with(args=split(options)) do 
@@ -25,10 +25,20 @@ GridapPETSc.with(args=split(options)) do
   A[3,5] = 7
   @test A[1,3] == 5
   @test A[3,5] == 7
+  display(A)
   
   B = similar(A,PetscScalar,3,2)
   @test typeof(A) == typeof(B)
   @test size(B) == (3,2)
+
+  I = PetscInt[1,1,2,2,2,3,3,3,4,4]
+  J = PetscInt[1,2,1,2,3,2,3,4,3,4]
+  V = PetscScalar[4,-2,-1,6,-2,-1,6,-2,-1,4]
+  m = PetscInt(4)
+  n = PetscInt(4)
+
+  C = petsc_sparse(I,J,V,m,n)
+  display(C)
 
 end
 
