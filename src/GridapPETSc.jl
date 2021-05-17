@@ -60,8 +60,9 @@ using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
 
 include("Environment.jl")
 
-#export PETScVector
-#include("PETScVectors.jl")
+export PETScVector
+export PETScMatrix
+include("PETScVectors.jl")
 
 export PETScSolver
 include("PETScSolvers.jl")

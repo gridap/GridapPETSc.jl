@@ -33,3 +33,9 @@ function Finalize()
   nothing
 end
 
+function with(f;kwargs...)
+  Init(;kwargs...)
+  f()
+  Finalize()
+end
+
