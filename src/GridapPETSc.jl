@@ -62,7 +62,7 @@ include("Environment.jl")
 
 export PETScVector
 export PETScMatrix
-include("PETScVectors.jl")
+include("PETScArrays.jl")
 
 export PETScSolver
 include("PETScSolvers.jl")
