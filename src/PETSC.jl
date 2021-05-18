@@ -17,6 +17,7 @@ module PETSC
 
 using Libdl
 using GridapPETSc: libpetsc_handle
+using GridapPETSc: _PRELOADS
 using MPI
 
 include("Config.jl")
@@ -37,6 +38,7 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
 end
 
 macro wrapper(fn,rt,argts,args,url)
+  hn = Symbol("$(fn.value)_handle")
   sargs = "$(args)"
   if length(args.args) == 1
     sargs = sargs[1:end-2]*")"
@@ -53,11 +55,11 @@ macro wrapper(fn,rt,argts,args,url)
     """
   end
   expr = quote
+    const $hn = Ref(C_NULL)
+    push!(_PRELOADS,($hn,$fn))
     @doc $str
-    function $(fn.value)($(args.args...))
-      ccall(
-        Libdl.dlsym(libpetsc_handle[],$fn),
-        $rt,$argts,$(args.args...))
+    @inline function $(fn.value)($(args.args...))
+      ccall($(hn)[],$rt,$argts,$(args.args...))
     end
   end
   esc(expr)
@@ -151,6 +153,17 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
 end
 
 """
+Julia alias for the `VecOption` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html).
+"""
+@enum VecOption begin
+  VEC_IGNORE_OFF_PROC_ENTRIES
+  VEC_IGNORE_NEGATIVE_INDICES
+  VEC_SUBSET_OFF_PROC_ENTRIES
+end
+
+"""
 Julia alias for the `Vec` C type.
 
 See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/Vec.html).
@@ -179,6 +192,7 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 @wrapper(:VecAXPY,PetscErrorCode,(Vec,PetscScalar,Vec),(y,alpha,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPY.html")
 @wrapper(:VecAYPX,PetscErrorCode,(Vec,PetscScalar,Vec),(y,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAYPX.html")
 @wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPBY.html")
+@wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html")
 
 # Matrix related functions
 

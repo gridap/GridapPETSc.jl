@@ -6,7 +6,21 @@
   n = one(PetscInt)
   i0 = Ref(PetscInt(i1-n))
   vi = Ref(PetscScalar(v))
-  @check_error_code PETSC.VecSetValues(A.vec[],n,i0,vi,PETSC.ADD_VALUES)
+  PETSC.VecSetValues(A.vec[],n,i0,vi,PETSC.ADD_VALUES)
+  nothing
+end
+
+@inline function Algebra.add_entries!(
+  ::typeof(+),a::PETScVector,v::Vector{PetscScalar},i1)
+  @check all(i -> i<0 || ( 0<i && i<=size(a,1)), i1)
+
+  u = one(PetscInt)
+  ni = length(i1)
+  i0 = Vector{PetscInt}(undef,ni)
+  @inbounds for k in 1:ni
+    i0[k] = i1[k]-u
+  end
+  PETSC.VecSetValues(a.vec[],ni,i0,v,PETSC.ADD_VALUES)
   nothing
 end
 
@@ -80,7 +94,28 @@ end
   i0 = Ref(PetscInt(i1-n))
   j0 = Ref(PetscInt(j1-n))
   vi = Ref(PetscScalar(v))
-  @check_error_code PETSC.MatSetValues(a.mat[],n,i0,n,j0,vi,PETSC.ADD_VALUES)
+  #@check_error_code PETSC.MatSetValues(a.mat[],n,i0,n,j0,vi,PETSC.ADD_VALUES)
+  PETSC.MatSetValues(a.mat[],n,i0,n,j0,vi,PETSC.ADD_VALUES)
+  nothing
+end
+
+@inline function Algebra.add_entries!(
+  ::typeof(+),a::PETScMatrix,v::Matrix{PetscScalar},i1,j1)
+  @check all(i -> i<0 || ( 0<i && i<=size(a,1)), i1)
+  @check all(j -> j<0 || ( 0<j && j<=size(a,2)), j1)
+
+  u = one(PetscInt)
+  ni = length(i1)
+  nj = length(j1)
+  i0 = Vector{PetscInt}(undef,ni)
+  j0 = Vector{PetscInt}(undef,nj)
+  @inbounds for k in 1:ni
+    i0[k] = i1[k]-u
+  end
+  @inbounds for k in 1:nj
+    j0[k] = j1[k]-u
+  end
+  PETSC.MatSetValues(a.mat[],ni,i0,nj,j0,v,PETSC.ADD_VALUES)
   nothing
 end
 

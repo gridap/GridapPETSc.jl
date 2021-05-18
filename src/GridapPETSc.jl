@@ -47,12 +47,17 @@ end
 
 const libpetsc_handle = Ref{Ptr{Cvoid}}()
 
+const _PRELOADS = Tuple{Ref{Ptr{Cvoid}},Symbol}[]
+
 function __init__()
   if libpetsc_provider == "JULIA_PETSC_LIBRARY"
     flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
     libpetsc_handle[] = Libdl.dlopen(libpetsc_path, flags)
   else
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
+  end
+  for (handle,sym) in _PRELOADS
+    handle[] = Libdl.dlsym(libpetsc_handle[],sym) 
   end
 end
 

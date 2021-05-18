@@ -4,10 +4,14 @@ mutable struct PETScVector <: AbstractVector{PetscScalar}
   vec::Ref{Vec}
   initialized::Bool
   ownership::Any
-  PETScVector() = new(Ref{Vec}(),false,nothing)
+  size::Tuple{Int}
+  PETScVector() = new(Ref{Vec}(),false,nothing,(-1,))
 end
 
 function Init(a::PETScVector)
+  n = Ref{PetscInt}()
+  @check_error_code PETSC.VecGetSize(a.vec[],n)
+  a.size = (Int(n[]),)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
@@ -25,9 +29,8 @@ function Finalize(a::PETScVector)
 end
 
 function Base.size(v::PETScVector)
-  n = Ref{PetscInt}()
-  @check_error_code PETSC.VecGetSize(v.vec[],n)
-  (Int(n[]),)
+  @assert v.initialized
+  v.size
 end
 
 Base.@propagate_inbounds function Base.getindex(v::PETScVector,i1::Integer)
@@ -53,6 +56,7 @@ end
 function PETScVector(n::Integer)
   v = PETScVector()
   @check_error_code PETSC.VecCreateSeq(MPI.COMM_SELF,n,v.vec)
+  @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
   Init(v)
 end
 
@@ -90,6 +94,7 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   bs = 1
   n = length(array)
   @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
+  @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
   v.ownership = array
   Init(v)
 end
@@ -100,10 +105,15 @@ mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   mat::Ref{Mat}
   initialized::Bool
   ownership::Any
-  PETScMatrix() = new(Ref{Mat}(),false,nothing)
+  size::Tuple{Int,Int}
+  PETScMatrix() = new(Ref{Mat}(),false,nothing,(-1,-1))
 end
 
 function Init(a::PETScMatrix)
+  m = Ref{PetscInt}()
+  n = Ref{PetscInt}()
+  @check_error_code PETSC.MatGetSize(a.mat[],m,n)
+  a.size = (Int(m[]),Int(n[]))
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
@@ -121,10 +131,8 @@ function Finalize(a::PETScMatrix)
 end
 
 function Base.size(v::PETScMatrix)
-  m = Ref{PetscInt}()
-  n = Ref{PetscInt}()
-  @check_error_code PETSC.MatGetSize(v.mat[],m,n)
-  (Int(m[]),Int(n[]))
+  @check v.initialized
+  v.size
 end
 
 Base.@propagate_inbounds function Base.getindex(v::PETScMatrix,i1::Integer,j1::Integer)
