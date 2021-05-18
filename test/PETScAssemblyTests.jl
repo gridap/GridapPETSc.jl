@@ -56,6 +56,27 @@ GridapPETSc.with(args=split(options)) do
   d = create_from_nz(c)
   display(d)
 
+  Tv = PETScVector
+  builder = ArrayBuilder(Tv)
+  a = nz_counter(builder,(rows,))
+  @test LoopStyle(a) == DoNotLoop()
+  add_entry!(a,1.0,1)
+  add_entries!(a,[1.0,-1.0],[1,1])
+  add_entries!(a,nothing,[1,1])
+  b = nz_allocation(a)
+  @test LoopStyle(b) == DoNotLoop()
+  add_entry!(b,1.0,1)
+  add_entry!(b,1.0,1)
+  add_entry!(b,1.0,4)
+  add_entries!(b,[1.0,-1.0],[1,1])
+  add_entries!(b,nothing,[1,1])
+  c = create_from_nz(b)
+  @test c === b
+  add_entries!(c,[1.0,-1.0],[1,1])
+  add_entries!(c,nothing,[1,1])
+  d = c
+  display(d)
+
 end
 
 

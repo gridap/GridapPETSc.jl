@@ -1,4 +1,23 @@
 
+# Vector assembly
+
+@inline function Algebra.add_entry!(::typeof(+),A::PETScVector,v::Number,i1)
+  @boundscheck checkbounds(A, i1)
+  n = one(PetscInt)
+  i0 = Ref(PetscInt(i1-n))
+  vi = Ref(PetscScalar(v))
+  @check_error_code PETSC.VecSetValues(A.vec[],n,i0,vi,PETSC.ADD_VALUES)
+  nothing
+end
+
+function Algebra.create_from_nz(a::PETScVector)
+  @check_error_code PETSC.VecAssemblyBegin(a.vec[])
+  @check_error_code PETSC.VecAssemblyEnd(a.vec[])
+  a
+end
+
+# Matrix assembly
+
 struct MatCounter{L}
   nrows::Int
   ncols::Int
