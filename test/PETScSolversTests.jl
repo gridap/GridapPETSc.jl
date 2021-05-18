@@ -97,6 +97,12 @@ GridapPETSc.with(args=split(options)) do
   test_linear_solver(solver,A,b,x)
   test_linear_solver(solver,A,b,x)
 
+  x = ones(PetscScalar,n)
+  test_linear_solver(solver,A,b,x)
+
+  x = ones(Float32,n)
+  test_linear_solver(solver,A,b,x)
+
 end
 
 end # module

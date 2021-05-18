@@ -23,21 +23,12 @@ function Algebra.symbolic_setup(solver::PETScSolver,mat::AbstractMatrix)
 end
 
 mutable struct PETScSolverNS <: NumericalSetup
-  A::SparseMatrixCSR{0,PetscScalar,PetscInt}
+  A::PETScMatrix
   comm::MPI.Comm
   ksp::Ref{KSP}
-  mat::Ref{Mat}
-  rhs::Ref{Vec}
-  sol::Ref{Vec}
   initialized::Bool
-  function PETScSolverNS(
-    A::SparseMatrixCSR{0,PetscScalar,PetscInt}, comm::MPI.Comm)
-    ksp = Ref{KSP}()
-    mat = Ref{Mat}()
-    rhs = Ref{Vec}()
-    sol = Ref{Vec}()
-    initialized = false
-    new(A,comm,ksp,mat,rhs,sol,initialized)
+  function PETScSolverNS(A::PETScMatrix,comm::MPI.Comm)
+    new(A,comm,Ref{KSP}(),false)
   end
 end
 
@@ -50,9 +41,6 @@ end
 
 function Finalize(ns::PETScSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.VecDestroy(ns.sol)
-    @check_error_code PETSC.VecDestroy(ns.rhs)
-    @check_error_code PETSC.MatDestroy(ns.mat)
     @check_error_code PETSC.KSPDestroy(ns.ksp)
     ns.initialized = false
     @assert Threads.threadid() == 1
@@ -61,120 +49,39 @@ function Finalize(ns::PETScSolverNS)
   nothing
 end
 
-function PETScSolverNS(solver::PETScSolver,A::SparseMatrixCSR{0,PetscScalar,PetscInt})
-  ns = PETScSolverNS(A,solver.comm)
-  nrows, ncols = size(A); i = A.rowptr; j = A.colval; a = A.nzval
-  bs = 1
+function Algebra.numerical_setup(ss::PETScSolverSS,A::AbstractMatrix)
+  B = convert(PETScMatrix,A)
+  ns = PETScSolverNS(B,ss.solver.comm)
   @check_error_code PETSC.KSPCreate(ns.comm,ns.ksp)
-  solver.setup(ns.ksp)
-  @check_error_code PETSC.VecCreateSeqWithArray(ns.comm,bs,nrows,C_NULL,ns.rhs)
-  @check_error_code PETSC.VecCreateSeqWithArray(ns.comm,bs,ncols,C_NULL,ns.sol)
-  @check_error_code PETSC.MatCreateSeqAIJWithArrays(ns.comm,nrows,ncols,i,j,a,ns.mat)
+  ss.solver.setup(ns.ksp)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
+  @check_error_code PETSC.KSPSetUp(ns.ksp[])
   Init(ns)
 end
 
-function Algebra.numerical_setup(
-  ss::PETScSolverSS,A::SparseMatrixCSR{0,PetscScalar,PetscInt})
-  ns = PETScSolverNS(ss.solver,A)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.mat[],ns.mat[])
-  @check_error_code PETSC.KSPSetUp(ns.ksp[])
-  ns
-end
-
-function Algebra.solve!(x::Vector{PetscScalar},ns::PETScSolverNS,b::Vector{PetscScalar})
-  @check_error_code PETSC.VecPlaceArray(ns.rhs[],b)
-  @check_error_code PETSC.VecPlaceArray(ns.sol[],x)
-  @check_error_code PETSC.KSPSolve(ns.ksp[],ns.rhs[],ns.sol[])
-  @check_error_code PETSC.VecResetArray(ns.rhs[])
-  @check_error_code PETSC.VecResetArray(ns.sol[])
+function Algebra.solve!(x::PETScVector,ns::PETScSolverNS,b::AbstractVector)
+  B = convert(PETScVector,b)
+  @check_error_code PETSC.KSPSolve(ns.ksp[],B.vec[],x.vec[])
   x
 end
 
-function Algebra.numerical_setup!(ns::PETScSolverNS,A::SparseMatrixCSR{0,PetscScalar,PetscInt})
-  nrows, ncols = size(A); i = A.rowptr; j = A.colval; a = A.nzval
-  @check_error_code PETSC.MatDestroy(ns.mat)
-  @check_error_code PETSC.MatCreateSeqAIJWithArrays(ns.comm,nrows,ncols,i,j,a,ns.mat)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.mat[],ns.mat[])
-  @check_error_code PETSC.KSPSetUp(ns.ksp[])
-  ns
-end
-
-# with conversions
-
-function Algebra.numerical_setup(ss::PETScSolverSS,A::AbstractMatrix)
-  _A = convert(SparseMatrixCSR{0,PetscScalar,PetscInt},A)
-  numerical_setup(ss,_A)
+function Algebra.solve!(x::Vector{PetscScalar},ns::PETScSolverNS,b::AbstractVector)
+  X = convert(PETScVector,x)
+  solve!(X,ns,b)
+  x
 end
 
 function Algebra.solve!(x::AbstractVector,ns::PETScSolverNS,b::AbstractVector)
-  _x = convert(Vector{PetscScalar},x)
-  _b = convert(Vector{PetscScalar},b)
-  solve!(_x,ns,_b)
-  if x !== _x
-    x.=_x
-  end
+  X = convert(Vector{PetscScalar},x)
+  solve!(X,ns,b)
+  x .= X
   x
 end
 
 function Algebra.numerical_setup!(ns::PETScSolverNS,A::AbstractMatrix)
-  _A = convert(SparseMatrixCSR{0,PetscScalar,PetscInt},A)
-  numerical_setup!(ns,_A)
-end
-
-# for PETScMatrix and PETScVector
-
-mutable struct PETScSolverNativeNS <: NumericalSetup
-  A::PETScMatrix
-  comm::MPI.Comm
-  ksp::Ref{KSP}
-  initialized::Bool
-  function PETScSolverNativeNS(
-    A::PETScMatrix, comm::MPI.Comm)
-    ksp = Ref{KSP}()
-    initialized = false
-    new(A,comm,ksp,initialized)
-  end
-end
-
-function Init(a::PETScSolverNativeNS)
-  @assert Threads.threadid() == 1
-  _NREFS[] += 1
-  a.initialized = true
-  finalizer(Finalize,a)
-end
-
-function Finalize(ns::PETScSolverNativeNS)
-  if ns.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.KSPDestroy(ns.ksp)
-    ns.initialized = false
-    @assert Threads.threadid() == 1
-    _NREFS[] -= 1
-  end
-  nothing
-end
-
-function PETScSolverNativeNS(solver::PETScSolver,A::PETScMatrix)
-  ns = PETScSolverNativeNS(A,solver.comm)
-  @check_error_code PETSC.KSPCreate(ns.comm,ns.ksp)
-  solver.setup(ns.ksp)
-  Init(ns)
-end
-
-function Algebra.numerical_setup(ss::PETScSolverSS,A::PETScMatrix)
-  ns = PETScSolverNativeNS(ss.solver,A)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],A.mat[],A.mat[])
+  ns.A = convert(PETScMatrix,A)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   ns
 end
 
-function Algebra.solve!(x::PETScVector,ns::PETScSolverNativeNS,b::PETScVector)
-  @check_error_code PETSC.KSPSolve(ns.ksp[],b.vec[],x.vec[])
-  x
-end
-
-function Algebra.numerical_setup!(ns::PETScSolverNativeNS,A::PETScMatrix)
-  ns.A = A
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],A.mat[],A.mat[])
-  @check_error_code PETSC.KSPSetUp(ns.ksp[])
-  ns
-end

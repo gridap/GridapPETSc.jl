@@ -3,7 +3,8 @@
 mutable struct PETScVector <: AbstractVector{PetscScalar}
   vec::Ref{Vec}
   initialized::Bool
-  PETScVector() = new(Ref{Vec}(),false)
+  ownership::Any
+  PETScVector() = new(Ref{Vec}(),false,nothing)
 end
 
 function Init(a::PETScVector)
@@ -75,6 +76,21 @@ function Base.copy(a::PETScVector)
   v = PETScVector()
   @check_error_code PETSC.VecDuplicate(a.vec[],v.vec)
   @check_error_code PETSC.VecCopy(a.vec[],v.vec[])
+  Init(v)
+end
+
+function Base.convert(::Type{PETScVector},a::PETScVector)
+  a
+end
+
+function Base.convert(::Type{PETScVector},a::AbstractVector)
+  array = convert(Vector{PetscScalar},a)
+  v = PETScVector()
+  comm = MPI.COMM_SELF
+  bs = 1
+  n = length(array)
+  @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
+  v.ownership = array
   Init(v)
 end
 

@@ -16,6 +16,22 @@ GridapPETSc.with(args=split(options)) do
   
   s = similar(v,PetscScalar,4)
   w = similar(v)
+
+  a = zeros(PetscScalar,10)
+  b = convert(Vector{PetscScalar},a)
+  @test a === b
+
+  a = zeros(PetscScalar,10)
+  b = convert(PETScVector,a)
+  @test a === b.ownership
+
+  a = zeros(PetscInt,10)
+  b = convert(Vector{PetscScalar},a)
+  @test a !== b
+
+  a = PETScVector(10)
+  b = convert(PETScVector,a)
+  @test a === b
   
   m = 4
   n = 5
