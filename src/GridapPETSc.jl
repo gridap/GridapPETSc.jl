@@ -4,6 +4,7 @@ using MPI
 using Libdl
 using Gridap.Helpers
 using Gridap.Algebra
+using Gridap.Arrays
 using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
