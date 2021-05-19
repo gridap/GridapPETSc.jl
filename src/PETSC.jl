@@ -17,6 +17,7 @@ module PETSC
 
 using Libdl
 using GridapPETSc: libpetsc_handle
+using GridapPETSc: _PRELOADS
 using MPI
 
 include("Config.jl")
@@ -37,6 +38,7 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
 end
 
 macro wrapper(fn,rt,argts,args,url)
+  hn = Symbol("$(fn.value)_handle")
   sargs = "$(args)"
   if length(args.args) == 1
     sargs = sargs[1:end-2]*")"
@@ -53,11 +55,11 @@ macro wrapper(fn,rt,argts,args,url)
     """
   end
   expr = quote
+    const $hn = Ref(C_NULL)
+    push!(_PRELOADS,($hn,$fn))
     @doc $str
-    function $(fn.value)($(args.args...))
-      ccall(
-        Libdl.dlsym(libpetsc_handle[],$fn),
-        $rt,$argts,$(args.args...))
+    @inline function $(fn.value)($(args.args...))
+      ccall($(hn)[],$rt,$argts,$(args.args...))
     end
   end
   esc(expr)
@@ -151,6 +153,17 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
 end
 
 """
+Julia alias for the `VecOption` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html).
+"""
+@enum VecOption begin
+  VEC_IGNORE_OFF_PROC_ENTRIES
+  VEC_IGNORE_NEGATIVE_INDICES
+  VEC_SUBSET_OFF_PROC_ENTRIES
+end
+
+"""
 Julia alias for the `Vec` C type.
 
 See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/Vec.html).
@@ -172,18 +185,48 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 @wrapper(:VecAssemblyEnd,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html")
 @wrapper(:VecPlaceArray,PetscErrorCode,(Vec,Ptr{PetscScalar}),(vec,array),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecPlaceArray.html")
 @wrapper(:VecResetArray,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecResetArray.html")
+@wrapper(:VecScale,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecScale.html")
+@wrapper(:VecSet,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSet.html")
+@wrapper(:VecDuplicate,PetscErrorCode,(Vec,Ptr{Vec}),(v,newv),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDuplicate.html")
+@wrapper(:VecCopy,PetscErrorCode,(Vec,Vec),(x,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCopy.html")
+@wrapper(:VecAXPY,PetscErrorCode,(Vec,PetscScalar,Vec),(y,alpha,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPY.html")
+@wrapper(:VecAYPX,PetscErrorCode,(Vec,PetscScalar,Vec),(y,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAYPX.html")
+@wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPBY.html")
+@wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html")
 
 # Matrix related functions
-
 
 """
 Julia alias for the `MatAssemblyType` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyType.html#MatAssemblyType).
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyType.html).
 """
 @enum MatAssemblyType begin
   MAT_FINAL_ASSEMBLY=0
   MAT_FLUSH_ASSEMBLY=1
+end
+
+"""
+Julia alias for the `MatDuplicateOption` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDuplicateOption.html).
+"""
+@enum MatDuplicateOption begin
+  MAT_DO_NOT_COPY_VALUES
+  MAT_COPY_VALUES
+  MAT_SHARE_NONZERO_PATTERN
+end
+
+"""
+Julia alias for the `MatReuse` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatReuse.html).
+"""
+@enum MatReuse begin
+  MAT_INITIAL_MATRIX
+  MAT_REUSE_MATRIX
+  MAT_IGNORE_MATRIX
+  MAT_INPLACE_MATRIX
 end
 
 """
@@ -208,6 +251,99 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
 const PETSC_DETERMINE = PETSC_DECIDE
 
 """
+Julia alias for `MatType` C type.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatType.html).
+"""
+const MatType = Cstring
+const MATSAME            = "same"
+const MATMAIJ            = "maij"
+const MATSEQMAIJ         = "seqmaij"
+const MATMPIMAIJ         = "mpimaij"
+const MATKAIJ            = "kaij"
+const MATSEQKAIJ         = "seqkaij"
+const MATMPIKAIJ         = "mpikaij"
+const MATIS              = "is"
+const MATAIJ             = "aij"
+const MATSEQAIJ          = "seqaij"
+const MATMPIAIJ          = "mpiaij"
+const MATAIJCRL          = "aijcrl"
+const MATSEQAIJCRL       = "seqaijcrl"
+const MATMPIAIJCRL       = "mpiaijcrl"
+const MATAIJCUSPARSE     = "aijcusparse"
+const MATSEQAIJCUSPARSE  = "seqaijcusparse"
+const MATMPIAIJCUSPARSE  = "mpiaijcusparse"
+const MATAIJKOKKOS       = "aijkokkos"
+const MATSEQAIJKOKKOS    = "seqaijkokkos"
+const MATMPIAIJKOKKOS    = "mpiaijkokkos"
+const MATAIJVIENNACL     = "aijviennacl"
+const MATSEQAIJVIENNACL  = "seqaijviennacl"
+const MATMPIAIJVIENNACL  = "mpiaijviennacl"
+const MATAIJPERM         = "aijperm"
+const MATSEQAIJPERM      = "seqaijperm"
+const MATMPIAIJPERM      = "mpiaijperm"
+const MATAIJSELL         = "aijsell"
+const MATSEQAIJSELL      = "seqaijsell"
+const MATMPIAIJSELL      = "mpiaijsell"
+const MATAIJMKL          = "aijmkl"
+const MATSEQAIJMKL       = "seqaijmkl"
+const MATMPIAIJMKL       = "mpiaijmkl"
+const MATBAIJMKL         = "baijmkl"
+const MATSEQBAIJMKL      = "seqbaijmkl"
+const MATMPIBAIJMKL      = "mpibaijmkl"
+const MATSHELL           = "shell"
+const MATDENSE           = "dense"
+const MATDENSECUDA       = "densecuda"
+const MATSEQDENSE        = "seqdense"
+const MATSEQDENSECUDA    = "seqdensecuda"
+const MATMPIDENSE        = "mpidense"
+const MATMPIDENSECUDA    = "mpidensecuda"
+const MATELEMENTAL       = "elemental"
+const MATSCALAPACK       = "scalapack"
+const MATBAIJ            = "baij"
+const MATSEQBAIJ         = "seqbaij"
+const MATMPIBAIJ         = "mpibaij"
+const MATMPIADJ          = "mpiadj"
+const MATSBAIJ           = "sbaij"
+const MATSEQSBAIJ        = "seqsbaij"
+const MATMPISBAIJ        = "mpisbaij"
+const MATMFFD            = "mffd"
+const MATNORMAL          = "normal"
+const MATNORMALHERMITIAN = "normalh"
+const MATLRC             = "lrc"
+const MATSCATTER         = "scatter"
+const MATBLOCKMAT        = "blockmat"
+const MATCOMPOSITE       = "composite"
+const MATFFT             = "fft"
+const MATFFTW            = "fftw"
+const MATSEQCUFFT        = "seqcufft"
+const MATTRANSPOSEMAT    = "transpose"
+const MATSCHURCOMPLEMENT = "schurcomplement"
+const MATPYTHON          = "python"
+const MATHYPRE           = "hypre"
+const MATHYPRESTRUCT     = "hyprestruct"
+const MATHYPRESSTRUCT    = "hypresstruct"
+const MATSUBMATRIX       = "submatrix"
+const MATLOCALREF        = "localref"
+const MATNEST            = "nest"
+const MATPREALLOCATOR    = "preallocator"
+const MATSELL            = "sell"
+const MATSEQSELL         = "seqsell"
+const MATMPISELL         = "mpisell"
+const MATDUMMY           = "dummy"
+const MATLMVM            = "lmvm"
+const MATLMVMDFP         = "lmvmdfp"
+const MATLMVMBFGS        = "lmvmbfgs"
+const MATLMVMSR1         = "lmvmsr1"
+const MATLMVMBROYDEN     = "lmvmbroyden"
+const MATLMVMBADBROYDEN  = "lmvmbadbroyden"
+const MATLMVMSYMBROYDEN  = "lmvmsymbroyden"
+const MATLMVMSYMBADBROYDEN = "lmvmsymbadbroyden"
+const MATLMVMDIAGBROYDEN   = "lmvmdiagbroyden"
+const MATCONSTANTDIAGONAL  = "constantdiagonal"
+const MATHARA              = "hara"
+
+"""
 Julia alias for the `Mat` C type.
 
 See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/Mat.html).
@@ -228,6 +364,10 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatAssemblyEnd,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyEnd.html")
 @wrapper(:MatGetSize,PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),(mat,m,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetSize.html")
 @wrapper(:MatEqual,PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),(A,B,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html")
+@wrapper(:MatMultAdd,PetscErrorCode,(Mat,Vec,Vec,Vec),(mat,v1,v2,v3),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMultAdd.html")
+@wrapper(:MatMult,PetscErrorCode,(Mat,Vec,Vec),(mat,x,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMult.html")
+@wrapper(:MatScale,PetscErrorCode,(Mat,PetscScalar),(mat,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatScale.html")
+@wrapper(:MatConvert,PetscErrorCode,(Mat,MatType,MatReuse,Ptr{Mat}),(mat,newtype,reuse,M),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatConvert.html")
 
 # KSP and PC related things
 

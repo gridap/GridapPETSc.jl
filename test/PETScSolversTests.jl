@@ -73,4 +73,36 @@ x2 = solve(solver,A,b)
 
 GridapPETSc.Finalize()
 
+options = "-ksp_monitor"
+GridapPETSc.with(args=split(options)) do
+
+  I = PetscInt[1,1,2,2,2,3,3,3,4,4]
+  J = PetscInt[1,2,1,2,3,2,3,4,3,4]
+  V = PetscScalar[4,-2,-1,6,-2,-1,6,-2,-1,4]
+  m = PetscInt(4)
+  n = PetscInt(4)
+
+  A = petsc_sparse(I,J,V,m,n)
+  x = similar(A,size(A,2))
+  @test typeof(x) == PETScVector
+  fill!(x,1)
+  b = A*x
+  @test typeof(b) == PETScVector
+
+  solver = PETScSolver()
+  x2 = solve(solver,A,b)
+  @test typeof(x2) == PETScVector
+  @test x ≈ x2
+
+  test_linear_solver(solver,A,b,x)
+  test_linear_solver(solver,A,b,x)
+
+  x = ones(PetscScalar,n)
+  test_linear_solver(solver,A,b,x)
+
+  x = ones(Float32,n)
+  test_linear_solver(solver,A,b,x)
+
+end
+
 end # module

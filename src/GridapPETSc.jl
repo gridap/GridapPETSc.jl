@@ -2,7 +2,10 @@ module GridapPETSc
 
 using MPI
 using Libdl
+using Gridap.Helpers
 using Gridap.Algebra
+using LinearAlgebra
+using SparseArrays
 using SparseMatricesCSR
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
@@ -44,6 +47,8 @@ end
 
 const libpetsc_handle = Ref{Ptr{Cvoid}}()
 
+const _PRELOADS = Tuple{Ref{Ptr{Cvoid}},Symbol}[]
+
 function __init__()
   if libpetsc_provider == "JULIA_PETSC_LIBRARY"
     flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
@@ -51,19 +56,29 @@ function __init__()
   else
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
   end
+  for (handle,sym) in _PRELOADS
+    handle[] = Libdl.dlsym(libpetsc_handle[],sym) 
+  end
 end
 
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
 using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+#export PETSC
+export @check_error_code
+export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
 
 include("Environment.jl")
 
-#export PETScVector
-#include("PETScVectors.jl")
+export PETScVector
+export PETScMatrix
+export petsc_sparse
+include("PETScArrays.jl")
 
 export PETScSolver
 include("PETScSolvers.jl")
+
+include("PETScAssembly.jl")
 
 end # module

@@ -20,4 +20,4 @@
 
 ## Notes
 
-`GridapPETSc` default sparse matrix format is 0-based compressed sparse row. This types of sparse matrix can be described by `SparseMatrixCSR{0,PetscReal,PetscInt}` and `SymSparseMatrixCSR{0,PetscReal,PetscInt}` implemented in the [SparseMatricesCSR](https://gridap.github.io/SparseMatricesCSR.jl/stable/)) Julia package.
+`GridapPETSc` default sparse matrix format is 0-based compressed sparse row. This types of sparse matrix can be described by `SparseMatrixCSR{0,PetscReal,PetscInt}` and `SymSparseMatrixCSR{0,PetscReal,PetscInt}` implemented in the [SparseMatricesCSR](https://gridap.github.io/SparseMatricesCSR.jl/stable/) Julia package.
