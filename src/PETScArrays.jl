@@ -1,7 +1,7 @@
 # Vector
 
 mutable struct PETScVector <: AbstractVector{PetscScalar}
-  vec::Ref{Vec}
+  vec::Base.RefValue{Vec}
   initialized::Bool
   ownership::Any
   size::Tuple{Int}
@@ -102,7 +102,7 @@ end
 # Matrix
 
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
-  mat::Ref{Mat}
+  mat::Base.RefValue{Mat}
   initialized::Bool
   ownership::Any
   size::Tuple{Int,Int}

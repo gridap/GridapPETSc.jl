@@ -24,6 +24,65 @@ end
   nothing
 end
 
+function Arrays.return_cache(
+  k::AddEntriesMap,
+  A::PETScVector,
+  v::Vector{PetscScalar},
+  i1::AbstractVector{<:Integer})
+
+  ni = length(i1)
+  i0 = Vector{PetscInt}(undef,ni)
+  CachedArray(i0)
+end
+
+function Arrays.evaluate!(
+  cache,
+  k::AddEntriesMap,
+  A::PETScVector,
+  v::Vector{PetscScalar},
+  i1::AbstractVector{<:Integer})
+
+  @check k.combine == +
+  @check all(i -> i<0 || ( 0<i && i<=size(A,1)), i1)
+  @check length(v) == length(i1)
+  ni = length(i1)
+  setsize!(cache,(ni,))
+  i0 = cache.array
+  u = one(PetscInt)
+  @inbounds for k in 1:ni
+    i0[k] = i1[k]-u
+  end
+  PETSC.VecSetValues(A.vec[],PetscInt(ni),i0,v,PETSC.ADD_VALUES)
+  nothing
+end
+
+function Arrays.return_cache(
+  k::TouchEntriesMap,
+  A::PETScVector,
+  v::AbstractVector,
+  i1::AbstractVector{<:Integer})
+
+  ni = length(i1)
+  z = zeros(PetscScalar,ni)
+  c2 = return_cache(AddEntriesMap(+),A,z,i1)
+  CachedArray(z), c2
+end
+
+function Arrays.evaluate!(
+  cache,
+  k::TouchEntriesMap,
+  A::PETScVector,
+  v::AbstractVector,
+  i1::AbstractVector{<:Integer})
+  c1,c2 = cache
+
+  ni = length(i1)
+  setsize!(c1,(ni,))
+  z = c1.array
+  fill!(z,zero(PetscScalar))
+  evaluate!(c2,AddEntriesMap(+),A,z,i1)
+end
+
 function Algebra.create_from_nz(a::PETScVector)
   @check_error_code PETSC.VecAssemblyBegin(a.vec[])
   @check_error_code PETSC.VecAssemblyEnd(a.vec[])
@@ -117,6 +176,81 @@ end
   end
   PETSC.MatSetValues(a.mat[],ni,i0,nj,j0,v,PETSC.ADD_VALUES)
   nothing
+end
+
+function Arrays.return_cache(
+  k::AddEntriesMap,
+  A::PETScMatrix,
+  v::Matrix{PetscScalar},
+  i1::AbstractVector{<:Integer},
+  j1::AbstractVector{<:Integer})
+
+  ni = length(i1)
+  nj = length(j1)
+  i0 = Vector{PetscInt}(undef,ni)
+  j0 = Vector{PetscInt}(undef,nj)
+  CachedArray(i0), CachedArray(j0)
+end
+
+function Arrays.evaluate!(
+  cache,
+  k::AddEntriesMap,
+  A::PETScMatrix,
+  v::Matrix{PetscScalar},
+  i1::AbstractVector{<:Integer},
+  j1::AbstractVector{<:Integer})
+
+  @check k.combine == +
+  @check all(i -> i<0 || ( 0<i && i<=size(A,1)), i1)
+  @check all(j -> j<0 || ( 0<j && j<=size(A,2)), j1)
+  @check size(v,1) == length(i1)
+  @check size(v,2) == length(j1)
+  u = one(PetscInt)
+  ci,cj = cache
+  ni,nj = size(v)
+  setsize!(ci,(ni,))
+  setsize!(cj,(nj,))
+  i0 = ci.array
+  j0 = cj.array
+  @inbounds for k in 1:ni
+    i0[k] = i1[k]-u
+  end
+  @inbounds for k in 1:nj
+    j0[k] = j1[k]-u
+  end
+  PETSC.MatSetValues(A.mat[],PetscInt(ni),i0,PetscInt(nj),j0,v,PETSC.ADD_VALUES)
+  nothing
+end
+
+function Arrays.return_cache(
+  k::TouchEntriesMap,
+  A::PETScMatrix,
+  v::AbstractVector,
+  i1::AbstractVector{<:Integer},
+  j1::AbstractVector{<:Integer})
+
+  ni = length(i1)
+  nj = length(j1)
+  z = zeros(PetscScalar,ni,nj)
+  c2 = return_cache(AddEntriesMap(+),A,z,i1,j1)
+  CachedArray(z), c2
+end
+
+function Arrays.evaluate!(
+  cache,
+  k::TouchEntriesMap,
+  A::PETScMatrix,
+  v::AbstractVector,
+  i1::AbstractVector{<:Integer},
+  j1::AbstractVector{<:Integer})
+
+  c1,c2 = cache
+  ni = length(i1)
+  nj = length(j1)
+  setsize!(c1,(ni,nj))
+  z = c1.array
+  fill!(z,zero(PetscScalar))
+  evaluate!(c2,AddEntriesMap(+),A,z,i1,j1)
 end
 
 function Algebra.create_from_nz(a::PETScMatrix)

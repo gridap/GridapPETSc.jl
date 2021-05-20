@@ -3,12 +3,16 @@ module PETScArraysTests
 using Test
 using Gridap
 using Gridap.Algebra
+using Gridap.Arrays
 using GridapPETSc
 using GridapPETSc: PetscScalar, PetscInt
 
 options = "-info"
 
 GridapPETSc.with(args=split(options)) do
+
+  touch! = TouchEntriesMap()
+  add! = AddEntriesMap(+)
 
   Tm = PETScMatrix
   builder = SparseMatrixBuilder(Tm)
@@ -17,12 +21,18 @@ GridapPETSc.with(args=split(options)) do
   a = nz_counter(builder,(rows,cols))
   add_entries!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(a,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   b = nz_allocation(a)
   add_entries!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(b,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   c = create_from_nz(b)
   add_entries!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(c,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   d = create_from_nz(c)
   display(d)
 
@@ -32,12 +42,18 @@ GridapPETSc.with(args=split(options)) do
   a = nz_counter(builder,(rows,cols))
   add_entries!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(a,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(a,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   b = nz_allocation(a)
   add_entries!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(b,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(b,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   c = create_from_nz(b)
   add_entries!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(c,nothing,PetscInt[1,1],PetscInt[1,-1])
+  touch!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
+  add!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   d = create_from_nz(c)
   display(d)
 
@@ -70,10 +86,14 @@ GridapPETSc.with(args=split(options)) do
   add_entry!(b,1.0,4)
   add_entries!(b,PetscScalar[1.0,-1.0],PetscInt[1,-1])
   add_entries!(b,nothing,PetscInt[1,1])
+  add!(b,PetscScalar[1.0,-1.0],PetscInt[1,-1])
+  touch!(b,PetscScalar[1.0,-1.0],PetscInt[1,-1])
   c = create_from_nz(b)
   @test c === b
   add_entries!(c,PetscScalar[1.0,-1.0],PetscInt[1,-1])
   add_entries!(c,nothing,PetscInt[1,1])
+  add!(c,PetscScalar[1.0,-1.0],PetscInt[1,-1])
+  touch!(c,PetscScalar[1.0,-1.0],PetscInt[1,-1])
   d = c
   display(d)
 
