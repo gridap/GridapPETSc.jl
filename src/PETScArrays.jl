@@ -3,9 +3,9 @@
 mutable struct PETScVector <: AbstractVector{PetscScalar}
   vec::Ref{Vec}
   initialized::Bool
-  ownership::Ref{Vector{PetscInt}}
+  ownership::Any
   size::Tuple{Int}
-  PETScVector() = new(Ref{Vec}(),false,Ref{Vector{PetscInt}}(),(-1,))
+  PETScVector() = new(Ref{Vec}(),false,nothing,(-1,))
 end
 
 function Init(a::PETScVector)
@@ -95,7 +95,7 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   n = length(array)
   @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
   @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
-  v.ownership[] = array
+  v.ownership = array
   Init(v)
 end
 
@@ -104,9 +104,9 @@ end
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   mat::Ref{Mat}
   initialized::Bool
-  ownership::Ref{SparseMatrixCSR{0,PetscScalar,PetscInt}}
+  ownership::Any
   size::Tuple{Int,Int}
-  PETScMatrix() = new(Ref{Mat}(),false,Ref{SparseMatrixCSR{0,PetscScalar,PetscInt}}(),(-1,-1))
+  PETScMatrix() = new(Ref{Mat}(),false,nothing,(-1,-1))
 end
 
 function Init(a::PETScMatrix)
@@ -211,7 +211,7 @@ function Base.convert(::Type{PETScMatrix},a::AbstractSparseMatrix)
   csr = convert(Tm,a)
   m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
   A = PETScMatrix()
-  A.ownership[] = csr
+  A.ownership = csr
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
