@@ -255,6 +255,18 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
 end
 
 """
+Julia alias for the `MatStructure` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatStructure.html).
+"""
+@enum MatStructure begin
+  DIFFERENT_NONZERO_PATTERN
+  SUBSET_NONZERO_PATTERN
+  SAME_NONZERO_PATTERN
+  UNKNOWN_NONZERO_PATTERN
+end
+
+"""
 Julia alias to `PetscLogDouble` C type.
 
 See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscLogDouble.html).
@@ -419,6 +431,8 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatScale,PetscErrorCode,(Mat,PetscScalar),(mat,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatScale.html")
 @wrapper(:MatConvert,PetscErrorCode,(Mat,MatType,MatReuse,Ptr{Mat}),(mat,newtype,reuse,M),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatConvert.html")
 @wrapper(:MatGetInfo,PetscErrorCode,(Mat,MatInfoType,Ptr{MatInfo}),(mat,flag,info),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetInfo.html")
+@wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
+@wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
 
 # KSP and PC related things
 
