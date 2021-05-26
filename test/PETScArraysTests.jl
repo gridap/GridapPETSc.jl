@@ -2,7 +2,10 @@ module PETScVectorsTests
 
 using GridapPETSc
 using Test
+using SparseArrays
+using SparseMatricesCSR
 using GridapPETSc: PetscScalar, PetscInt
+using LinearAlgebra
 
 options = "-info"
 GridapPETSc.with(args=split(options)) do 
@@ -53,8 +56,9 @@ GridapPETSc.with(args=split(options)) do
   m = PetscInt(4)
   n = PetscInt(4)
 
+  Ccsr = sparsecsr(I,J,V,m,n)
   C = petsc_sparse(I,J,V,m,n)
-  display(C)
+  @test nnz(C) == nnz(Ccsr)
 
   x = similar(v,size(C,2))
   fill!(x,1)
@@ -71,6 +75,20 @@ GridapPETSc.with(args=split(options)) do
   @test typeof(D) == typeof(C)
   D = C*3
   @test typeof(D) == typeof(C)
+
+  n = 4
+  aj = rand(PetscScalar,n)
+  ap = convert(PETScVector,aj)
+  @test ap == aj
+  @test norm(ap) == norm(aj)
+  @test ap+2*ap == ap+2*ap
+  @test typeof(ap+2*ap) ==  PETScVector
+  @test ap-2*ap == ap-2*ap
+  @test typeof(ap-2*ap) ==  PETScVector
+
+  @test typeof(C*ap) == PETScVector
+  @test typeof(C*aj) == PETScVector
+  @test C*ap == C*aj
 
 end
 

@@ -158,6 +158,12 @@ Base.@propagate_inbounds function Base.setindex!(v::PETScMatrix,y,i1::Integer,j1
   y
 end
 
+function SparseArrays.nnz(a::PETScMatrix)
+  info = Ref{PETSC.MatInfo}()
+  @check_error_code PETSC.MatGetInfo(a.mat[],PETSC.MAT_GLOBAL_SUM,info)
+  Int(info[].nz_used)
+end
+
 # Constructors
 
 # Using a matrix in this way is VERY inefficient
@@ -237,6 +243,17 @@ function LinearAlgebra.mul!(c::PETScVector,a::PETScMatrix,b::PETScVector)
   c
 end
 
+function Base.:*(A::PETScMatrix,b::AbstractVector)
+  c = convert(PETScVector,b)
+  A*c
+end
+
+function Base.:*(A::PETScMatrix,b::PETScVector)
+  c = similar(b,size(A,1))
+  mul!(c,A,b)
+  c
+end
+
 function Base.:*(a::Number,b::PETScVector)
   c = copy(b)
   @check_error_code PETSC.VecScale(c.vec[],a)
@@ -255,5 +272,34 @@ end
 
 function Base.:*(b::PETScMatrix,a::Number)
   a*b
+end
+
+function Base.:+(a::PETScVector,b::PETScVector)
+  @assert length(a) == length(b)
+  c = copy(a)
+  α = one(PetscScalar)
+  @check_error_code PETSC.VecAXPY(c.vec[],α,b.vec[])
+  c
+end
+
+function Base.:-(a::PETScVector,b::PETScVector)
+  @assert length(a) == length(b)
+  c = copy(a)
+  α = -one(PetscScalar)
+  @check_error_code PETSC.VecAXPY(c.vec[],α,b.vec[])
+  c
+end
+
+function LinearAlgebra.norm(a::PETScVector, p::Real=2)
+  val = Ref{PETSC.PetscReal}()
+  if p==1
+    nt = PETSC.NORM_1
+  elseif p==2
+    nt = PETSC.NORM_2
+  else
+    @notimplemented
+  end
+  @check_error_code PETSC.VecNorm(a.vec[],nt,val)
+  Float64(val[])
 end
 

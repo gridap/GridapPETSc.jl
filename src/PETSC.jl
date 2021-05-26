@@ -164,6 +164,19 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
 end
 
 """
+Julia alias for the `NormType` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/NormType.html).
+"""
+@enum NormType begin
+  NORM_1=0
+  NORM_2=1
+  NORM_FROBENIUS=2
+  NORM_INFINITY=3
+  NORM_1_AND_2=4
+end
+
+"""
 Julia alias for the `Vec` C type.
 
 See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/Vec.html).
@@ -193,6 +206,7 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 @wrapper(:VecAYPX,PetscErrorCode,(Vec,PetscScalar,Vec),(y,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAYPX.html")
 @wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPBY.html")
 @wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html")
+@wrapper(:VecNorm,PetscErrorCode,(Vec,NormType,Ptr{PetscReal}),(x,typ,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecNorm.html")
 
 # Matrix related functions
 
@@ -227,6 +241,54 @@ See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/
   MAT_REUSE_MATRIX
   MAT_IGNORE_MATRIX
   MAT_INPLACE_MATRIX
+end
+
+"""
+Julia alias for the `MatInfoType` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatInfoType.html).
+"""
+@enum MatInfoType begin
+  MAT_LOCAL=1
+  MAT_GLOBAL_MAX=2
+  MAT_GLOBAL_SUM=3
+end
+
+"""
+Julia alias for the `MatStructure` C enum.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatStructure.html).
+"""
+@enum MatStructure begin
+  DIFFERENT_NONZERO_PATTERN
+  SUBSET_NONZERO_PATTERN
+  SAME_NONZERO_PATTERN
+  UNKNOWN_NONZERO_PATTERN
+end
+
+"""
+Julia alias to `PetscLogDouble` C type.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscLogDouble.html).
+"""
+const PetscLogDouble = Cdouble
+
+"""
+Julia alias for the `MatInfo` C struct.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatInfo.html).
+"""
+struct MatInfo
+  block_size         ::PetscLogDouble
+  nz_allocated       ::PetscLogDouble
+  nz_used            ::PetscLogDouble
+  nz_unneeded        ::PetscLogDouble
+  memory             ::PetscLogDouble
+  assemblies         ::PetscLogDouble
+  mallocs            ::PetscLogDouble
+  fill_ratio_given   ::PetscLogDouble
+  fill_ratio_needed  ::PetscLogDouble
+  factor_mallocs     ::PetscLogDouble
 end
 
 """
@@ -368,6 +430,9 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatMult,PetscErrorCode,(Mat,Vec,Vec),(mat,x,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMult.html")
 @wrapper(:MatScale,PetscErrorCode,(Mat,PetscScalar),(mat,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatScale.html")
 @wrapper(:MatConvert,PetscErrorCode,(Mat,MatType,MatReuse,Ptr{Mat}),(mat,newtype,reuse,M),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatConvert.html")
+@wrapper(:MatGetInfo,PetscErrorCode,(Mat,MatInfoType,Ptr{MatInfo}),(mat,flag,info),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetInfo.html")
+@wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
+@wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
 
 # KSP and PC related things
 

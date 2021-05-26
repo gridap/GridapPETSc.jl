@@ -6,6 +6,7 @@ using Gridap.Algebra
 using Gridap.Arrays
 using GridapPETSc
 using GridapPETSc: PetscScalar, PetscInt
+using SparseArrays
 
 options = "-info"
 
@@ -72,6 +73,13 @@ GridapPETSc.with(args=split(options)) do
   d = create_from_nz(c)
   display(d)
 
+  e = copy(d)
+  scale_entries!(d,PetscScalar(2))
+  @test d == 2*e
+  @test nnz(d) == nnz(e)
+  fill_entries!(d,zero(PetscScalar))
+  @test d == zeros(PetscScalar,size(d))
+
   Tv = PETScVector
   builder = ArrayBuilder(Tv)
   a = nz_counter(builder,(rows,))
@@ -96,6 +104,12 @@ GridapPETSc.with(args=split(options)) do
   touch!(c,PetscScalar[1.0,-1.0],PetscInt[1,-1])
   d = c
   display(d)
+
+  e = copy(d)
+  scale_entries!(d,PetscScalar(2))
+  @test d == 2*e
+  fill_entries!(d,zero(PetscScalar))
+  @test d == zeros(PetscScalar,length(d))
 
 end
 
