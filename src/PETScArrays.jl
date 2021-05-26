@@ -60,6 +60,16 @@ function PETScVector(n::Integer)
   Init(v)
 end
 
+function PETScVector(array::Vector{PetscScalar},bs=1)
+  v = PETScVector()
+  comm = MPI.COMM_SELF
+  n = length(array)
+  @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
+  @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
+  v.ownership = array
+  Init(v)
+end
+
 function Base.similar(::PETScVector,::Type{PetscScalar},ax::Tuple{Int})
   PETScVector(ax[1])
 end
@@ -89,14 +99,7 @@ end
 
 function Base.convert(::Type{PETScVector},a::AbstractVector)
   array = convert(Vector{PetscScalar},a)
-  v = PETScVector()
-  comm = MPI.COMM_SELF
-  bs = 1
-  n = length(array)
-  @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
-  @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
-  v.ownership = array
-  Init(v)
+  PETScVector(array)
 end
 
 # Matrix
@@ -177,6 +180,16 @@ function PETScMatrix(m::Integer,n::Integer)
   Init(v)
 end
 
+function PETScMatrix(csr::SparseMatrixCSR{0,PetscScalar,PetscInt})
+  m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
+  A = PETScMatrix()
+  A.ownership = csr
+  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
+  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  Init(A)
+end
+
 function Base.similar(::PETScMatrix,::Type{PetscScalar},ax::Tuple{Int,Int})
   PETScMatrix(ax[1],ax[2])
 end
@@ -215,13 +228,7 @@ end
 function Base.convert(::Type{PETScMatrix},a::AbstractSparseMatrix)
   Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
   csr = convert(Tm,a)
-  m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
-  A = PETScMatrix()
-  A.ownership = csr
-  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
-  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  Init(A)
+  PETScMatrix(csr)
 end
 
 function petsc_sparse(i,j,v,m,n)

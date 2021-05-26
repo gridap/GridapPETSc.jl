@@ -433,6 +433,25 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatGetInfo,PetscErrorCode,(Mat,MatInfoType,Ptr{MatInfo}),(mat,flag,info),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetInfo.html")
 @wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
 @wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
+@wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetBlockSize.html")
+
+# Null space related
+
+"""
+Julia alias for the `MatNullSpace` C type.
+
+See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpace.html).
+"""
+struct MatNullSpace
+  ptr::Ptr{Cvoid}
+end
+MatNullSpace() = MatNullSpace(Ptr{Cvoid}())
+Base.convert(::Type{MatNullSpace},p::Ptr{Cvoid}) = MatNullSpace(p)
+
+@wrapper(:MatSetNearNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNearNullSpace.html")
+@wrapper(:MatNullSpaceCreateRigidBody,PetscErrorCode,(Vec,Ptr{MatNullSpace}),(coords,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreateRigidBody.html")
+@wrapper(:MatNullSpaceCreate,PetscErrorCode,(MPI.Comm,PetscBool,PetscInt,Ptr{Vec},Ptr{MatNullSpace}),(comm,has_cnst,n,vecs,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreate.html")
+@wrapper(:MatNullSpaceDestroy,PetscErrorCode,(Ptr{MatNullSpace},),(ns,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceDestroy.html")
 
 # KSP and PC related things
 

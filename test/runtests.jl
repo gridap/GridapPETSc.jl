@@ -12,4 +12,6 @@ using Test
 
 @time @testset "PoissonDriver" begin include("PoissonDriver.jl") end
 
+@time @testset "ElasticityDriver" begin include("ElasticityDriver.jl") end
+
 end # module
