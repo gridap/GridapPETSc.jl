@@ -7,9 +7,8 @@ makedocs(;
         "Home" => "index.md",
     ],
     repo="https://github.com/gridap/GridapPETSc.jl/blob/{commit}{path}#L{line}",
-    sitename="GridapPETSc.jl",
-    authors="Víctor Sande <vsande@cimne.upc.edu>",
-    assets=String[],
+    sitename="GridapPETSc",
+    authors="Francesc Verdugo <fverdugo@cimne.upc.edu> and Víctor Sande <vsande@cimne.upc.edu>"
 )
 
 deploydocs(;

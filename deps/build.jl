@@ -1,165 +1,121 @@
-const_jl = joinpath(@__DIR__, "..", "src", "const.jl")
+using Libdl
 
-if isfile(const_jl)
-  include(const_jl)
-end
+@static if haskey(ENV,"JULIA_PETSC_LIBRARY") && !isempty(rstrip(ENV["JULIA_PETSC_LIBRARY"]))
 
-
-PETSC_FOUND = true
-PETSC_DIR   = haskey(ENV,"PETSC_DIR") ? ENV["PETSC_DIR"] : "/usr/lib/petsc"
-PETSC_ARCH  = haskey(ENV,"PETSC_ARCH") ? ENV["PETSC_ARCH"] : ""
-
-PETSC_LIB             = nothing
-PETSC_LIB_DIR         = nothing
-PETSC_INCLUDE_DIR     = nothing
-PETSC_HEADER          = nothing
-PETSC_SCALAR_DATATYPE = Float64
-PETSC_REAL_DATATYPE   = Float64
-PETSC_INT_DATATYPE    = Int32
-
-# Check PETSC_DIR exists
-if isdir(PETSC_DIR)
-    @info "PETSc directory found at: $PETSC_DIR"
-
-    # Define default paths
-    PETSC_LIB_DIR = joinpath(PETSC_DIR,PETSC_ARCH,"lib")
-    PETSC_INCLUDE_DIR = joinpath(PETSC_DIR,PETSC_ARCH,"include")
-    PETSC_HEADER = joinpath(PETSC_INCLUDE_DIR,"petsc.h")
-
-    # Check PETSC_LIB_DIR (.../lib directory) exists
-    if isdir(PETSC_LIB_DIR)
-        @info "PETSc lib directory found at: $PETSC_LIB_DIR"
-    else
-        PETSC_FOUND = false
-        @warn "PETSc lib directory not found: $PETSC_LIB_DIR"
-    end
-
-    # Check PETSC_LIB (.../libpetsc.so or .../libpetsc_real.so file) exists
-    if isfile(joinpath(PETSC_LIB_DIR,"libpetsc.so"))
-        PETSC_LIB = joinpath(PETSC_LIB_DIR,"libpetsc.so")
-        @info "PETSc library found at: $PETSC_LIB"
-    elseif isfile(joinpath(PETSC_LIB_DIR,"libpetsc_real.so"))
-        PETSC_LIB = joinpath(PETSC_LIB_DIR,"libpetsc_real.so")
-        @info "PETSc library found at: $PETSC_LIB"
-    else
-        PETSC_FOUND = false
-        @warn "PETSc lib not found at: $PETSC_LIB_DIR"
-    end
-
-    # Check PETSC_INCLUDE_DIR (.../include directory) exists
-    if isdir(PETSC_INCLUDE_DIR)
-        @info "PETSc include directory found at: $PETSC_INCLUDE_DIR"
-    else
-        @warn "PETSc include directory not found: $PETSC_INCLUDE_DIR"
-    end
-
-    # Check PETSC_HEADER (.../petsc.h file) exists
-    if isfile(PETSC_HEADER)
-        @info "PETSc header found at: $PETSC_HEADER"
-    else
-        @warn "PETSc header not found at: $PETSC_INCLUDE_DIR"
-    end
-
-    # Detect PETSc base data types
-    if !(PETSC_LIB === nothing) && isfile(PETSC_LIB)
-        const PETSC = PETSC_LIB
-
-        # Returns PETSc data type given a string
-        function PetscDataTypeFromString(name::AbstractString)
-            ptype = Vector{Cint}(undef,1)
-            found = Vector{UInt32}(undef,1)
-            ccall( (:PetscDataTypeFromString, PETSC),
-                Cint,
-                    (Cstring,
-                    Ptr{Cint},
-                    Ptr{UInt32}),
-                name, ptype, found)
-            return ptype[1], convert(Bool, found[1])
-        end
-
-        # Returns PETSc data size given its enumerator
-        function PetscDataTypeGetSize(dtype::Cint)
-            datasize = Vector{Csize_t}(undef,1)
-            ccall( (:PetscDataTypeGetSize, PETSC),
-                Cint,
-                    (Cint,
-                    Ptr{Csize_t}),
-                dtype, datasize)
-            return datasize[1]
-        end
-
-        # Define types that depend on the options PETSc was compiled with
-        (petsc_real_data_type, found_real)     = PetscDataTypeFromString("Real")
-        (petsc_scalar_data_type, found_scalar) = PetscDataTypeFromString("Scalar")
-        (petsc_int_data_type, found_int)       = PetscDataTypeFromString("Int")
-
-        petsc_real_size                        = PetscDataTypeGetSize(petsc_real_data_type)
-        petsc_int_size                         = PetscDataTypeGetSize(petsc_int_data_type)
-
-        @assert(found_real & found_scalar & found_int)
-
-        petsc_scalar_data_type != petsc_real_data_type && throw(ErrorException("[ERROR] Only Real PetscScalar type is supported"))
-
-        # Figure out equivalent Julia types for PETSc
-        if petsc_real_size == 8
-            PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float64
-        elseif petsc_real_size == 4
-            PETSC_SCALAR_DATATYPE = PETSC_REAL_DATATYPE = Float32
-        else
-            @warn "Unknown type of Real. Petsc real data type is $petsc_real_data_type"
-            throw(ErrorException("Unsupported PetscReal type"))
-        end
-
-        if petsc_int_size == 4
-            PETSC_INT_DATATYPE = Int32
-        elseif petsc_int_size == 8
-            PETSC_INT_DATATYPE = Int64
-        else
-            @warn "Unknown Int size. Int size is $petsc_int_size"
-            throw(ErrorException("Unsupported integer size"))
-        end
-
-    end
+  @info """ Non-empty JULIA_PETSC_LIBRARY environment variable found.
+  Trying to use the PETSc installation it points to.
+  JULIA_PETSC_LIBRARY=$(ENV["JULIA_PETSC_LIBRARY"])
+  """
+  flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
+  libpetsc_found = true
+  libpetsc_provider = "JULIA_PETSC_LIBRARY"
+  libpetsc_path = ENV["JULIA_PETSC_LIBRARY"]
+  libpetsc_handle = Ref(Libdl.dlopen(libpetsc_path, flags))
 
 else
-    PETSC_FOUND = false
-    @warn "PETSc directory not found: $PETSC_DIR"
+
+  @info """ Non-empty JULIA_PETSC_LIBRARY environment variable NOT found.
+  Trying to use the PETSc installation provided by PETSc_jll.
+  """
+  using PETSc_jll
+  libpetsc_found = true
+  libpetsc_provider = "PETSc_jll"
+  libpetsc_path = PETSc_jll.libpetsc_path
+  libpetsc_handle = Ref(PETSc_jll.libpetsc_handle)
+
 end
 
-# Write PETSc configuration to deps.jl file
-deps_jl = "deps.jl"
+include(joinpath(@__DIR__,"..","src","Config.jl"))
 
-if isfile(deps_jl)
-  rm(deps_jl)
+real_type = Ref{PetscDataType}()
+real_found = Ref{PetscBool}()
+real_size = Ref{Csize_t}()
+real_msg = "Could not determine PetscReal datatype."
+@check_error_code PetscDataTypeFromString("Real",real_type,real_found)
+if real_found[] == PETSC_FALSE
+  @error real_msg
+end
+@check_error_code PetscDataTypeGetSize(real_type[],real_size)
+if real_type[] == PETSC_DOUBLE &&  real_size[] == 8
+  PetscReal = Float64
+elseif real_type[] == PETSC_DOUBLE &&  real_size[] == 4
+  PetscReal = Float32
+else
+  @error real_msg
 end
 
-open(deps_jl,"w") do f
-  println(f, "# This file is automatically generated")
-  println(f, "# Do not edit")
-  println(f)
-  println(f, :(const PETSC_FOUND           = $PETSC_FOUND))
-  println(f, :(const PETSC_DIR             = $PETSC_DIR))
-  println(f, :(const PETSC_ARCH            = $PETSC_ARCH))
-  println(f, :(const PETSC_LIB_DIR         = $PETSC_LIB_DIR))
-  println(f, :(const PETSC_INCLUDE_DIR     = $PETSC_INCLUDE_DIR))
-  println(f, :(const PETSC_LIB             = $PETSC_LIB))
-  println(f, :(const PETSC_HEADER          = $PETSC_HEADER))
-  println(f, :(const PETSC_SCALAR_DATATYPE = $PETSC_SCALAR_DATATYPE))
-  println(f, :(const PETSC_REAL_DATATYPE   = $PETSC_REAL_DATATYPE))
-  println(f, :(const PETSC_INT_DATATYPE    = $PETSC_INT_DATATYPE))
+scalar_type = Ref{PetscDataType}()
+scalar_found = Ref{PetscBool}()
+scalar_size = Ref{Csize_t}()
+scalar_msg = "Could not determine PetscScalar datatype."
+@check_error_code PetscDataTypeFromString("Scalar",scalar_type,scalar_found)
+if scalar_found[] == PETSC_FALSE
+  @error scalar_msg
+end
+@check_error_code PetscDataTypeGetSize(scalar_type[],scalar_size)
+if scalar_type[] == PETSC_DOUBLE &&  scalar_size[] == 8
+  PetscScalar = Float64
+elseif scalar_type[] == PETSC_DOUBLE &&  scalar_size[] == 4
+  PetscScalar = Float32
+else
+  @error scalar_msg
+end
+
+int_type = Ref{PetscDataType}()
+int_found = Ref{PetscBool}()
+int_size = Ref{Csize_t}()
+int_msg = "Could not determine PetscInt datatype."
+@check_error_code PetscDataTypeFromString("Int",int_type,int_found)
+if int_found[] == PETSC_FALSE
+  @error int_msg
+end
+@check_error_code PetscDataTypeGetSize(int_type[],int_size)
+if int_type[] in (PETSC_INT, PETSC_DATATYPE_UNKNOWN) &&  int_size[] == 8
+  PetscInt = Int64
+elseif int_type[] in (PETSC_INT, PETSC_DATATYPE_UNKNOWN) &&  int_size[] == 4
+  PetscInt = Int32
+else
+  @error int_msg
 end
 
 @info """
-PETSc configuration:
-==============================================
-  - PETSC_FOUND           = $PETSC_FOUND
-  - PETSC_DIR             = $PETSC_DIR
-  - PETSC_ARCH            = $PETSC_ARCH
-  - PETSC_LIB_DIR         = $PETSC_LIB_DIR
-  - PETSC_INCLUDE_DIR     = $PETSC_INCLUDE_DIR
-  - PETSC_LIB             = $PETSC_LIB
-  - PETSC_HEADER          = $PETSC_HEADER
-  - PETSC_SCALAR_DATATYPE = $PETSC_SCALAR_DATATYPE
-  - PETSC_REAL_DATATYPE   = $PETSC_REAL_DATATYPE
-  - PETSC_INT_DATATYPE    = $PETSC_INT_DATATYPE
+PETSc configuration summary:
+libpetsc_provider = $(libpetsc_provider)
+libpetsc_path     = $(libpetsc_path)
+PetscReal         = $(PetscReal)
+PetscScalar       = $(PetscScalar)
+PetscInt          = $(PetscInt)
 """
+open(joinpath(@__DIR__,"deps.jl"),"w") do f
+  println(f, "# This file is automatically generated at build-time.")
+  println(f, "# Do not edit")
+  println(f)
+  println(f,:(const libpetsc_found = $(libpetsc_found)))
+  println(f,:(const libpetsc_provider = $(libpetsc_provider)))
+  println(f,:(const libpetsc_path = $(libpetsc_path)))
+end
+
+open(joinpath(@__DIR__,"PetscDataTypes.jl"),"w") do f
+  println(f, "# This file is automatically generated at build-time.")
+  println(f, "# Do not edit.")
+  println(f, "# File generated for $(libpetsc_path)")
+  println(f)
+  println(f,:("\"\"\""))
+  println(f, "Julia alias for `PetscReal` C type.\n")
+  println(f, "See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscReal.html).")
+  println(f,:("\"\"\""))
+  println(f,:(const PetscReal = $(PetscReal)))
+  println(f)
+  println(f,:("\"\"\""))
+  println(f, "Julia alias for `PetscScalar` C type.\n")
+  println(f, "See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscScalar.html).")
+  println(f,:("\"\"\""))
+  println(f,:(const PetscScalar = $(PetscScalar)))
+  println(f)
+  println(f,:("\"\"\""))
+  println(f, "Julia alias for `PetscInt` C type.\n")
+  println(f, "See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInt.html).")
+  println(f,:("\"\"\""))
+  println(f,:(const PetscInt = $(PetscInt)))
+end
+

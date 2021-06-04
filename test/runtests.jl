@@ -1,23 +1,17 @@
-using GridapPETSc
+module GridapPETScTests
+
 using Test
 
-# Skip tests if library was not properly loaded
-if GridapPETSc.PETSC_LOADED[]
-    using MPI
-    if !MPI.Initialized()
-        MPI.Init()
-    end
+@time @testset "PETSC" begin include("PETSCTests.jl") end
 
-    @testset "PETSc tests" begin include("PETSc.jl") end
-    @testset "Linear Solver tests" begin include("LinearSolver.jl") end
-    @testset "FEM driver" begin include("femdriver.jl") end
+@time @testset "PETScArrays" begin include("PETScArraysTests.jl") end
 
-    if MPI.Initialized() & !MPI.Finalized()
-        MPI.Finalize()
-    end
-else
-    @warn   """
-            PETSc library is not properly loaded.
-            GridapPETSc tests are not going to be performed.
-            """
-end
+@time @testset "PETScSolvers" begin include("PETScSolversTests.jl") end
+
+@time @testset "PETScAssembly" begin include("PETScAssemblyTests.jl") end
+
+@time @testset "PoissonDriver" begin include("PoissonDriver.jl") end
+
+@time @testset "ElasticityDriver" begin include("ElasticityDriver.jl") end
+
+end # module

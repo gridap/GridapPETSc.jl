@@ -8,3 +8,4 @@ Manifest.toml
 /docs/site/
 deps/build.log 
 deps/deps.jl
+deps/PetscDataTypes.jl

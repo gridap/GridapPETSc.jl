@@ -4,5 +4,5 @@
 ```
 
 ```@autodocs
-Modules = [GridapPETSc]
+Modules = [GridapPETSc,GridapPETSc.PETSC]
 ```
