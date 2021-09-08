@@ -189,6 +189,8 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 
 @wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeq.html")
 @wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html")
+@wrapper(:VecCreateGhost,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Vec}),(comm,n,N,nghost,ghosts,vv),"https://petsc.org/release/docs/manualpages/Vec/VecCreateGhost.html")
+@wrapper(:VecCreateMPI,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Vec),(comm,n,N,v),"https://petsc.org/release/docs/manualpages/Vec/VecCreateMPI.html")
 @wrapper(:VecDestroy,PetscErrorCode,(Ptr{Vec},),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDestroy.html")
 @wrapper(:VecView,PetscErrorCode,(Vec,PetscViewer),(vec,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecView.html")
 @wrapper(:VecSetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(x,ni,ix,y,iora),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html")
@@ -416,6 +418,7 @@ end
 Mat() = Mat(Ptr{Cvoid}())
 Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 
+@wrapper(:MatCreateAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,M,N,d_nz,d_nnz,o_nz,o_nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateAIJ.html")
 @wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html")
 @wrapper(:MatCreateSeqAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,i,j,a,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJWithArrays.html")
 @wrapper(:MatDestroy,PetscErrorCode,(Ptr{Mat},),(A,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDestroy.html")
