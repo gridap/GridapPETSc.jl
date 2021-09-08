@@ -70,6 +70,10 @@ function PETScVector(array::Vector{PetscScalar},bs=1)
   Init(v)
 end
 
+function PETScVector(a::PetscScalar,ax::AbstractUnitRange)
+  PETScVector(fill(a,length(ax)))
+end
+
 function Base.similar(::PETScVector,::Type{PetscScalar},ax::Tuple{Int})
   PETScVector(ax[1])
 end

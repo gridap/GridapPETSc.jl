@@ -8,6 +8,7 @@ using Gridap.Arrays
 using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
+using PartitionedArrays
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
 
@@ -76,6 +77,7 @@ export PETScVector
 export PETScMatrix
 export petsc_sparse
 include("PETScArrays.jl")
+include("PartitionedArrays.jl")
 
 export PETScSolver
 include("PETScSolvers.jl")
