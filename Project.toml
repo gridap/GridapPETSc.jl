@@ -18,6 +18,7 @@ Gridap = "0.16"
 MPI = "0.14, 0.15, 0.16"
 PETSc_jll = "3.13"
 SparseMatricesCSR = "0.6.1"
+PartitionedArrays = "0.2.1"
 julia = "1.3"
 
 [extras]
