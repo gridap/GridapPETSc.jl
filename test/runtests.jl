@@ -6,6 +6,10 @@ using Test
 
 @time @testset "PETScArrays" begin include("PETScArraysTests.jl") end
 
+@time @testset "PartitionedArrays (sequential)" begin include("PartitionedArraysTests_sequential.jl") end
+
+@time @testset "PartitionedArrays (mpi)" begin include("PartitionedArraysTests_mpi.jl") end
+
 @time @testset "PETScSolvers" begin include("PETScSolversTests.jl") end
 
 @time @testset "PETScAssembly" begin include("PETScAssemblyTests.jl") end
