@@ -26,14 +26,14 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
   if !isfile(types_jl)
     msg = """
     GridapPETSc needs to be configured before use. Type
-  
+
     pkg> build
-  
+
     and try again.
     """
     error(msg)
   end
-  
+
   include(types_jl)
 end
 
@@ -98,7 +98,7 @@ macro PETSC_VIEWER_STDOUT_SELF()
   quote
     PETSC_VIEWER_STDOUT_(MPI.COMM_SELF)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_STDOUT_WORLD
@@ -109,7 +109,7 @@ macro PETSC_VIEWER_STDOUT_WORLD()
   quote
     PETSC_VIEWER_STDOUT_(MPI.COMM_WORLD)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_DRAW_SELF
@@ -120,7 +120,7 @@ macro PETSC_VIEWER_DRAW_SELF()
   quote
     PETSC_VIEWER_DRAW_(MPI.COMM_SELF)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_DRAW_WORLD
@@ -131,7 +131,7 @@ macro PETSC_VIEWER_DRAW_WORLD()
   quote
     PETSC_VIEWER_DRAW_(MPI.COMM_WORLD)
   end
-end 
+end
 
 # Vector related functions
 
@@ -606,5 +606,50 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
+
+
+"""
+Julia alias for the `SNES` C type.
+
+See [PETSc manual](https://petsc.org/release/docs/manualpages/SNES/SNES.html).
+"""
+struct SNES
+  ptr::Ptr{Cvoid}
+end
+SNES() = SNES(Ptr{Cvoid}())
+Base.convert(::Type{SNES},p::Ptr{Cvoid}) = SNES(p)
+
+const SNESType = Cstring
+const SNESNEWTONLS         = "newtonls"
+const SNESNEWTONTR         = "newtontr"
+const SNESPYTHON           = "python"
+const SNESNRICHARDSON      = "nrichardson"
+const SNESKSPONLY          = "ksponly"
+const SNESKSPTRANSPOSEONLY = "ksptransposeonly"
+const SNESVINEWTONRSLS     = "vinewtonrsls"
+const SNESVINEWTONSSLS     = "vinewtonssls"
+const SNESNGMRES           = "ngmres"
+const SNESQN               = "qn"
+const SNESSHELL            = "shell"
+const SNESNGS              = "ngs"
+const SNESNCG              = "ncg"
+const SNESFAS              = "fas"
+const SNESMS               = "ms"
+const SNESNASM             = "nasm"
+const SNESANDERSON         = "anderson"
+const SNESASPIN            = "aspin"
+const SNESCOMPOSITE        = "composite"
+const SNESPATCH            = "patch"
+
+
+@wrapper(:SNESCreate,PetscErrorCode,(MPI.Comm,Ptr{SNES}),(comm,snes),"https://petsc.org/release/docs/manualpages/SNES/SNESCreate.html")
+@wrapper(:SNESSetFunction,PetscErrorCode,(SNES,Vec,Ptr{Cvoid},Ptr{Cvoid}),(snes,vec,fptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFunction.html")
+@wrapper(:SNESSetJacobian,PetscErrorCode,(SNES,Mat,Mat,Ptr{Cvoid},Ptr{Cvoid}),(snes,A,P,jacptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetJacobian.html")
+@wrapper(:SNESSolve,PetscErrorCode,(SNES,Vec,Vec),(snes,b,x),"https://petsc.org/release/docs/manualpages/SNES/SNESSolve.html")
+@wrapper(:SNESDestroy,PetscErrorCode,(Ptr{SNES},),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESDestroy.html")
+@wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFromOptions.html")
+@wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
+@wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/
+manualpages/SNES/SNESSetType.html")
 
 end # module

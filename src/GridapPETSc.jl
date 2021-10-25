@@ -66,7 +66,7 @@ end
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
-using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, SNES
 #export PETSC
 export @check_error_code
 export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
@@ -81,6 +81,9 @@ include("PartitionedArrays.jl")
 
 export PETScLinearSolver
 include("PETScLinearSolvers.jl")
+
+export PETScNonlinearSolver
+include("PETScNonlinearSolvers.jl")
 
 include("PETScAssembly.jl")
 
