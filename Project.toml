@@ -14,11 +14,11 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
 
 [compat]
-Gridap = "0.16"
+Gridap = "0.17"
 MPI = "0.14, 0.15, 0.16"
 PETSc_jll = "3.13"
+PartitionedArrays = "0.2.4"
 SparseMatricesCSR = "0.6.1"
-PartitionedArrays = "0.2.1"
 julia = "1.3"
 
 [extras]
