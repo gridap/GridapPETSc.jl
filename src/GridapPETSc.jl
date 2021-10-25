@@ -80,7 +80,7 @@ include("PETScArrays.jl")
 include("PartitionedArrays.jl")
 
 export PETScLinearSolver
-include("PETScSolvers.jl")
+include("PETScLinearSolvers.jl")
 
 include("PETScAssembly.jl")
 
