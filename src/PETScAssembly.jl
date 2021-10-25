@@ -2,6 +2,12 @@
 # Some methods from the Gridap.Algebra interface
 # not sure if all are needed....
 
+function LinearAlgebra.fillstored!(a::PETScMatrix,v)
+  @notimplementedif v!=zero(typeof(v))
+  @check_error_code PETSC.MatZeroEntries(a.mat[])
+  a
+end
+
 function Algebra.copy_entries!(a::PETScVector,b::PETScVector)
   if a!==b
     @check_error_code PETSC.VecCopy(b.vec[],a.vec[])
@@ -16,12 +22,12 @@ function Algebra.copy_entries!(a::PETScMatrix,b::PETScMatrix)
   a
 end
 
-function LinearAlgebra.rmul!(a::PETScVector,b)
+function LinearAlgebra.rmul!(a::PETScVector,b::Number)
   @check_error_code PETSC.VecScale(a.vec[],PetscScalar(b))
   a
 end
 
-function LinearAlgebra.rmul!(a::PETScMatrix,b)
+function LinearAlgebra.rmul!(a::PETScMatrix,b::Number)
   @check_error_code PETSC.MatScale(a.mat[],PetscScalar(b))
   a
 end
