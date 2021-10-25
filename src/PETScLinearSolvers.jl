@@ -14,12 +14,12 @@ PETScLinearSolver() = PETScLinearSolver(MPI.COMM_WORLD)
 
 PETScLinearSolver(setup::Function) = PETScLinearSolver(setup,MPI.COMM_WORLD)
 
-struct PETScLinaerSolverSS{F} <: SymbolicSetup
+struct PETScLinearSolverSS{F} <: SymbolicSetup
   solver::PETScLinearSolver{F}
 end
 
 function Algebra.symbolic_setup(solver::PETScLinearSolver,mat::AbstractMatrix)
-  PETScLinaerSolverSS(solver)
+  PETScLinearSolverSS(solver)
 end
 
 mutable struct PETScLinearSolverNS <: NumericalSetup
@@ -49,7 +49,7 @@ function Finalize(ns::PETScLinearSolverNS)
   nothing
 end
 
-function Algebra.numerical_setup(ss::PETScLinaerSolverSS,A::AbstractMatrix)
+function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
   B = convert(PETScMatrix,A)
   ns = PETScLinearSolverNS(B,ss.solver.comm)
   @check_error_code PETSC.KSPCreate(ns.comm,ns.ksp)
