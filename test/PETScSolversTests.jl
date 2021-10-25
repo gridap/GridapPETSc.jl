@@ -1,4 +1,4 @@
-module PETScSolversTests
+module PETScLinearSolversTests
 
 using SparseArrays
 using SparseMatricesCSR
@@ -22,7 +22,7 @@ x = ones(PetscScalar,m)
 b = A*x
 
 # Setup solver via cml options
-solver = PETScSolver()
+solver = PETScLinearSolver()
 
 x2 = solve(solver,A,b)
 @test x ≈ x2
@@ -66,7 +66,7 @@ function mykspsetup(ksp)
   @check_error_code PETSC.PCSetType(pc[],PETSC.PCJACOBI)
   @check_error_code PETSC.KSPView(ksp[],C_NULL)
 end
-solver = PETScSolver(mykspsetup)
+solver = PETScLinearSolver(mykspsetup)
 
 x2 = solve(solver,A,b)
 @test x ≈ x2
@@ -89,7 +89,7 @@ GridapPETSc.with(args=split(options)) do
   b = A*x
   @test typeof(b) == PETScVector
 
-  solver = PETScSolver()
+  solver = PETScLinearSolver()
   x2 = solve(solver,A,b)
   @test typeof(x2) == PETScVector
   @test x ≈ x2

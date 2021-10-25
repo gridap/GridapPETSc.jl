@@ -15,21 +15,21 @@ let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
   if !isfile(deps_jl)
     msg = """
     GridapPETSc needs to be configured before use. Type
-  
+
     pkg> build
-  
+
     and try again.
     """
     error(msg)
   end
-  
+
   include(deps_jl)
 end
 
 if !libpetsc_found
   msg = """
   GridapPETSc was not configured correcnly. See the errors in file:
-  
+
   $(joinpath(@__DIR__,"..","deps","build.log"))
 
   If you are using the environment variable JULIA_PETSC_LIBRARY, make sure
@@ -59,7 +59,7 @@ function __init__()
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
   end
   for (handle,sym) in _PRELOADS
-    handle[] = Libdl.dlsym(libpetsc_handle[],sym) 
+    handle[] = Libdl.dlsym(libpetsc_handle[],sym)
   end
 end
 
@@ -79,7 +79,7 @@ export petsc_sparse
 include("PETScArrays.jl")
 include("PartitionedArrays.jl")
 
-export PETScSolver
+export PETScLinearSolver
 include("PETScSolvers.jl")
 
 include("PETScAssembly.jl")
