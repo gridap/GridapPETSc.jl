@@ -73,7 +73,7 @@ function partitioned_tests(parts)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
 
   #TODO hide conversions and solver setup
-  solver = PETScSolver()
+  solver = PETScLinearSolver()
   ss = symbolic_setup(solver,B)
   ns = numerical_setup(ss,B)
   y = PETScVector(A*v)

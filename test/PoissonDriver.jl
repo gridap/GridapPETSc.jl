@@ -33,23 +33,23 @@ GridapPETSc.with(args=options) do
   domain = (0,1,0,1,0,1)
   cells  = (10,10,10)
   model  = CartesianDiscreteModel(domain,cells)
-  
+
   order = 1
   reffe = ReferenceFE(lagrangian,Float64,order)
   V = TestFESpace(model,reffe,dirichlet_tags="boundary",vector_type=Vector{PetscScalar})
   U = TrialFESpace(V)
   Ω = Triangulation(model)
   dΩ = Measure(Ω,2*order)
-  
+
   f(x) = x[1]*x[2]
   a(u,v) = ∫( ∇(v)⋅∇(u) )*dΩ
   l(v) = ∫( v*f )*dΩ
 
-  solver = LinearFESolver(PETScSolver())
-  
-  # Assembling on a Julia matrix 
+  solver = LinearFESolver(PETScLinearSolver())
+
+  # Assembling on a Julia matrix
   # with the same data layout as petsc
-  # (efficient use of PETScSolver)
+  # (efficient use of PETScLinearSolver)
   Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
   Tv = Vector{PetscScalar}
   Tx = get_vector_type(U)
@@ -65,9 +65,9 @@ GridapPETSc.with(args=options) do
   r = A*x - b
   @test maximum(abs.(r)) < tol
 
-  # Assembling on a Julia matrix 
+  # Assembling on a Julia matrix
   # with different data layout than petsc
-  # (inefficient use of PETScSolver)
+  # (inefficient use of PETScLinearSolver)
   Tm = SparseMatrixCSC{Float64,Int}
   Tv = Vector{Float64}
   Tx = get_vector_type(U)
@@ -85,7 +85,7 @@ GridapPETSc.with(args=options) do
 
   # Now assemble on a native PETScMarix but on a Julia Vector
   # with same memory layout as PETScVector
-  # (efficient use of PETScSolver)
+  # (efficient use of PETScLinearSolver)
   Tm = PETScMatrix
   Tv = Vector{PetscScalar}
   Tx = get_vector_type(U)
@@ -102,7 +102,7 @@ GridapPETSc.with(args=options) do
   @test maximum(abs.(r)) < tol
 
   # Now assemble on a native PETScMarix and on a native PETScVector
-  # (efficient use of PETScSolver)
+  # (efficient use of PETScLinearSolver)
   Tm = PETScMatrix
   Tv = PETScVector
   Tx = get_vector_type(U)

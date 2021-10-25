@@ -10,7 +10,7 @@ using Test
 
 @time @testset "PartitionedArrays (mpi)" begin include("PartitionedArraysTests_mpi.jl") end
 
-@time @testset "PETScSolvers" begin include("PETScSolversTests.jl") end
+@time @testset "PETScLinearSolvers" begin include("PETScLinearSolversTests.jl") end
 
 @time @testset "PETScAssembly" begin include("PETScAssemblyTests.jl") end
 

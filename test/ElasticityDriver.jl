@@ -79,7 +79,7 @@ GridapPETSc.with(args=split(options)) do
   @check_error_code PETSC.MatNullSpaceCreate(comm,has_constant,nvecs,vecs,nulls)
   @check_error_code PETSC.MatSetNearNullSpace(A.mat[],nulls[])
 
-  solver = PETScSolver()
+  solver = PETScLinearSolver()
   solve!(x,solver,A,b)
 
   @check_error_code PETSC.MatNullSpaceDestroy(nulls)
