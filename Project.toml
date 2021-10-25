@@ -15,7 +15,7 @@ SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
 
 [compat]
 Gridap = "0.17"
-MPI = "0.14, 0.15, 0.16"
+MPI = "0.14, 0.15, 0.16, 0.17, 0.18, 0.19"
 PETSc_jll = "3.13"
 PartitionedArrays = "0.2.4"
 SparseMatricesCSR = "0.6.1"
