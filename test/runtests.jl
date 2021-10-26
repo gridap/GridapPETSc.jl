@@ -12,7 +12,7 @@ using Test
 
 @time @testset "PETScLinearSolvers" begin include("PETScLinearSolversTests.jl") end
 
-@time @testset "PETScNonLinearSolvers" begin include("PETScNonLinearSolversTests.jl") end
+@time @testset "PETScNonLinearSolvers" begin include("PETScNonlinearSolversTests.jl") end
 
 @time @testset "PETScAssembly" begin include("PETScAssemblyTests.jl") end
 
