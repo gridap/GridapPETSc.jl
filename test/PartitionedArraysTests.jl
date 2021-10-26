@@ -60,7 +60,7 @@ function partitioned_tests(parts)
   end
   v = PVector(values,ids)
   x = PETScVector(v)
-  if (length(parts)>1)
+  if (get_backend(v.values)==mpi)
     map_parts(parts) do part
       lg=get_local_oh_vector(x)
       @test isa(lg,PETScVector)
