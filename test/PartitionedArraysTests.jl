@@ -60,6 +60,23 @@ function partitioned_tests(parts)
   end
   v = PVector(values,ids)
   x = PETScVector(v)
+  if (length(parts)>1)
+    map_parts(parts) do part
+      lg=get_local_oh_vector(x)
+      @test isa(lg,PETScVector)
+      lx=get_local_vector(lg)
+      if part==1
+        @test length(lx)==5
+      elseif part==2
+        @test length(lx)==5
+      elseif part==3
+        @test length(lx)==3
+      end
+      restore_local_vector!(lx,lg)
+      GridapPETSc.Finalize(lg)
+    end
+  end
+
   PETSC.@check_error_code PETSC.VecView(x.vec[],C_NULL)
   u = PVector(x,ids)
   exchange!(u)

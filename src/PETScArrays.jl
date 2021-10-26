@@ -106,6 +106,39 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
+function get_local_oh_vector(a::PETScVector)
+  v=PETScVector()
+  @check_error_code PETSC.VecGhostGetLocalForm(a.vec[],v.vec)
+  if v.vec[] != C_NULL  # a is a ghosted vector
+    v.ownership=a
+    Init(v)
+    return v
+  else                  # a is NOT a ghosted vector
+    return get_local_vector(a)
+  end
+end
+
+function _local_size(a::PETScVector)
+  r_sz = Ref{PetscInt}()
+  @check_error_code PETSC.VecGetLocalSize(a.vec[], r_sz)
+  r_sz[]
+end
+
+# This function works with either ghosted or non-ghosted MPI vectors.
+# In the case of a ghosted vector it solely returns the locally owned
+# entries.
+function get_local_vector(a::PETScVector)
+  r_pv = Ref{Ptr{PetscScalar}}()
+  @check_error_code PETSC.VecGetArray(a.vec[], r_pv)
+  v = unsafe_wrap(Array, r_pv[], _local_size(a); own = false)
+  return v
+end
+
+function restore_local_vector!(v::Array,a::PETScVector)
+  @check_error_code PETSC.VecRestoreArray(a.vec[], Ref(pointer(v)))
+  nothing
+end
+
 # Matrix
 
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
@@ -200,7 +233,7 @@ function PETScMatrix(a::AbstractMatrix{PetscScalar})
   j = [PetscInt(j-1) for i=1:m for j=1:n]
   v = [ a[i,j] for i=1:m for j=1:n]
   A = PETScMatrix()
-  A.ownership = m
+  A.ownership = a
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
