@@ -106,6 +106,50 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
+function Base.copy!(a::AbstractVector,petsc_vec::Vec)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(a,aux)
+end
+
+function Base.copy!(petsc_vec::Vec,a::AbstractVector)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(aux,a)
+end
+
+function Base.copy!(vec::AbstractVector,petscvec::PETScVector)
+  lg=get_local_oh_vector(petscvec)
+  if isa(lg,PETScVector) # petscvec is a ghosted vector
+    lx=get_local_vector(lg)
+    @assert length(lx)==length(vec)
+    vec .= lx
+    restore_local_vector!(lx,lg)
+    GridapPETSc.Finalize(lg)
+  else                   # petscvec is NOT a ghosted vector
+    @assert length(lg)==length(vec)
+    vec .= lg
+    restore_local_vector!(lg,petscvec)
+  end
+end
+
+function Base.copy!(petscvec::PETScVector,vec::AbstractVector)
+  lg=get_local_oh_vector(petscvec)
+  if isa(lg,PETScVector) # petscvec is a ghosted vector
+    lx=get_local_vector(lg)
+    @assert length(lx)==length(vec)
+    lx .= vec
+    restore_local_vector!(lx,lg)
+    GridapPETSc.Finalize(lg)
+  else                   # petscvec is NOT a ghosted vector
+    @assert length(lg)==length(vec)
+    lg .= vec
+    restore_local_vector!(lg,petscvec)
+  end
+end
+
+
+
 function get_local_oh_vector(a::PETScVector)
   v=PETScVector()
   @check_error_code PETSC.VecGhostGetLocalForm(a.vec[],v.vec)
@@ -270,6 +314,35 @@ function Base.copy(a::PETScMatrix)
     a.mat[],PETSC.MATSAME,PETSC.MAT_INITIAL_MATRIX,v.mat)
   Init(v)
 end
+
+function Base.copy!(petscmat::Mat,a::AbstractMatrix)
+  aux=PETScMatrix()
+  aux.mat[] = petscmat.ptr
+  Base.copy!(aux,a)
+end
+
+
+function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
+   n    = size(mat)[2]
+   cols = [PetscInt(j-1) for j=1:n]
+   row  = Vector{PetscInt}(undef,1)
+   vals = Vector{eltype(mat)}(undef,n)
+   for i=1:size(mat)[1]
+     row[1]=PetscInt(i-1)
+     vals .= view(mat,i,:)
+     PETSC.MatSetValues(petscmat.mat[],
+                        PetscInt(1),
+                        row,
+                        n,
+                        cols,
+                        vals,
+                        PETSC.INSERT_VALUES)
+   end
+   @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+end
+
+
 
 function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
   a

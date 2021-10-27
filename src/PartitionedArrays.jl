@@ -9,7 +9,7 @@ end
 function PETScVector(v::PVector,::SequentialBackend)
   gid_to_value = zeros(eltype(v),length(v))
   map_parts(v.values,v.rows.partition) do values,rows
-    @check isa(rows,IndexRange) "Not supported partition for PETSc vectors" # to be consistent with MPI
+    @check isa(rows,IndexRange) "Unsupported partition for PETSc vectors" # to be consistent with MPI
     oid_to_gid = view(rows.lid_to_gid,rows.oid_to_lid)
     oid_to_value = view(values,rows.oid_to_lid)
     gid_to_value[oid_to_gid] =  oid_to_value
@@ -21,8 +21,9 @@ function PETScVector(v::PVector,::MPIBackend)
   w = PETScVector()
   N = num_gids(v.rows)
   comm = v.values.comm # Not sure about this
+
   map_parts(v.values,v.rows.partition) do lid_to_value, rows
-    @check isa(rows,IndexRange) "Not supported partition for PETSc vectors"
+    @check isa(rows,IndexRange) "Unsupported partition for PETSc vectors"
     array = convert(Vector{PetscScalar},lid_to_value)
     n = num_oids(rows)
     nghost = num_hids(rows)
@@ -79,6 +80,55 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIBackend)
   PVector(values,ids)
 end
 
+
+function Base.copy!(pvec::PVector,petscvec::PETScVector)
+  if get_backend(pvec.values) == mpi
+      map_parts(pvec.values) do values
+        lg=get_local_oh_vector(petscvec)
+        if (isa(lg,PETScVector)) # petsc_vec is a ghosted vector
+          @assert pvec.rows.ghost
+          lx=get_local_vector(lg)
+          @assert length(lx)==length(values)
+          values .= lx
+          restore_local_vector!(lx,lg)
+          GridapPETSc.Finalize(lg)
+        else                    # petsc_vec is NOT a ghosted vector
+          @assert !pvec.rows.ghost
+          @assert length(lg)==length(values)
+          values .= lg
+          restore_local_vector!(petscvec,lg)
+        end
+      end
+  elseif get_backend(pvec.values) == sequential
+    @notimplemented
+  end
+  pvec
+end
+
+function Base.copy!(petscvec::PETScVector,pvec::PVector)
+  if get_backend(pvec.values) == mpi
+     map_parts(pvec.values) do values
+       lg=get_local_oh_vector(petscvec)
+       if (isa(lg,PETScVector)) # petscvec is a ghosted vector
+         @assert pvec.rows.ghost
+         lx=get_local_vector(lg)
+         @assert length(lx)==length(values)
+         lx .= values
+         restore_local_vector!(lx,lg)
+         GridapPETSc.Finalize(lg)
+       else                     # petscvec is NOT a ghosted vector
+         @assert !pvec.rows.ghost
+         @assert length(lg)==length(values)
+         lg .= values
+         restore_local_vector!(lg,petscvec)
+       end
+     end
+  elseif get_backend(pvec.values) == sequential
+    @notimplemented
+  end
+  petscvec
+end
+
 function PETScMatrix(a::PSparseMatrix)
   backend = get_backend(a.values)
   PETScMatrix(a,backend)
@@ -120,4 +170,36 @@ function PETScMatrix(a::PSparseMatrix,::MPIBackend)
   b
 end
 
-
+function Base.copy!(petscmat::PETScMatrix,mat::PSparseMatrix)
+   map_parts(mat.values,mat.rows.partition,mat.cols.partition) do lmat, rdofs, cdofs
+      Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
+      csr = convert(Tm,lmat)
+      ia  = csr.rowptr
+      ja  = csr.colval
+      a   = csr.nzval
+      m   = csr.m
+      n   = csr.n
+      maxnnz = maximum( ia[i+1]-ia[i] for i=1:m )
+      row    = Vector{PetscInt}(undef,1)
+      cols   = Vector{PetscInt}(undef,maxnnz)
+      for i=1:m
+        row[1]=PetscInt(rdofs.lid_to_gid[i]-1)
+        current=1
+        for j=ia[i]+1:ia[i+1]
+          col=ja[j]+1
+          cols[current]=PetscInt(cdofs.lid_to_gid[ja[j]+1]-1)
+          current=current+1
+        end
+        vals = view(a,ia[i]+1:ia[i+1])
+        PETSC.MatSetValues(petscmat.mat[],
+                           PetscInt(1),
+                           row,
+                           ia[i+1]-ia[i],
+                           cols,
+                           vals,
+                           PETSC.INSERT_VALUES)
+      end
+   end
+   @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+end
