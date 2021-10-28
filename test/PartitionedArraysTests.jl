@@ -76,34 +76,37 @@ function partitioned_tests(parts)
   ngids = 7
   ids = PRange(parts,ngids,noids,firstgid,hid_to_gid,hid_to_part)
   values = map_parts(ids.partition) do ids
+    println(ids.lid_to_gid)
     10.0*ids.lid_to_gid
   end
 
-  function test_vectors(v::PVector,x::PETScVector)
+  function test_vectors(v::PVector,x::PETScVector,ids)
     PETSC.@check_error_code PETSC.VecView(x.vec[],C_NULL)
     u = PVector(x,ids)
     exchange!(u)
     map_parts(u.values,v.values) do u,v
-      @test u ≈ v
+      @test u == v
     end
   end
 
   v = PVector(values,ids)
   x = PETScVector(v)
-  test_vectors(v,x)
+  test_get_local_vector(v,x)
+  test_vectors(v,x,ids)
 
   if (get_backend(v.values)==mpi)
     # Copy v into v1 to circumvent (potentia) aliasing of v and x
     v1=copy(v)
     fill!(v1,zero(eltype(v)))
     copy!(v1,x)
-    test_vectors(v1,x)
+    exchange!(v1)
+    test_vectors(v1,x,ids)
 
     # Copy x into x1 to circumvent (potential) aliasing of v and x
     x1=copy(x)
     fill!(x1,PetscScalar(0.0))
     copy!(x1,v)
-    test_vectors(v,x1)
+    test_vectors(v,x1,ids)
     GridapPETSc.Finalize(x1)
   end
 
