@@ -83,13 +83,15 @@ end
 
 function Base.copy!(pvec::PVector,petscvec::PETScVector)
   if get_backend(pvec.values) == mpi
-      map_parts(pvec.values) do values
+      map_parts(get_part_ids(pvec.values),pvec.values,pvec.rows.partition) do part, values, indices
         lg=get_local_oh_vector(petscvec)
         if (isa(lg,PETScVector)) # petsc_vec is a ghosted vector
+          # Only copying owned DoFs. This should be followed by
+          # an exchange if the ghost DoFs of pvec are to be consumed
           @assert pvec.rows.ghost
           lx=get_local_vector(lg)
-          @assert length(lx)==length(values)
-          values .= lx
+          vvalues=view(values,indices.oid_to_lid)
+          vvalues .= lx[1:num_oids(indices)]
           restore_local_vector!(lx,lg)
           GridapPETSc.Finalize(lg)
         else                    # petsc_vec is NOT a ghosted vector
@@ -107,13 +109,17 @@ end
 
 function Base.copy!(petscvec::PETScVector,pvec::PVector)
   if get_backend(pvec.values) == mpi
-     map_parts(pvec.values) do values
+     map_parts(pvec.values,pvec.rows.partition) do values, indices
        lg=get_local_oh_vector(petscvec)
        if (isa(lg,PETScVector)) # petscvec is a ghosted vector
-         @assert pvec.rows.ghost
-         lx=get_local_vector(lg)
-         @assert length(lx)==length(values)
-         lx .= values
+        lx=get_local_vector(lg)
+         if (pvec.rows.ghost)   # pvec is a ghosted vector
+            @assert length(lx)==length(values)
+            lx .= values
+         else
+            vvalues=view(values,indices.oid_to_lid)
+            lx[1:num_oids(indices)] .= view(values,indices.oid_to_lid)
+         end
          restore_local_vector!(lx,lg)
          GridapPETSc.Finalize(lg)
        else                     # petscvec is NOT a ghosted vector
@@ -171,7 +177,8 @@ function PETScMatrix(a::PSparseMatrix,::MPIBackend)
 end
 
 function Base.copy!(petscmat::PETScMatrix,mat::PSparseMatrix)
-   map_parts(mat.values,mat.rows.partition,mat.cols.partition) do lmat, rdofs, cdofs
+   parts=get_part_ids(mat.values)
+   map_parts(parts, mat.values,mat.rows.partition,mat.cols.partition) do part, lmat, rdofs, cdofs
       Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
       csr = convert(Tm,lmat)
       ia  = csr.rowptr
@@ -182,24 +189,25 @@ function Base.copy!(petscmat::PETScMatrix,mat::PSparseMatrix)
       maxnnz = maximum( ia[i+1]-ia[i] for i=1:m )
       row    = Vector{PetscInt}(undef,1)
       cols   = Vector{PetscInt}(undef,maxnnz)
-      for i=1:m
-        row[1]=PetscInt(rdofs.lid_to_gid[i]-1)
+      for i=1:num_oids(rdofs)
+        lid=rdofs.oid_to_lid[i]
+        row[1]=PetscInt(rdofs.lid_to_gid[lid]-1)
         current=1
-        for j=ia[i]+1:ia[i+1]
+        for j=ia[lid]+1:ia[lid+1]
           col=ja[j]+1
-          cols[current]=PetscInt(cdofs.lid_to_gid[ja[j]+1]-1)
+          cols[current]=PetscInt(cdofs.lid_to_gid[col]-1)
           current=current+1
         end
-        vals = view(a,ia[i]+1:ia[i+1])
+        vals = view(a,ia[lid]+1:ia[lid+1])
         PETSC.MatSetValues(petscmat.mat[],
                            PetscInt(1),
                            row,
-                           ia[i+1]-ia[i],
+                           ia[lid+1]-ia[lid],
                            cols,
                            vals,
                            PETSC.INSERT_VALUES)
       end
    end
    @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
-   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
 end

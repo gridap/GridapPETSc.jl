@@ -1,4 +1,4 @@
-module PETScVectorsTests
+module PETScArraysTests
 
 using GridapPETSc
 using Test

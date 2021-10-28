@@ -1,4 +1,4 @@
-module PETScArraysTests
+module PETScAssemblyTests
 
 using Test
 using Gridap

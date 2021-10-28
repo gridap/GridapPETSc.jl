@@ -129,9 +129,21 @@ end
 function _setup_cache(x,nls::PETScNonlinearSolver,op)
   res_julia_vec, jac_julia_mat_A = residual_and_jacobian(op,x)
   res_petsc_vec   = PETScVector(res_julia_vec)
-  x_petsc_vec     = PETScVector(x)
   jac_petsc_mat_A = PETScMatrix(jac_julia_mat_A)
-  x_julia_vec     = copy(res_julia_vec)
+
+  # In a parallel MPI context, x is a vector with a data layout typically different from
+  # the one of res_julia_vec. On the one hand, x holds the free dof values of a FE
+  # Function, and thus has the data layout of the FE space (i.e., local DOFs
+  # include all DOFs touched by local cells, i.e., owned and ghost cells).
+  # On the other hand, res_petsc_vec has the data layout of the rows of the
+  # distributed linear system (e.g., local DoFs only include those touched for owned
+  # cells/facets during assembly, assuming the SubAssembledRows strategy).
+  # The following lines of code generate a version of x, namely, x_julia_vec, with the
+  # same data layout as the columns of jac_julia_mat_A, but the contents of x (the owned dofs, and # a subset of the ghost dofs).
+  x_julia_vec = similar(res_julia_vec,eltype(res_julia_vec),(axes(jac_julia_mat_A)[2],))
+  copy!(x_julia_vec,x)
+  exchange!(x_julia_vec)
+  x_petsc_vec = PETScVector(x_julia_vec)
 
   PETScNonlinearSolverCache(op, x_julia_vec,res_julia_vec,
                            jac_julia_mat_A,jac_julia_mat_A,
@@ -147,6 +159,7 @@ function Algebra.solve!(x::T,
   @assert cache.op === op
   @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
   copy!(x,cache.x_petsc_vec.vec[])
+  exchange!(x)
   cache
 end
 
@@ -157,7 +170,7 @@ function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::Nonlinea
   _set_petsc_jacobian_function!(nls,cache)
   @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
   copy!(x,cache.x_petsc_vec.vec[])
+  #@check_error_code PETSC.VecView(cache.x_petsc_vec.vec[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
+  exchange!(x)
   cache
 end
-
-# ===== TO DO: MOVE Base.copy! overloads below TO APPROPRIATE SOURCE FILES
