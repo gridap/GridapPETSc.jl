@@ -1,0 +1,40 @@
+include("../PLaplacianTests.jl")
+
+function mem()
+  Sys.free_memory() / 2^20
+end
+
+iteration=0
+function report_memory_and_random_gc(parts)
+  map_parts(parts) do part
+    if (rand(1:length(parts)) == part)
+      GC.gc()
+      print("!!!GC.gc()ed on part $(part)!!!", "\n")
+    end
+    global iteration
+    iteration=iteration+1
+    if (part==1)
+      run(`ps -p $(getpid()) -o pid,comm,vsize,rss,size`)
+    end
+  end
+end
+
+function main_bis(parts)
+  main(parts,SubAssembledRows())
+  report_memory_and_random_gc(parts)
+end
+
+options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -snes_converged_reason"
+GridapPETSc.Init(args=split(options))
+
+nparts = (2,2)
+
+NEXECS=100
+for i =1:NEXECS
+   prun(main_bis,mpi,nparts)
+   if (i%5==0)
+     GridapPETSc.gridap_petsc_gc()
+   end
+end
+
+GridapPETSc.Finalize()

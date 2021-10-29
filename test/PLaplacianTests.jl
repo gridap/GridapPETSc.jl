@@ -18,7 +18,7 @@ end
 function main(parts,strategy)
 
   domain = (0,4,0,4)
-  cells = (4,4)
+  cells = (100,100)
   model = CartesianDiscreteModel(parts,domain,cells)
 
   k = 1
