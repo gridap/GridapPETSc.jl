@@ -80,7 +80,7 @@ GridapPETSc.with(args=split(options)) do
   aj = rand(PetscScalar,n)
   ap = convert(PETScVector,aj)
   @test ap == aj
-  @test norm(ap) == norm(aj)
+  @test norm(ap) ≈ norm(aj)
   @test ap+2*ap == ap+2*ap
   @test typeof(ap+2*ap) ==  PETScVector
   @test ap-2*ap == ap-2*ap
