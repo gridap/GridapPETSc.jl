@@ -663,4 +663,8 @@ const SNESPATCH            = "patch"
 @wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/
 manualpages/SNES/SNESSetType.html")
 
+# Garbage collection of PETSc objects
+@wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
+@wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
+
 end # module

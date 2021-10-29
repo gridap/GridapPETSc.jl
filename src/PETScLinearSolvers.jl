@@ -41,7 +41,7 @@ end
 
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.KSPDestroy(ns.ksp)
+    @check_error_code PETSC.PetscObjectRegisterDestroy(ns.ksp[].ptr)
     ns.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1

@@ -84,7 +84,7 @@ end
 
 function Finalize(nls::PETScNonlinearSolver)
   if GridapPETSc.Initialized() && nls.initialized
-    @check_error_code PETSC.SNESDestroy(nls.snes)
+    @check_error_code PETSC.PetscObjectRegisterDestroy(nls.snes[].ptr)
     @assert Threads.threadid() == 1
     nls.initialized=false
     _NREFS[] -= 1

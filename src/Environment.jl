@@ -39,3 +39,9 @@ function with(f;kwargs...)
   Finalize()
 end
 
+# In an MPI environment context,
+# this function has global collective semantics.
+function gridap_petsc_gc()
+  GC.gc()
+  @check_error_code PETSC.PetscObjectRegisterDestroyAll()
+end

@@ -20,7 +20,7 @@ end
 
 function Finalize(a::PETScVector)
   if a.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.VecDestroy(a.vec)
+    @check_error_code PETSC.PetscObjectRegisterDestroy(a.vec[].ptr)
     a.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1
@@ -206,7 +206,7 @@ end
 
 function Finalize(a::PETScMatrix)
   if a.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.MatDestroy(a.mat)
+    @check_error_code PETSC.PetscObjectRegisterDestroy(a.mat[].ptr)
     a.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1
