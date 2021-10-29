@@ -271,18 +271,6 @@ function PETScMatrix(csr::SparseMatrixCSR{0,PetscScalar,PetscInt})
   Init(A)
 end
 
-function PETScMatrix(a::AbstractMatrix{PetscScalar})
-  m, n = size(a)
-  i = [PetscInt(n*(i-1)) for i=1:m+1]
-  j = [PetscInt(j-1) for i=1:m for j=1:n]
-  v = [ a[i,j] for i=1:m for j=1:n]
-  A = PETScMatrix()
-  A.ownership = a
-  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
-  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  Init(A)
-end
 
 function Base.similar(::PETScMatrix,::Type{PetscScalar},ax::Tuple{Int,Int})
   PETScMatrix(ax[1],ax[2])
@@ -352,6 +340,19 @@ function Base.convert(::Type{PETScMatrix},a::AbstractSparseMatrix)
   Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
   csr = convert(Tm,a)
   PETScMatrix(csr)
+end
+
+function Base.convert(::Type{PETScMatrix}, a::AbstractMatrix{PetscScalar})
+  m, n = size(a)
+  i = [PetscInt(n*(i-1)) for i=1:m+1]
+  j = [PetscInt(j-1) for i=1:m for j=1:n]
+  v = [ a[i,j] for i=1:m for j=1:n]
+  A = PETScMatrix()
+  A.ownership = a
+  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
+  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  Init(A)
 end
 
 function petsc_sparse(i,j,v,m,n)
