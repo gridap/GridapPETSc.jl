@@ -106,6 +106,83 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
+function Base.copy!(a::AbstractVector,petsc_vec::Vec)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(a,aux)
+end
+
+function Base.copy!(petsc_vec::Vec,a::AbstractVector)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(aux,a)
+end
+
+function Base.copy!(vec::AbstractVector,petscvec::PETScVector)
+  lg=get_local_oh_vector(petscvec)
+  if isa(lg,PETScVector) # petscvec is a ghosted vector
+    lx=get_local_vector(lg)
+    @assert length(lx)==length(vec)
+    vec .= lx
+    restore_local_vector!(lx,lg)
+    GridapPETSc.Finalize(lg)
+  else                   # petscvec is NOT a ghosted vector
+    @assert length(lg)==length(vec)
+    vec .= lg
+    restore_local_vector!(lg,petscvec)
+  end
+end
+
+function Base.copy!(petscvec::PETScVector,vec::AbstractVector)
+  lg=get_local_oh_vector(petscvec)
+  if isa(lg,PETScVector) # petscvec is a ghosted vector
+    lx=get_local_vector(lg)
+    @assert length(lx)==length(vec)
+    lx .= vec
+    restore_local_vector!(lx,lg)
+    GridapPETSc.Finalize(lg)
+  else                   # petscvec is NOT a ghosted vector
+    @assert length(lg)==length(vec)
+    lg .= vec
+    restore_local_vector!(lg,petscvec)
+  end
+end
+
+
+
+function get_local_oh_vector(a::PETScVector)
+  v=PETScVector()
+  @check_error_code PETSC.VecGhostGetLocalForm(a.vec[],v.vec)
+  if v.vec[] != C_NULL  # a is a ghosted vector
+    v.ownership=a
+    Init(v)
+    return v
+  else                  # a is NOT a ghosted vector
+    return get_local_vector(a)
+  end
+end
+
+function _local_size(a::PETScVector)
+  r_sz = Ref{PetscInt}()
+  @check_error_code PETSC.VecGetLocalSize(a.vec[], r_sz)
+  r_sz[]
+end
+
+# This function works with either ghosted or non-ghosted MPI vectors.
+# In the case of a ghosted vector it solely returns the locally owned
+# entries.
+function get_local_vector(a::PETScVector)
+  r_pv = Ref{Ptr{PetscScalar}}()
+  @check_error_code PETSC.VecGetArray(a.vec[], r_pv)
+  v = unsafe_wrap(Array, r_pv[], _local_size(a); own = false)
+  return v
+end
+
+function restore_local_vector!(v::Array,a::PETScVector)
+  @check_error_code PETSC.VecRestoreArray(a.vec[], Ref(pointer(v)))
+  nothing
+end
+
 # Matrix
 
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
@@ -194,6 +271,7 @@ function PETScMatrix(csr::SparseMatrixCSR{0,PetscScalar,PetscInt})
   Init(A)
 end
 
+
 function Base.similar(::PETScMatrix,::Type{PetscScalar},ax::Tuple{Int,Int})
   PETScMatrix(ax[1],ax[2])
 end
@@ -225,6 +303,35 @@ function Base.copy(a::PETScMatrix)
   Init(v)
 end
 
+function Base.copy!(petscmat::Mat,a::AbstractMatrix)
+  aux=PETScMatrix()
+  aux.mat[] = petscmat.ptr
+  Base.copy!(aux,a)
+end
+
+
+function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
+   n    = size(mat)[2]
+   cols = [PetscInt(j-1) for j=1:n]
+   row  = Vector{PetscInt}(undef,1)
+   vals = Vector{eltype(mat)}(undef,n)
+   for i=1:size(mat)[1]
+     row[1]=PetscInt(i-1)
+     vals .= view(mat,i,:)
+     PETSC.MatSetValues(petscmat.mat[],
+                        PetscInt(1),
+                        row,
+                        n,
+                        cols,
+                        vals,
+                        PETSC.INSERT_VALUES)
+   end
+   @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+end
+
+
+
 function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
   a
 end
@@ -233,6 +340,19 @@ function Base.convert(::Type{PETScMatrix},a::AbstractSparseMatrix)
   Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
   csr = convert(Tm,a)
   PETScMatrix(csr)
+end
+
+function Base.convert(::Type{PETScMatrix}, a::AbstractMatrix{PetscScalar})
+  m, n = size(a)
+  i = [PetscInt(n*(i-1)) for i=1:m+1]
+  j = [PetscInt(j-1) for i=1:m for j=1:n]
+  v = [ a[i,j] for i=1:m for j=1:n]
+  A = PETScMatrix()
+  A.ownership = a
+  @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
+  @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
+  Init(A)
 end
 
 function petsc_sparse(i,j,v,m,n)
@@ -313,4 +433,3 @@ function LinearAlgebra.norm(a::PETScVector, p::Real=2)
   @check_error_code PETSC.VecNorm(a.vec[],nt,val)
   Float64(val[])
 end
-

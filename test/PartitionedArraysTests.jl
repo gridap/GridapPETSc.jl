@@ -4,6 +4,7 @@ using GridapPETSc.PETSC
 using PartitionedArrays
 using SparseMatricesCSR
 using Test
+using LinearAlgebra
 
 function partitioned_tests(parts)
 
@@ -53,42 +54,92 @@ function partitioned_tests(parts)
 
   GridapPETSc.Init(args=split("-ksp_type gmres -ksp_monitor -pc_type jacobi"))
 
+  function test_get_local_vector(v::PVector,x::PETScVector)
+    if (get_backend(v.values)==mpi)
+      map_parts(parts) do part
+        lg=get_local_oh_vector(x)
+        @test isa(lg,PETScVector)
+        lx=get_local_vector(lg)
+        if part==1
+          @test length(lx)==5
+        elseif part==2
+          @test length(lx)==5
+        elseif part==3
+          @test length(lx)==3
+        end
+        restore_local_vector!(lx,lg)
+        GridapPETSc.Finalize(lg)
+      end
+    end
+  end
+
   ngids = 7
   ids = PRange(parts,ngids,noids,firstgid,hid_to_gid,hid_to_part)
   values = map_parts(ids.partition) do ids
+    println(ids.lid_to_gid)
     10.0*ids.lid_to_gid
   end
-  v = PVector(values,ids)
-  x = PETScVector(v)
-  PETSC.@check_error_code PETSC.VecView(x.vec[],C_NULL)
-  u = PVector(x,ids)
-  exchange!(u)
-  map_parts(u.values,v.values) do u,v
-    @test u == v
+
+  function test_vectors(v::PVector,x::PETScVector,ids)
+    PETSC.@check_error_code PETSC.VecView(x.vec[],C_NULL)
+    u = PVector(x,ids)
+    exchange!(u)
+    map_parts(u.values,v.values) do u,v
+      @test u == v
+    end
   end
+
+  v = PVector(values,ids)
+  x = convert(PETScVector,v)
+  test_get_local_vector(v,x)
+  test_vectors(v,x,ids)
+
+  if (get_backend(v.values)==mpi)
+    # Copy v into v1 to circumvent (potentia) aliasing of v and x
+    v1=copy(v)
+    fill!(v1,zero(eltype(v)))
+    copy!(v1,x)
+    exchange!(v1)
+    test_vectors(v1,x,ids)
+
+    # Copy x into x1 to circumvent (potential) aliasing of v and x
+    x1=copy(x)
+    fill!(x1,PetscScalar(0.0))
+    copy!(x1,v)
+    test_vectors(v,x1,ids)
+    GridapPETSc.Finalize(x1)
+  end
+
 
   A = PSparseMatrix(I,J,V,ids,ids,ids=:global)
   display(A.values)
-  B = PETScMatrix(A)
+  B = convert(PETScMatrix,A)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
 
-  #TODO hide conversions and solver setup
-  solver = PETScLinearSolver()
-  ss = symbolic_setup(solver,B)
-  ns = numerical_setup(ss,B)
-  y = PETScVector(A*v)
-  x̂ = PETScVector(0.0,ids)
-  solve!(x̂,ns,y)
-  z = PVector(x̂,ids)
-  exchange!(z)
-  map_parts(z.values,v.values) do z,v
-    @test maximum(abs.(z-v)) < 1e-5
+  function solve_system_and_check_solution(A::PSparseMatrix,B::PETScMatrix,v)
+     #TODO hide conversions and solver setup
+     solver = PETScLinearSolver()
+     ss = symbolic_setup(solver,B)
+     ns = numerical_setup(ss,B)
+     y = convert(PETScVector,A*v)
+     x̂ = PETScVector(0.0,ids)
+     solve!(x̂,ns,y)
+     z = PVector(x̂,ids)
+     exchange!(z)
+     map_parts(z.values,v.values) do z,v
+      @test maximum(abs.(z-v)) < 1e-5
+     end
+     GridapPETSc.Finalize(x̂)
+     GridapPETSc.Finalize(y)
   end
+  solve_system_and_check_solution(A,B,v)
 
-  GridapPETSc.Finalize(x̂)
+  # Test that copy! works ok
+  LinearAlgebra.fillstored!(B,PetscScalar(0.0))
+  copy!(B,A)
+  solve_system_and_check_solution(A,B,v)
+
   GridapPETSc.Finalize(B)
-  GridapPETSc.Finalize(y)
-  GridapPETSc.Finalize(ns)
   GridapPETSc.Finalize(x)
   GridapPETSc.Finalize()
 end

@@ -4,10 +4,10 @@ struct PETScLinearSolver{F} <: LinearSolver
   comm::MPI.Comm
 end
 
-from_options(ksp) = @check_error_code PETSC.KSPSetFromOptions(ksp[])
+ksp_from_options(ksp) = @check_error_code PETSC.KSPSetFromOptions(ksp[])
 
 function PETScLinearSolver(comm::MPI.Comm)
-  PETScLinearSolver(from_options,comm)
+  PETScLinearSolver(ksp_from_options,comm)
 end
 
 PETScLinearSolver() = PETScLinearSolver(MPI.COMM_WORLD)
