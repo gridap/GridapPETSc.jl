@@ -1,12 +1,14 @@
 
 # Support for PartitionedArrays
 
-function PETScVector(v::PVector)
+Base.convert(::Type{PETScVector},v::PVector)=_petsc_vector(v)
+
+function _petsc_vector(v::PVector)
   backend = get_backend(v.values)
-  PETScVector(v,backend)
+  _petsc_vector(v,backend)
 end
 
-function PETScVector(v::PVector,::SequentialBackend)
+function _petsc_vector(v::PVector,::SequentialBackend)
   gid_to_value = zeros(eltype(v),length(v))
   map_parts(v.values,v.rows.partition) do values,rows
     @check isa(rows,IndexRange) "Unsupported partition for PETSc vectors" # to be consistent with MPI
@@ -17,7 +19,7 @@ function PETScVector(v::PVector,::SequentialBackend)
   PETScVector(gid_to_value)
 end
 
-function PETScVector(v::PVector,::MPIBackend)
+function _petsc_vector(v::PVector,::MPIBackend)
   w = PETScVector()
   N = num_gids(v.rows)
   comm = v.values.comm # Not sure about this
@@ -39,7 +41,7 @@ function PETScVector(v::PVector,::MPIBackend)
 end
 
 function PETScVector(a::PetscScalar,ax::PRange)
-  PETScVector(PVector(a,ax))
+  convert(PETScVector,PVector(a,ax))
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange)
@@ -87,7 +89,12 @@ function Base.copy!(pvec::PVector,petscvec::PETScVector)
         lg=get_local_oh_vector(petscvec)
         if (isa(lg,PETScVector)) # petsc_vec is a ghosted vector
           # Only copying owned DoFs. This should be followed by
-          # an exchange if the ghost DoFs of pvec are to be consumed
+          # an exchange if the ghost DoFs of pvec are to be consumed.
+          # We are assuming here that the layout of pvec and petsvec
+          # are compatible. We do not have any information about the
+          # layout of petscvec to check this out. We decided NOT to
+          # convert petscvec into a PVector to avoid extra memory allocation
+          # and copies.
           @assert pvec.rows.ghost
           lx=get_local_vector(lg)
           vvalues=view(values,indices.oid_to_lid)
@@ -95,13 +102,20 @@ function Base.copy!(pvec::PVector,petscvec::PETScVector)
           restore_local_vector!(lx,lg)
           GridapPETSc.Finalize(lg)
         else                    # petsc_vec is NOT a ghosted vector
-          @assert !pvec.rows.ghost
-          @assert length(lg)==length(values)
-          values .= lg
-          restore_local_vector!(petscvec,lg)
+          # @assert !pvec.rows.ghost
+          # @assert length(lg)==length(values)
+          # values .= lg
+          # restore_local_vector!(petscvec,lg)
+
+          # If am not wrong, the code should never enter here. At least
+          # given how it is being leveraged at present from GridapPETsc.
+          # If in the future we need this case, the commented lines of
+          # code above could serve the purpose (not tested).
+          @notimplemented
         end
       end
   elseif get_backend(pvec.values) == sequential
+    # I left this as an exercise to the interested.
     @notimplemented
   end
   pvec
@@ -110,37 +124,44 @@ end
 function Base.copy!(petscvec::PETScVector,pvec::PVector)
   if get_backend(pvec.values) == mpi
      map_parts(pvec.values,pvec.rows.partition) do values, indices
+       @check isa(indices,IndexRange) "Unsupported partition for PETSc vectors"
        lg=get_local_oh_vector(petscvec)
        if (isa(lg,PETScVector)) # petscvec is a ghosted vector
-        lx=get_local_vector(lg)
-         if (pvec.rows.ghost)   # pvec is a ghosted vector
-            @assert length(lx)==length(values)
-            lx .= values
-         else
-            vvalues=view(values,indices.oid_to_lid)
-            lx[1:num_oids(indices)] .= view(values,indices.oid_to_lid)
-         end
+         lx=get_local_vector(lg)
+         # Only copying owned DoFs. This should be followed by
+         # an exchange if the ghost DoFs of petscvec are to be consumed.
+         # We are assuming here that the layout of pvec and petsvec
+         # are compatible. We do not have any information about the
+         # layout of petscvec to check this out.
+         lx[1:num_oids(indices)] .= values[1:num_oids(indices)]
          restore_local_vector!(lx,lg)
          GridapPETSc.Finalize(lg)
-       else                     # petscvec is NOT a ghosted vector
-         @assert !pvec.rows.ghost
-         @assert length(lg)==length(values)
-         lg .= values
-         restore_local_vector!(lg,petscvec)
+       else
+        #  @assert !pvec.rows.ghost
+        #  @assert length(lg)==length(values)
+        #  lg .= values
+        #  restore_local_vector!(lg,petscvec)
+        # See comment in the function copy! right above
+        @notimplemented
        end
      end
   elseif get_backend(pvec.values) == sequential
-    @notimplemented
+     # I leave this as an exercise to the interested. Essentially the
+     # same approach as in Base.copy!(petscvec::PETScMatrix,pvec::PSparseMatrix)
+     # has to be followed.
+     @notimplemented
   end
   petscvec
 end
 
-function PETScMatrix(a::PSparseMatrix)
+Base.convert(::Type{PETScMatrix},a::PSparseMatrix) = _petsc_matrix(a)
+
+function _petsc_matrix(a::PSparseMatrix)
   backend = get_backend(a.values)
-  PETScMatrix(a,backend)
+  _petsc_matrix(a,backend)
 end
 
-function PETScMatrix(a::PSparseMatrix,::SequentialBackend)
+function _petsc_matrix(a::PSparseMatrix,::SequentialBackend)
   map_main(a.rows.partition,a.cols.partition) do rows,cols
     @check isa(rows,IndexRange) "Not supported partition for PETSc matrices" # to be consistent with MPI
     @check isa(cols,IndexRange) "Not supported partition for PETSc matrices" # to be consistent with MPI
@@ -149,7 +170,7 @@ function PETScMatrix(a::PSparseMatrix,::SequentialBackend)
   convert(PETScMatrix,A)
 end
 
-function PETScMatrix(a::PSparseMatrix,::MPIBackend)
+function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
   b = PETScMatrix()
   M = num_gids(a.rows)
   N = num_gids(a.cols)
@@ -179,6 +200,8 @@ end
 function Base.copy!(petscmat::PETScMatrix,mat::PSparseMatrix)
    parts=get_part_ids(mat.values)
    map_parts(parts, mat.values,mat.rows.partition,mat.cols.partition) do part, lmat, rdofs, cdofs
+      @check isa(rdofs,IndexRange) "Not supported partition for PETSc matrices"
+      @check isa(cdofs,IndexRange) "Not supported partition for PETSc matrices"
       Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
       csr = convert(Tm,lmat)
       ia  = csr.rowptr

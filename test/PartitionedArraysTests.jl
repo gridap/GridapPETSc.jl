@@ -90,7 +90,7 @@ function partitioned_tests(parts)
   end
 
   v = PVector(values,ids)
-  x = PETScVector(v)
+  x = convert(PETScVector,v)
   test_get_local_vector(v,x)
   test_vectors(v,x,ids)
 
@@ -113,7 +113,7 @@ function partitioned_tests(parts)
 
   A = PSparseMatrix(I,J,V,ids,ids,ids=:global)
   display(A.values)
-  B = PETScMatrix(A)
+  B = convert(PETScMatrix,A)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
 
   function solve_system_and_check_solution(A::PSparseMatrix,B::PETScMatrix,v)
@@ -121,7 +121,7 @@ function partitioned_tests(parts)
      solver = PETScLinearSolver()
      ss = symbolic_setup(solver,B)
      ns = numerical_setup(ss,B)
-     y = PETScVector(A*v)
+     y = convert(PETScVector,A*v)
      x̂ = PETScVector(0.0,ids)
      solve!(x̂,ns,y)
      z = PVector(x̂,ids)

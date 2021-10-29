@@ -125,10 +125,10 @@ function _set_petsc_jacobian_function!(nls::PETScNonlinearSolver, cache)
   PETSC.SNESSetJacobian(nls.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
 end
 
-function _setup_cache(x,nls::PETScNonlinearSolver,op)
+function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
   res_julia_vec, jac_julia_mat_A = residual_and_jacobian(op,x)
-  res_petsc_vec   = PETScVector(res_julia_vec)
-  jac_petsc_mat_A = PETScMatrix(jac_julia_mat_A)
+  res_petsc_vec   = convert(PETScVector,res_julia_vec)
+  jac_petsc_mat_A = convert(PETScMatrix,jac_julia_mat_A)
 
   # In a parallel MPI context, x is a vector with a data layout typically different from
   # the one of res_julia_vec. On the one hand, x holds the free dof values of a FE
@@ -142,7 +142,7 @@ function _setup_cache(x,nls::PETScNonlinearSolver,op)
   # (for the owned dof values).
   x_julia_vec = similar(res_julia_vec,eltype(res_julia_vec),(axes(jac_julia_mat_A)[2],))
   copy!(x_julia_vec,x)
-  x_petsc_vec = PETScVector(x_julia_vec)
+  x_petsc_vec = convert(PETScVector,x_julia_vec)
   PETScNonlinearSolverCache(op, x_julia_vec,res_julia_vec,
                            jac_julia_mat_A,jac_julia_mat_A,
                            x_petsc_vec,res_petsc_vec,
