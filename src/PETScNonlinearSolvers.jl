@@ -125,7 +125,6 @@ function _set_petsc_jacobian_function!(nls::PETScNonlinearSolver, cache)
   PETSC.SNESSetJacobian(nls.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
 end
 
-
 function _setup_cache(x,nls::PETScNonlinearSolver,op)
   res_julia_vec, jac_julia_mat_A = residual_and_jacobian(op,x)
   res_petsc_vec   = PETScVector(res_julia_vec)
@@ -136,20 +135,35 @@ function _setup_cache(x,nls::PETScNonlinearSolver,op)
   # Function, and thus has the data layout of the FE space (i.e., local DOFs
   # include all DOFs touched by local cells, i.e., owned and ghost cells).
   # On the other hand, res_petsc_vec has the data layout of the rows of the
-  # distributed linear system (e.g., local DoFs only include those touched for owned
+  # distributed linear system (e.g., local DoFs only include those touched from owned
   # cells/facets during assembly, assuming the SubAssembledRows strategy).
   # The following lines of code generate a version of x, namely, x_julia_vec, with the
-  # same data layout as the columns of jac_julia_mat_A, but the contents of x (the owned dofs, and # a subset of the ghost dofs).
+  # same data layout as the columns of jac_julia_mat_A, but the contents of x
+  # (for the owned dof values).
   x_julia_vec = similar(res_julia_vec,eltype(res_julia_vec),(axes(jac_julia_mat_A)[2],))
   copy!(x_julia_vec,x)
-  exchange!(x_julia_vec)
   x_petsc_vec = PETScVector(x_julia_vec)
-
   PETScNonlinearSolverCache(op, x_julia_vec,res_julia_vec,
                            jac_julia_mat_A,jac_julia_mat_A,
                            x_petsc_vec,res_petsc_vec,
                            jac_petsc_mat_A, jac_petsc_mat_A)
 end
+
+# Helper private functions to implement the solve! methods below.
+# It allows to execute the solve! methods below in a serial context, i.e.,
+# whenever
+function _myexchange!(x::AbstractVector)
+  x
+end
+function _myexchange!(x::PVector)
+  exchange!(x)
+end
+
+function _copy_and_exchange!(a::AbstractVector,b::PETScVector)
+  copy!(a,b.vec[])
+  _myexchange!(a)
+end
+
 
 function Algebra.solve!(x::T,
                         nls::PETScNonlinearSolver,
@@ -158,19 +172,15 @@ function Algebra.solve!(x::T,
 
   @assert cache.op === op
   @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
-  copy!(x,cache.x_petsc_vec.vec[])
-  exchange!(x)
+  _copy_and_exchange!(x,cache.x_petsc_vec)
   cache
 end
-
 
 function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
   cache=_setup_cache(x,nls,op)
   _set_petsc_residual_function!(nls,cache)
   _set_petsc_jacobian_function!(nls,cache)
   @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
-  copy!(x,cache.x_petsc_vec.vec[])
-  #@check_error_code PETSC.VecView(cache.x_petsc_vec.vec[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
-  exchange!(x)
+  _copy_and_exchange!(x,cache.x_petsc_vec)
   cache
 end
