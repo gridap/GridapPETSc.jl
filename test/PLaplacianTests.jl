@@ -7,12 +7,11 @@ using Test
 
 function main(parts)
   options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -ksp_monitor -snes_converged_reason"
-  GridapPETSc.Init(args=split(options))
 
-  main(parts,FullyAssembledRows())
-  main(parts,SubAssembledRows())
-
-  GridapPETSc.Finalize()
+  GridapPETSc.with(args=split(options)) do
+     main(parts,FullyAssembledRows())
+     main(parts,SubAssembledRows())
+  end
 end
 
 function main(parts,strategy)

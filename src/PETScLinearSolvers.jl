@@ -78,6 +78,16 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
   x
 end
 
+function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
+  X = similar(b,eltype(b),(axes(b)[1],))
+  copy!(X,x)
+  Y = convert(PETScVector,X)
+  solve!(Y,ns,b)
+  _copy_and_exchange!(x,Y)
+end
+
+
+
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
   ns.A = convert(PETScMatrix,A)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
