@@ -21,20 +21,22 @@ function main(parts)
       Γn = Boundary(model,tags="neumann")
       n_Γn = get_normal_vector(Γn)
 
-      k = 2
-      u((x,y)) = (x+y)^k
+      u(x) = x[1] + x[2]
       f(x) = -Δ(u,x)
-      g = n_Γn⋅∇(u)
 
-      reffe = ReferenceFE(lagrangian,Float64,k)
-      V = TestFESpace(model,reffe,dirichlet_tags="dirichlet")
+      reffe = ReferenceFE(lagrangian,Float64,1)
+      V = TestFESpace(model,reffe,dirichlet_tags="boundary")
       U = TrialFESpace(u,V)
 
-      dΩ = Measure(Ω,2*k)
-      dΓn = Measure(Γn,2*k)
+      dΩ = Measure(Ω,2)
+      dΓn = Measure(Γn,2)
 
-      a(u,v) = ∫( ∇(v)⋅∇(u) )dΩ
-      l(v) = ∫( v*f )dΩ + ∫( v*g )dΓn
+      function a(u,v)
+        ∫(∇(v)⋅∇(u))dΩ
+      end
+      function l(v)
+        ∫(v*f)dΩ
+      end
       op = AffineFEOperator(a,l,U,V)
 
       ls = PETScLinearSolver()

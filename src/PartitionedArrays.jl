@@ -180,6 +180,11 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
     @check isa(cols,IndexRange) "Not supported partition for PETSc matrices"
     Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
     csr = convert(Tm,values)
+    if PartitionedArrays.get_part_id(a.values)==1
+      println(values)
+      println(csr)
+    end
+
     i = csr.rowptr; j = csr.colval; v = csr.nzval
     u = PetscInt(1)
     for k in 1:length(j)
@@ -187,9 +192,15 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
       gid = cols.lid_to_gid[lid]
       j[k] = gid - u
     end
+
     m = num_oids(rows)
     n = num_oids(cols)
-    @check_error_code PETSC.MatCreateMPIAIJWithArrays(comm,m,n,M,N,i,j,v,b.mat)
+
+    ip=collect(i[1:m+1])
+    jp=collect(j[1:ip[m+1]])
+    vp=collect(v[1:ip[m+1]])
+
+    @check_error_code PETSC.MatCreateMPIAIJWithArrays(comm,m,n,M,N,ip,jp,vp,b.mat)
     @check_error_code PETSC.MatAssemblyBegin(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     @check_error_code PETSC.MatAssemblyEnd(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     Init(b)
