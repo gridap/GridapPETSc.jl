@@ -29,10 +29,10 @@ GridapPETSc.Init(args=split(options))
 
 nparts = (2,2)
 
-NEXECS=100
+NEXECS=10
 for i =1:NEXECS
    prun(main_bis,mpi,nparts)
-   if (i%5==0)
+   if (i%2==0)
      GridapPETSc.gridap_petsc_gc()
    end
 end
