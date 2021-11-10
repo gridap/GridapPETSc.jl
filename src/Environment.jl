@@ -40,7 +40,7 @@ function with(f;kwargs...)
 end
 
 const _INITIALIZED = Int8(0)
-const _PENDING = Int8(1)
+const _ORPHAN = Int8(1)
 const _FINALIZED = Int8(2)
 const _OID_TO_REF = Dict{UInt8,Int}()
 const _STATES = Int8[]
@@ -65,7 +65,7 @@ function schedule_petsc_gc(a)
     @check haskey(_OID_TO_REF,oid)
     i = _OID_TO_REF[oid]
     @check _STATES[i] == _INITIALIZED
-    _STATES[i] = _PENDING
+    _STATES[i] = _ORPHAN
     delete!(_OID_TO_REF,oid)
   end
   nothing
@@ -92,7 +92,7 @@ function petsc_gc()
   n = length(_REFS)
   # We destroy in LIFO order
   for i in reverse(1:n)
-    if _STATES[i] == _PENDING
+    if _STATES[i] == _ORPHAN
       destroy(_REFS[i])
       _STATES[i] = _FINALIZED
     end
@@ -100,7 +100,7 @@ function petsc_gc()
   # Now perform some cleanup (i.e, remove finalized entries)
   nj = 0
   for i in 1:n
-    @assert _STATES[i] != _PENDING
+    @assert _STATES[i] != _ORPHAN
     if _STATES[i] == _INITIALIZED
       nj += 1
     end
