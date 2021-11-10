@@ -42,7 +42,7 @@ end
 const _INITIALIZED = Int8(0)
 const _ORPHAN = Int8(1)
 const _FINALIZED = Int8(2)
-const _OID_TO_REF = Dict{UInt8,Int}()
+const _OID_TO_REF = Dict{UInt,Int}()
 const _STATES = Int8[]
 const _REFS = Ref[] # This is type instable, but it should not be very problematic in this context
 
