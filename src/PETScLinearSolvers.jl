@@ -32,16 +32,20 @@ mutable struct PETScLinearSolverNS <: NumericalSetup
   end
 end
 
+get_ref(a::PETScLinearSolverNS) = a.ksp
+
 function Init(a::PETScLinearSolverNS)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
-  finalizer(Finalize,a)
+  init_petsc_gc(a)
+  finalizer(schedule_petsc_gc,a)
 end
 
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
     @check_error_code PETSC.KSPDestroy(ns.ksp)
+    finalize_petsc_gc(ns)
     ns.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1

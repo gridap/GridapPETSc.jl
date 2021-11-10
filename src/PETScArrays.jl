@@ -8,6 +8,8 @@ mutable struct PETScVector <: AbstractVector{PetscScalar}
   PETScVector() = new(Ref{Vec}(),false,nothing,(-1,))
 end
 
+get_ref(a::PETScVector) = a.vec
+
 function Init(a::PETScVector)
   n = Ref{PetscInt}()
   @check_error_code PETSC.VecGetSize(a.vec[],n)
@@ -15,12 +17,14 @@ function Init(a::PETScVector)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
-  finalizer(Finalize,a)
+  init_petsc_gc(a)
+  finalizer(schedule_petsc_gc,a)
 end
 
 function Finalize(a::PETScVector)
   if a.initialized && GridapPETSc.Initialized()
     @check_error_code PETSC.VecDestroy(a.vec)
+    finalize_petsc_gc(a)
     a.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1
@@ -193,6 +197,8 @@ mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   PETScMatrix() = new(Ref{Mat}(),false,nothing,(-1,-1))
 end
 
+get_ref(a::PETScMatrix) = a.mat
+
 function Init(a::PETScMatrix)
   m = Ref{PetscInt}()
   n = Ref{PetscInt}()
@@ -201,12 +207,14 @@ function Init(a::PETScMatrix)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
-  finalizer(Finalize,a)
+  init_petsc_gc(a)
+  finalizer(schedule_petsc_gc,a)
 end
 
 function Finalize(a::PETScMatrix)
   if a.initialized && GridapPETSc.Initialized()
     @check_error_code PETSC.MatDestroy(a.mat)
+    finalize_petsc_gc(a)
     a.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1
