@@ -22,7 +22,6 @@ x0 = zero_initial_guess(op)
 cache = solve!(x0,nls,op)
 
 GridapPETSc.Finalize(cache)
-GridapPETSc.Finalize(nls)
 GridapPETSc.Finalize()
 
 end # module
