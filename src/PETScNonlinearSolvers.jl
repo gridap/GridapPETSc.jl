@@ -164,7 +164,7 @@ function Algebra.solve!(x::T,
   cache
 end
 
-function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
+function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
   cache=_setup_cache(x,nls,op)
   _set_petsc_residual_function!(nls,cache)
   _set_petsc_jacobian_function!(nls,cache)
