@@ -82,6 +82,18 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIBackend)
   PVector(values,ids)
 end
 
+function Base.copy!(a::PVector,petsc_vec::Vec)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(a,aux)
+end
+
+function Base.copy!(petsc_vec::Vec,a::PVector)
+  aux=PETScVector()
+  aux.vec[] = petsc_vec.ptr
+  Base.copy!(aux,a)
+end
+
 
 function Base.copy!(pvec::PVector,petscvec::PETScVector)
   if get_backend(pvec.values) == mpi

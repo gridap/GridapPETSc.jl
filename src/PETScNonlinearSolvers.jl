@@ -175,8 +175,16 @@ end
 
 function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
   cache=_setup_cache(x,nls,op)
-  _set_petsc_residual_function!(nls,cache)
-  _set_petsc_jacobian_function!(nls,cache)
+
+  # set petsc residual function
+  ctx  = pointer_from_objref(cache)
+  fptr = @cfunction(snes_residual, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}))
+  PETSC.SNESSetFunction(cache.snes[],cache.res_petsc.vec[],fptr,ctx)
+
+  # set petsc jacobian function
+  fptr = @cfunction(snes_jacobian, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},Ptr{Cvoid}))
+  PETSC.SNESSetJacobian(cache.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
+
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   _copy_and_exchange!(x,cache.x_petsc)
   cache
