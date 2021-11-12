@@ -106,49 +106,23 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
-function Base.copy!(a::AbstractVector,petsc_vec::Vec)
-  aux=PETScVector()
-  aux.vec[] = petsc_vec.ptr
-  Base.copy!(a,aux)
-end
 
-function Base.copy!(petsc_vec::Vec,a::AbstractVector)
-  aux=PETScVector()
-  aux.vec[] = petsc_vec.ptr
-  Base.copy!(aux,a)
-end
-
-function Base.copy!(vec::AbstractVector,petscvec::PETScVector)
-  lg=get_local_oh_vector(petscvec)
-  if isa(lg,PETScVector) # petscvec is a ghosted vector
-    lx=get_local_vector(lg)
-    @assert length(lx)==length(vec)
-    vec .= lx
-    restore_local_vector!(lx,lg)
-    GridapPETSc.Finalize(lg)
-  else                   # petscvec is NOT a ghosted vector
-    @assert length(lg)==length(vec)
-    vec .= lg
-    restore_local_vector!(lg,petscvec)
+function Base.copy!(vec::AbstractVector,petscvec::Vec)
+  ni = length(vec)
+  ix = collect(PetscInt,0:(ni-1))
+  v = convert(Vector{PetscScalar},vec)
+  @check_error_code PETSC.VecGetValues(petscvec.ptr,ni,ix,v)
+  if !(v === vec)
+    vec .= v
   end
 end
 
-function Base.copy!(petscvec::PETScVector,vec::AbstractVector)
-  lg=get_local_oh_vector(petscvec)
-  if isa(lg,PETScVector) # petscvec is a ghosted vector
-    lx=get_local_vector(lg)
-    @assert length(lx)==length(vec)
-    lx .= vec
-    restore_local_vector!(lx,lg)
-    GridapPETSc.Finalize(lg)
-  else                   # petscvec is NOT a ghosted vector
-    @assert length(lg)==length(vec)
-    lg .= vec
-    restore_local_vector!(lg,petscvec)
-  end
+function Base.copy!(petscvec::Vec,vec::AbstractVector)
+  ni = length(vec)
+  ix = collect(PetscInt,0:(ni-1))
+  v = convert(Vector{PetscScalar},vec)
+  @check_error_code PETSC.VecSetValues(petscvec.ptr,ni,ix,v,PETSC.INSERT_VALUES)
 end
-
-
 
 function get_local_oh_vector(a::PETScVector)
   v=PETScVector()

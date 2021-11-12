@@ -47,8 +47,6 @@ function snes_residual(csnes::Ptr{Cvoid},
                        ctx::Ptr{Cvoid})::PetscInt
   cache  = unsafe_pointer_to_objref(ctx)
 
-  println("residual")
-
   # 1. Transfer cx to Julia data structures
   copy!(cache.x_sys_layout, Vec(cx))
   copy!(cache.x_fe_space_layout,cache.x_sys_layout)
