@@ -322,7 +322,7 @@ function Base.convert(::Type{PETScMatrix}, a::AbstractMatrix{PetscScalar})
   j = [PetscInt(j-1) for i=1:m for j=1:n]
   v = [ a[i,j] for i=1:m for j=1:n]
   A = PETScMatrix()
-  A.ownership = a
+  A.ownership = (i,j,v)
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
