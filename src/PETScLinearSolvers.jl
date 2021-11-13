@@ -83,7 +83,7 @@ function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   copy!(X,x)
   Y = convert(PETScVector,X)
   solve!(Y,ns,b)
-  copy!(x,Y)
+  _copy_and_exchange!(x,Y)
 end
 
 
