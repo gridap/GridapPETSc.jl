@@ -26,14 +26,14 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
   if !isfile(types_jl)
     msg = """
     GridapPETSc needs to be configured before use. Type
-  
+
     pkg> build
-  
+
     and try again.
     """
     error(msg)
   end
-  
+
   include(types_jl)
 end
 
@@ -98,7 +98,7 @@ macro PETSC_VIEWER_STDOUT_SELF()
   quote
     PETSC_VIEWER_STDOUT_(MPI.COMM_SELF)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_STDOUT_WORLD
@@ -109,7 +109,7 @@ macro PETSC_VIEWER_STDOUT_WORLD()
   quote
     PETSC_VIEWER_STDOUT_(MPI.COMM_WORLD)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_DRAW_SELF
@@ -120,7 +120,7 @@ macro PETSC_VIEWER_DRAW_SELF()
   quote
     PETSC_VIEWER_DRAW_(MPI.COMM_SELF)
   end
-end 
+end
 
 """
     @PETSC_VIEWER_DRAW_WORLD
@@ -131,7 +131,7 @@ macro PETSC_VIEWER_DRAW_WORLD()
   quote
     PETSC_VIEWER_DRAW_(MPI.COMM_WORLD)
   end
-end 
+end
 
 # Vector related functions
 
@@ -589,6 +589,7 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPCreate,PetscErrorCode,(MPI.Comm,Ptr{KSP}),(comm,inksp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPCreate.html")
 @wrapper(:KSPDestroy,PetscErrorCode,(Ptr{KSP},),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPDestroy.html")
 @wrapper(:KSPSetFromOptions,PetscErrorCode,(KSP,),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetFromOptions.html")
+@wrapper(:KSPSetOptionsPrefix,PetscErrorCode,(KSP,Cstring),(ksp,prefix),"https://petsc.org/release/docs/manualpages/KSP/KSPSetOptionsPrefix.html")
 @wrapper(:KSPSetUp,PetscErrorCode,(KSP,),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetUp.html")
 @wrapper(:KSPSetOperators,PetscErrorCode,(KSP,Mat,Mat),(ksp,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetOperators.html")
 @wrapper(:KSPSetTolerances,PetscErrorCode,(KSP,PetscReal,PetscReal,PetscReal,PetscInt),(ksp,rtol,abstol,dtol,maxits),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetTolerances.html")
@@ -600,5 +601,6 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
+
 
 end # module
