@@ -22,13 +22,15 @@ function Algebra.symbolic_setup(solver::PETScLinearSolver,mat::AbstractMatrix)
   PETScLinearSolverSS(solver)
 end
 
-mutable struct PETScLinearSolverNS <: NumericalSetup
-  A::PETScMatrix
+mutable struct PETScLinearSolverNS{T} <: NumericalSetup
+  A::T
+  B::PETScMatrix
   comm::MPI.Comm
   ksp::Ref{KSP}
   initialized::Bool
-  function PETScLinearSolverNS(A::PETScMatrix,comm::MPI.Comm)
-    new(A,comm,Ref{KSP}(),false)
+  function PETScLinearSolverNS(A,B::PETScMatrix,comm::MPI.Comm)
+    T=typeof(A)
+    new{T}(A,B,comm,Ref{KSP}(),false)
   end
 end
 
@@ -51,10 +53,10 @@ end
 
 function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
   B = convert(PETScMatrix,A)
-  ns = PETScLinearSolverNS(B,ss.solver.comm)
+  ns = PETScLinearSolverNS(A,B,ss.solver.comm)
   @check_error_code PETSC.KSPCreate(ns.comm,ns.ksp)
   ss.solver.setup(ns.ksp)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   Init(ns)
 end
@@ -79,18 +81,19 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
 end
 
 function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
-  X = similar(b,eltype(b),(axes(b)[1],))
+  X = similar(b,(axes(ns.A)[2],))
+  B = similar(b,(axes(ns.A)[2],))
   copy!(X,x)
+  copy!(B,b)
   Y = convert(PETScVector,X)
-  solve!(Y,ns,b)
+  solve!(Y,ns,B)
   _copy_and_exchange!(x,Y)
 end
 
-
-
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
-  ns.A = convert(PETScMatrix,A)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
+  ns.A = A
+  ns.B = convert(PETScMatrix,A)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   ns
 end
