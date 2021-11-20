@@ -123,6 +123,7 @@ sol = Ref{Vec}()
 
 @check_error_code PETSC.KSPCreate(comm,ksp)
 @check_error_code PETSC.KSPSetFromOptions(ksp[])
+@check_error_code PETSC.KSPSetOptionsPrefix(ksp[],"p_")
 @check_error_code PETSC.KSPGetPC(ksp[],pc)
 @check_error_code PETSC.PCSetType(pc[],PETSC.PCJACOBI)
 
