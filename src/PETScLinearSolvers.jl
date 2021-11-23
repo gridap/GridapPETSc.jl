@@ -43,7 +43,11 @@ end
 
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
-    @check_error_code PETSC.KSPDestroy(ns.ksp)
+    if ns.comm == MPI.COMM_SELF
+      @check_error_code PETSC.KSPDestroy(ns.ksp)
+    else
+      @check_error_code PETSC.PetscObjectRegisterDestroy(ns.ksp[].ptr)
+    end
     ns.initialized = false
     @assert Threads.threadid() == 1
     _NREFS[] -= 1
@@ -62,6 +66,10 @@ function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
+  if (x.comm != MPI.COMM_SELF)
+    gridap_petsc_gc() # Do garbage collection of PETSc objects
+  end
+
   B = convert(PETScVector,b)
   @check_error_code PETSC.KSPSolve(ns.ksp[],B.vec[],x.vec[])
   x

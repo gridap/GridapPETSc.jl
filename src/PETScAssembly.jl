@@ -178,7 +178,7 @@ function Algebra.nz_allocation(a::MatCounter)
   nnz = broadcast(min,a.rownnzmax,PetscInt(n))
   b = PETScMatrix()
   @check_error_code PETSC.MatCreateSeqAIJ(comm,m,n,nz,nnz,b.mat)
-  Init(b)
+  Init(b,comm)
 end
 
 Algebra.LoopStyle(::Type{PETScMatrix}) = Loop()
