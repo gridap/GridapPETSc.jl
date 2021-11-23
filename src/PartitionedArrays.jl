@@ -118,7 +118,7 @@ function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
   pvec
 end
 
-function Base.copy!(petscvec::Vec,pvec::PVector{T,<:MPIData}) where T
+function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIData}) where T
   map_parts(pvec.values,pvec.rows.partition) do values, indices
     @check isa(indices,IndexRange) "Unsupported partition for PETSc vectors"
     lg=get_local_oh_vector(petscvec)
@@ -227,7 +227,7 @@ end
 
 _copy!(::PSparseMatrix{T,<:SequentialData},::Mat) where T = @notimplemented
 _copy!(::PSparseMatrix{T,<:MPIData},::Mat) where T = @notimplemented
-function Base.copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIData}) where T
+function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIData}) where T
    parts=get_part_ids(mat.values)
    map_parts(parts, mat.values,mat.rows.partition,mat.cols.partition) do part, lmat, rdofs, cdofs
       @check isa(rdofs,IndexRange) "Not supported partition for PETSc matrices"

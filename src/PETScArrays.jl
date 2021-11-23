@@ -132,7 +132,7 @@ function Base.copy!(a::PETScVector,b::AbstractVector)
   _copy!(a.vec[],b)
 end
 
-function _copy!(a::Vec,b::AbstractVector)
+function _copy!(a::Vec,b::Vector)
   ni = length(b)
   ix = collect(PetscInt,0:(ni-1))
   v = convert(Vector{PetscScalar},b)
