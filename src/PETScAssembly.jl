@@ -173,7 +173,9 @@ function Algebra.nz_allocation(a::MatCounter)
   m = a.nrows
   n = a.ncols
   nz = PETSC.PETSC_DEFAULT
-  nnz = a.rownnzmax
+  # nnz cannot be larger than the number of columns
+  # Otherwise PETSc complains when compiled in DEBUG mode
+  nnz = broadcast(min,a.rownnzmax,PetscInt(n))
   b = PETScMatrix()
   @check_error_code PETSC.MatCreateSeqAIJ(comm,m,n,nz,nnz,b.mat)
   Init(b)

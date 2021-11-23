@@ -106,53 +106,36 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
-function Base.copy!(a::AbstractVector,petsc_vec::Vec)
-  aux=PETScVector()
-  aux.vec[] = petsc_vec.ptr
-  Base.copy!(a,aux)
+function Base.copy!(a::AbstractVector,b::PETScVector)
+  @check length(a) == length(b)
+  _copy!(a,b.vec[])
 end
 
-function Base.copy!(petsc_vec::Vec,a::AbstractVector)
-  aux=PETScVector()
-  aux.vec[] = petsc_vec.ptr
-  Base.copy!(aux,a)
-end
-
-function Base.copy!(vec::AbstractVector,petscvec::PETScVector)
-  lg=get_local_oh_vector(petscvec)
-  if isa(lg,PETScVector) # petscvec is a ghosted vector
-    lx=get_local_vector(lg)
-    @assert length(lx)==length(vec)
-    vec .= lx
-    restore_local_vector!(lx,lg)
-    GridapPETSc.Finalize(lg)
-  else                   # petscvec is NOT a ghosted vector
-    @assert length(lg)==length(vec)
-    vec .= lg
-    restore_local_vector!(lg,petscvec)
+function _copy!(a::Vector,b::Vec)
+  ni = length(a)
+  ix = collect(PetscInt,0:(ni-1))
+  v = convert(Vector{PetscScalar},a)
+  @check_error_code PETSC.VecGetValues(b.ptr,ni,ix,v)
+  if !(v === a)
+    a .= v
   end
 end
 
-function Base.copy!(petscvec::PETScVector,vec::AbstractVector)
-  lg=get_local_oh_vector(petscvec)
-  if isa(lg,PETScVector) # petscvec is a ghosted vector
-    lx=get_local_vector(lg)
-    @assert length(lx)==length(vec)
-    lx .= vec
-    restore_local_vector!(lx,lg)
-    GridapPETSc.Finalize(lg)
-  else                   # petscvec is NOT a ghosted vector
-    @assert length(lg)==length(vec)
-    lg .= vec
-    restore_local_vector!(lg,petscvec)
-  end
+function Base.copy!(a::PETScVector,b::AbstractVector)
+  @check length(a) == length(b)
+  _copy!(a.vec[],b)
 end
 
+function _copy!(a::Vec,b::AbstractVector)
+  ni = length(b)
+  ix = collect(PetscInt,0:(ni-1))
+  v = convert(Vector{PetscScalar},b)
+  @check_error_code PETSC.VecSetValues(a.ptr,ni,ix,v,PETSC.INSERT_VALUES)
+end
 
-
-function get_local_oh_vector(a::PETScVector)
+function get_local_oh_vector(a::Vec)
   v=PETScVector()
-  @check_error_code PETSC.VecGhostGetLocalForm(a.vec[],v.vec)
+  @check_error_code PETSC.VecGhostGetLocalForm(a.ptr,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
     v.ownership=a
     Init(v)
@@ -303,14 +286,11 @@ function Base.copy(a::PETScMatrix)
   Init(v)
 end
 
-function Base.copy!(petscmat::Mat,a::AbstractMatrix)
-  aux=PETScMatrix()
-  aux.mat[] = petscmat.ptr
-  Base.copy!(aux,a)
+function Base.copy!(a::PETScMatrix,b::AbstractMatrix)
+  _copy!(a.mat[],b)
 end
 
-
-function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
+function _copy!(petscmat::Mat,mat::Matrix)
    n    = size(mat)[2]
    cols = [PetscInt(j-1) for j=1:n]
    row  = Vector{PetscInt}(undef,1)
@@ -318,7 +298,7 @@ function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
    for i=1:size(mat)[1]
      row[1]=PetscInt(i-1)
      vals .= view(mat,i,:)
-     PETSC.MatSetValues(petscmat.mat[],
+     PETSC.MatSetValues(petscmat.ptr,
                         PetscInt(1),
                         row,
                         n,
@@ -326,8 +306,8 @@ function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
                         vals,
                         PETSC.INSERT_VALUES)
    end
-   @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
-   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyBegin(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
 end
 
 
@@ -348,7 +328,7 @@ function Base.convert(::Type{PETScMatrix}, a::AbstractMatrix{PetscScalar})
   j = [PetscInt(j-1) for i=1:m for j=1:n]
   v = [ a[i,j] for i=1:m for j=1:n]
   A = PETScMatrix()
-  A.ownership = a
+  A.ownership = (i,j,v)
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)

@@ -1,36 +1,49 @@
 
-mutable struct PETScNonlinearSolver <: NonlinearSolver
+mutable struct PETScNonlinearSolver{F} <: NonlinearSolver
+  setup::F
   comm::MPI.Comm
-  snes::Ref{SNES}
-  initialized::Bool
 end
 
-mutable struct PETScNonlinearSolverCache{A,B,C,D}
+mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
   initialized::Bool
+  snes::Ref{SNES}
   op::NonlinearOperator
 
+  # The input vector to solve!
+  x_fe_space_layout::A
+
   # Julia LA data structures
-  x_julia_vec::A
-  res_julia_vec::A
-  jac_julia_mat_A::B
-  jac_julia_mat_P::B
+  x_sys_layout::B
+  res_sys_layout::B
+  jac_mat_A::C
+  jac_mat_P::C
 
   # Counterpart PETSc data structures
-  x_petsc_vec::C
-  res_petsc_vec::C
-  jac_petsc_mat_A::D
-  jac_petsc_mat_P::D
+  x_petsc::D
+  res_petsc::D
+  jac_petsc_mat_A::E
+  jac_petsc_mat_P::E
 
-  function PETScNonlinearSolverCache(op::NonlinearOperator,x_julia_vec::A,res_julia_vec::A,
-                                     jac_julia_mat_A::B,jac_julia_mat_P::B,
-                                     x_petsc_vec::C,res_petsc_vec::C,
-                                     jac_petsc_mat_A::D,jac_petsc_mat_P::D) where {A,B,C,D}
+  function PETScNonlinearSolverCache(snes::Ref{SNES}, op::NonlinearOperator,
+                                     x_fe_space_layout::A,
+                                     x_sys_layout::B, res_sys_layout::B,
+                                     jac_mat_A::C, jac_mat_P::C,
+                                     x_petsc::D, res_petsc::D,
+                                     jac_petsc_mat_A::E, jac_petsc_mat_P::E) where {A,B,C,D,E}
+      cache=new{A,B,C,D,E}(true,
+                         snes, op,
+                         x_fe_space_layout,
+                         x_sys_layout, res_sys_layout,
+                         jac_mat_A, jac_mat_P,
+                         x_petsc, res_petsc,
+                         jac_petsc_mat_A, jac_petsc_mat_P)
 
-      cache=new{A,B,C,D}(true,op,x_julia_vec,res_julia_vec,jac_julia_mat_A,jac_julia_mat_P,
-                     x_petsc_vec,res_petsc_vec,jac_petsc_mat_A,jac_petsc_mat_P)
+      @assert Threads.threadid() == 1
+      _NREFS[] += 1
       finalizer(Finalize,cache)
-  end
+   end
 end
+
 
 function snes_residual(csnes::Ptr{Cvoid},
                        cx::Ptr{Cvoid},
@@ -39,13 +52,14 @@ function snes_residual(csnes::Ptr{Cvoid},
   cache  = unsafe_pointer_to_objref(ctx)
 
   # 1. Transfer cx to Julia data structures
-  copy!(cache.x_julia_vec, Vec(cx))
+  _copy!(cache.x_sys_layout, Vec(cx))
+  copy!(cache.x_fe_space_layout,cache.x_sys_layout)
 
   # 2. Evaluate residual into Julia data structures
-  residual!(cache.res_julia_vec, cache.op, cache.x_julia_vec)
+  residual!(cache.res_sys_layout, cache.op, cache.x_fe_space_layout)
 
   # 3. Transfer Julia residual to PETSc residual (cfx)
-  copy!(Vec(cfx), cache.res_julia_vec)
+  _copy!(Vec(cfx), cache.res_sys_layout)
 
   return PetscInt(0)
 end
@@ -60,48 +74,32 @@ function snes_jacobian(csnes:: Ptr{Cvoid},
 
   # 1. Transfer cx to Julia data structures
   #    Extract pointer to array of values out of cx and put it in a PVector
-  copy!(cache.x_julia_vec, Vec(cx))
+  _copy!(cache.x_sys_layout, Vec(cx))
+  copy!(cache.x_fe_space_layout,cache.x_sys_layout)
 
-  # 2.
-  jacobian!(cache.jac_julia_mat_A,cache.op,cache.x_julia_vec)
+  # 2. Evaluate Jacobian into Julia data structures
+  jacobian!(cache.jac_mat_A,cache.op,cache.x_fe_space_layout)
 
-  # 3. Transfer nls.jac_julia_mat_A/P to PETSc (cA/cP)
-  copy!(Mat(cA), cache.jac_julia_mat_A)
+  # 3. Transfer nls.jac_mat_A/P to PETSc (cA/cP)
+  _copy!(Mat(cA), cache.jac_mat_A)
 
   return PetscInt(0)
 end
 
-function PETScNonlinearSolver(setup,comm)
-  @assert Threads.threadid() == 1
-  _NREFS[] += 1
-  snes_ref=Ref{SNES}()
-  @check_error_code PETSC.SNESCreate(comm,snes_ref)
-  setup(snes_ref)
-  snes=PETScNonlinearSolver(comm,snes_ref,true)
-  finalizer(Finalize, snes)
-  snes
-end
-
-function Finalize(nls::PETScNonlinearSolver)
-  if GridapPETSc.Initialized() && nls.initialized
-    @check_error_code PETSC.PetscObjectRegisterDestroy(nls.snes[].ptr)
-    @assert Threads.threadid() == 1
-    nls.initialized=false
-    _NREFS[] -= 1
-  end
-  nothing
-end
-
 function Finalize(cache::PETScNonlinearSolverCache)
   if GridapPETSc.Initialized() && cache.initialized
-     GridapPETSc.Finalize(cache.x_petsc_vec)
-     GridapPETSc.Finalize(cache.res_petsc_vec)
+     GridapPETSc.Finalize(cache.x_petsc)
+     GridapPETSc.Finalize(cache.res_petsc)
      GridapPETSc.Finalize(cache.jac_petsc_mat_A)
      if !(cache.jac_petsc_mat_P === cache.jac_petsc_mat_A)
        GridapPETSc.Finalize(cache.jac_petsc_mat_P)
      end
+     @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
+     @assert Threads.threadid() == 1
      cache.initialized=false
+     _NREFS[] -= 1
   end
+  nothing
 end
 
 snes_from_options(snes) = @check_error_code PETSC.SNESSetFromOptions(snes[])
@@ -116,54 +114,44 @@ PETScNonlinearSolver() = PETScNonlinearSolver(MPI.COMM_WORLD)
 function _set_petsc_residual_function!(nls::PETScNonlinearSolver, cache)
   ctx = pointer_from_objref(cache)
   fptr = @cfunction(snes_residual, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}))
-  PETSC.SNESSetFunction(nls.snes[],cache.res_petsc_vec.vec[],fptr,ctx)
+  PETSC.SNESSetFunction(cache.snes[],cache.res_petsc.vec[],fptr,ctx)
 end
 
 function _set_petsc_jacobian_function!(nls::PETScNonlinearSolver, cache)
   ctx = pointer_from_objref(cache)
   fptr = @cfunction(snes_jacobian, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},Ptr{Cvoid}))
-  PETSC.SNESSetJacobian(nls.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
+  PETSC.SNESSetJacobian(cache.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
 end
 
 function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
-  res_julia_vec, jac_julia_mat_A = residual_and_jacobian(op,x)
-  res_petsc_vec   = convert(PETScVector,res_julia_vec)
-  jac_petsc_mat_A = convert(PETScMatrix,jac_julia_mat_A)
+
+  res_sys_layout, jac_mat_A = residual_and_jacobian(op,x)
+  res_petsc   = convert(PETScVector,res_sys_layout)
+  jac_petsc_mat_A = convert(PETScMatrix,jac_mat_A)
 
   # In a parallel MPI context, x is a vector with a data layout typically different from
-  # the one of res_julia_vec. On the one hand, x holds the free dof values of a FE
+  # the one of res_sys_layout. On the one hand, x holds the free dof values of a FE
   # Function, and thus has the data layout of the FE space (i.e., local DOFs
   # include all DOFs touched by local cells, i.e., owned and ghost cells).
-  # On the other hand, res_petsc_vec has the data layout of the rows of the
+  # On the other hand, res_petsc has the data layout of the rows of the
   # distributed linear system (e.g., local DoFs only include those touched from owned
   # cells/facets during assembly, assuming the SubAssembledRows strategy).
-  # The following lines of code generate a version of x, namely, x_julia_vec, with the
-  # same data layout as the columns of jac_julia_mat_A, but the contents of x
+  # The following lines of code generate a version of x, namely, x_sys_layout, with the
+  # same data layout as the columns of jac_mat_A, but the contents of x
   # (for the owned dof values).
-  x_julia_vec = similar(res_julia_vec,eltype(res_julia_vec),(axes(jac_julia_mat_A)[2],))
-  copy!(x_julia_vec,x)
-  x_petsc_vec = convert(PETScVector,x_julia_vec)
-  PETScNonlinearSolverCache(op, x_julia_vec,res_julia_vec,
-                           jac_julia_mat_A,jac_julia_mat_A,
-                           x_petsc_vec,res_petsc_vec,
+  x_sys_layout = similar(res_sys_layout,eltype(res_sys_layout),(axes(jac_mat_A)[2],))
+  copy!(x_sys_layout,x)
+  x_petsc = convert(PETScVector,x_sys_layout)
+
+  snes_ref=Ref{SNES}()
+  @check_error_code PETSC.SNESCreate(nls.comm,snes_ref)
+  nls.setup(snes_ref)
+
+  PETScNonlinearSolverCache(snes_ref, op, x, x_sys_layout, res_sys_layout,
+                           jac_mat_A, jac_mat_A,
+                           x_petsc, res_petsc,
                            jac_petsc_mat_A, jac_petsc_mat_A)
 end
-
-# Helper private functions to implement the solve! methods below.
-# It allows to execute the solve! methods below in a serial context, i.e.,
-# whenever
-function _myexchange!(x::AbstractVector)
-  x
-end
-function _myexchange!(x::PVector)
-  exchange!(x)
-end
-
-function _copy_and_exchange!(a::AbstractVector,b::PETScVector)
-  copy!(a,b.vec[])
-  _myexchange!(a)
-end
-
 
 function Algebra.solve!(x::T,
                         nls::PETScNonlinearSolver,
@@ -171,16 +159,24 @@ function Algebra.solve!(x::T,
                         cache::PETScNonlinearSolverCache{<:T}) where T <: AbstractVector
 
   @assert cache.op === op
-  @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
-  _copy_and_exchange!(x,cache.x_petsc_vec)
+  @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
+  copy!(x,cache.x_petsc)
   cache
 end
 
-function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
+function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
   cache=_setup_cache(x,nls,op)
-  _set_petsc_residual_function!(nls,cache)
-  _set_petsc_jacobian_function!(nls,cache)
-  @check_error_code PETSC.SNESSolve(nls.snes[],C_NULL,cache.x_petsc_vec.vec[])
-  _copy_and_exchange!(x,cache.x_petsc_vec)
+
+  # set petsc residual function
+  ctx  = pointer_from_objref(cache)
+  fptr = @cfunction(snes_residual, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}))
+  PETSC.SNESSetFunction(cache.snes[],cache.res_petsc.vec[],fptr,ctx)
+
+  # set petsc jacobian function
+  fptr = @cfunction(snes_jacobian, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},Ptr{Cvoid}))
+  PETSC.SNESSetJacobian(cache.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
+
+  @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
+  copy!(x,cache.x_petsc)
   cache
 end
