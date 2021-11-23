@@ -187,7 +187,7 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
   b
 end
 
-function _copy!(petscmat::Mat,mat::PSparseMatrix{<:SequentialData})
+function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:SequentialData}) where {T}
   parts=get_part_ids(mat.values)
   map_parts(parts, mat.values,mat.rows.partition,mat.cols.partition) do part, lmat, rdofs, cdofs
      @check isa(rdofs,IndexRange) "Not supported partition for PETSc matrices"
@@ -225,7 +225,7 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{<:SequentialData})
   @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
 end
 
-_copy!(::PSparseMatrix{<:SequentialData},::Mat) = @notimplemented
+_copy!(::PSparseMatrix{T,<:SequentialData},::Mat) where T = @notimplemented
 _copy!(::PSparseMatrix{<:MPIData},::Mat) = @notimplemented
 function Base.copy!(petscmat::Mat,mat::PSparseMatrix{<:MPIData})
    parts=get_part_ids(mat.values)

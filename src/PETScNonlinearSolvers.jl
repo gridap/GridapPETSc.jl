@@ -146,22 +146,6 @@ function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearO
                            jac_petsc_mat_A, jac_petsc_mat_A)
 end
 
-# Helper private functions to implement the solve! methods below.
-# It allows to execute the solve! methods below in a serial context, i.e.,
-# whenever
-function _myexchange!(x::AbstractVector)
-  x
-end
-function _myexchange!(x::PVector)
-  exchange!(x)
-end
-
-function _copy_and_exchange!(a::AbstractVector,b::PETScVector)
-  copy!(a,b)
-  _myexchange!(a)
-end
-
-
 function Algebra.solve!(x::T,
                         nls::PETScNonlinearSolver,
                         op::NonlinearOperator,
@@ -169,7 +153,7 @@ function Algebra.solve!(x::T,
 
   @assert cache.op === op
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
-  _copy_and_exchange!(x,cache.x_petsc)
+  copy!(x,cache.x_petsc)
   cache
 end
 
@@ -186,6 +170,6 @@ function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::Nonlinea
   PETSC.SNESSetJacobian(cache.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
 
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
-  _copy_and_exchange!(x,cache.x_petsc)
+  copy!(x,cache.x_petsc)
   cache
 end
