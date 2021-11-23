@@ -35,7 +35,7 @@ function _petsc_vector(v::PVector,::MPIBackend)
     w.ownership = (array,ghost)
     @check_error_code PETSC.VecCreateGhostWithArray(comm,n,N,nghost,ghost,array,w.vec)
     @check_error_code PETSC.VecSetOption(w.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
-    Init(w)
+    Init(w,comm)
   end
   w
 end
@@ -182,7 +182,7 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
     @check_error_code PETSC.MatCreateMPIAIJWithArrays(comm,m,n,M,N,i,j,v,b.mat)
     @check_error_code PETSC.MatAssemblyBegin(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     @check_error_code PETSC.MatAssemblyEnd(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-    Init(b)
+    Init(b,comm)
   end
   b
 end

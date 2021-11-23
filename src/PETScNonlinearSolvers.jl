@@ -6,6 +6,7 @@ end
 
 mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
   initialized::Bool
+  comm::MPI.Comm
   snes::Ref{SNES}
   op::NonlinearOperator
 
@@ -24,13 +25,13 @@ mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
   jac_petsc_mat_A::E
   jac_petsc_mat_P::E
 
-  function PETScNonlinearSolverCache(snes::Ref{SNES}, op::NonlinearOperator,
+  function PETScNonlinearSolverCache(comm::MPI.Comm, snes::Ref{SNES}, op::NonlinearOperator,
                                      x_fe_space_layout::A,
                                      x_sys_layout::B, res_sys_layout::B,
                                      jac_mat_A::C, jac_mat_P::C,
                                      x_petsc::D, res_petsc::D,
                                      jac_petsc_mat_A::E, jac_petsc_mat_P::E) where {A,B,C,D,E}
-      cache=new{A,B,C,D,E}(true,
+      cache=new{A,B,C,D,E}(true, comm,
                          snes, op,
                          x_fe_space_layout,
                          x_sys_layout, res_sys_layout,
@@ -94,7 +95,11 @@ function Finalize(cache::PETScNonlinearSolverCache)
      if !(cache.jac_petsc_mat_P === cache.jac_petsc_mat_A)
        GridapPETSc.Finalize(cache.jac_petsc_mat_P)
      end
-     @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
+     if cache.comm == MPI.COMM_SELF
+       @check_error_code PETSC.SNESDestroy(cache.snes)
+     else
+       @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
+     end
      @assert Threads.threadid() == 1
      cache.initialized=false
      _NREFS[] -= 1
@@ -147,7 +152,7 @@ function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearO
   @check_error_code PETSC.SNESCreate(nls.comm,snes_ref)
   nls.setup(snes_ref)
 
-  PETScNonlinearSolverCache(snes_ref, op, x, x_sys_layout, res_sys_layout,
+  PETScNonlinearSolverCache(nls.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
                            jac_mat_A, jac_mat_A,
                            x_petsc, res_petsc,
                            jac_petsc_mat_A, jac_petsc_mat_A)
