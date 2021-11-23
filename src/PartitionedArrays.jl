@@ -82,10 +82,10 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIBackend)
   PVector(values,ids)
 end
 
-_copy!(a::PVector{<:SequentialData},b::Vec) = @notimplemented
-_copy!(a::Vec,b::PVector{<:SequentialData}) = @notimplemented
+_copy!(a::PVector{T,<:SequentialData},b::Vec) where T = @notimplemented
+_copy!(a::Vec,b::PVector{T,<:SequentialData}) where T = @notimplemented
 
-function _copy!(pvec::PVector{<:MPIData},petscvec::Vec)
+function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
   map_parts(get_part_ids(pvec.values),pvec.values,pvec.rows.partition) do part, values, indices
     lg=get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # petsc_vec is a ghosted vector
@@ -118,7 +118,7 @@ function _copy!(pvec::PVector{<:MPIData},petscvec::Vec)
   pvec
 end
 
-function Base.copy!(petscvec::Vec,pvec::PVector{<:MPIData})
+function Base.copy!(petscvec::Vec,pvec::PVector{T,<:MPIData}) where T
   map_parts(pvec.values,pvec.rows.partition) do values, indices
     @check isa(indices,IndexRange) "Unsupported partition for PETSc vectors"
     lg=get_local_oh_vector(petscvec)
@@ -226,8 +226,8 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:SequentialData}) where {T}
 end
 
 _copy!(::PSparseMatrix{T,<:SequentialData},::Mat) where T = @notimplemented
-_copy!(::PSparseMatrix{<:MPIData},::Mat) = @notimplemented
-function Base.copy!(petscmat::Mat,mat::PSparseMatrix{<:MPIData})
+_copy!(::PSparseMatrix{T,<:MPIData},::Mat) where T = @notimplemented
+function Base.copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIData}) where T
    parts=get_part_ids(mat.values)
    map_parts(parts, mat.values,mat.rows.partition,mat.cols.partition) do part, lmat, rdofs, cdofs
       @check isa(rdofs,IndexRange) "Not supported partition for PETSc matrices"

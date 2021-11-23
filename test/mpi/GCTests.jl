@@ -4,6 +4,9 @@ function mem()
   Sys.free_memory() / 2^20
 end
 
+using Random
+Random.seed!(1234)
+
 iteration=0
 function report_memory_and_random_gc(parts)
   map_parts(parts) do part
