@@ -106,27 +106,36 @@ function Base.convert(::Type{PETScVector},a::AbstractVector)
   PETScVector(array)
 end
 
+function Base.copy!(a::AbstractVector,b::PETScVector)
+  @check length(a) == length(b)
+  _copy!(a,b.vec[])
+end
 
-function Base.copy!(vec::AbstractVector,petscvec::Vec)
-  ni = length(vec)
+function _copy!(a::Vector,b::Vec)
+  ni = length(a)
   ix = collect(PetscInt,0:(ni-1))
-  v = convert(Vector{PetscScalar},vec)
-  @check_error_code PETSC.VecGetValues(petscvec.ptr,ni,ix,v)
-  if !(v === vec)
-    vec .= v
+  v = convert(Vector{PetscScalar},a)
+  @check_error_code PETSC.VecGetValues(b.ptr,ni,ix,v)
+  if !(v === a)
+    a .= v
   end
 end
 
-function Base.copy!(petscvec::Vec,vec::AbstractVector)
-  ni = length(vec)
-  ix = collect(PetscInt,0:(ni-1))
-  v = convert(Vector{PetscScalar},vec)
-  @check_error_code PETSC.VecSetValues(petscvec.ptr,ni,ix,v,PETSC.INSERT_VALUES)
+function Base.copy!(a::PETScVector,b::AbstractVector)
+  @check length(a) == length(b)
+  _copy!(a.vec[],b)
 end
 
-function get_local_oh_vector(a::PETScVector)
+function _copy!(a::Vec,b::AbstractVector)
+  ni = length(b)
+  ix = collect(PetscInt,0:(ni-1))
+  v = convert(Vector{PetscScalar},b)
+  @check_error_code PETSC.VecSetValues(a.ptr,ni,ix,v,PETSC.INSERT_VALUES)
+end
+
+function get_local_oh_vector(a::Vec)
   v=PETScVector()
-  @check_error_code PETSC.VecGhostGetLocalForm(a.vec[],v.vec)
+  @check_error_code PETSC.VecGhostGetLocalForm(a.ptr,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
     v.ownership=a
     Init(v)
@@ -277,14 +286,11 @@ function Base.copy(a::PETScMatrix)
   Init(v)
 end
 
-function Base.copy!(petscmat::Mat,a::AbstractMatrix)
-  aux=PETScMatrix()
-  aux.mat[] = petscmat.ptr
-  Base.copy!(aux,a)
+function Base.copy!(a::PETScMatrix,b::AbstractMatrix)
+  _copy!(a.mat[],b)
 end
 
-
-function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
+function _copy!(petscmat::Mat,mat::Matrix)
    n    = size(mat)[2]
    cols = [PetscInt(j-1) for j=1:n]
    row  = Vector{PetscInt}(undef,1)
@@ -292,7 +298,7 @@ function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
    for i=1:size(mat)[1]
      row[1]=PetscInt(i-1)
      vals .= view(mat,i,:)
-     PETSC.MatSetValues(petscmat.mat[],
+     PETSC.MatSetValues(petscmat.ptr,
                         PetscInt(1),
                         row,
                         n,
@@ -300,8 +306,8 @@ function Base.copy!(petscmat::PETScMatrix,mat::AbstractMatrix)
                         vals,
                         PETSC.INSERT_VALUES)
    end
-   @check_error_code PETSC.MatAssemblyBegin(petscmat.mat[], PETSC.MAT_FINAL_ASSEMBLY)
-   @check_error_code PETSC.MatAssemblyEnd(petscmat.mat[]  , PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyBegin(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
 end
 
 

@@ -161,8 +161,6 @@ version = "0.17.5"
 [[GridapDistributed]]
 deps = ["FillArrays", "Gridap", "LinearAlgebra", "MPI", "PartitionedArrays", "SparseArrays", "WriteVTK"]
 git-tree-sha1 = "712274a12c745b84be465bd5165b12d3d51bd955"
-repo-rev = "master"
-repo-url = "https://github.com/gridap/GridapDistributed.jl"
 uuid = "f9701e48-63b3-45aa-9a63-9bc6c271f355"
 version = "0.2.0"
 

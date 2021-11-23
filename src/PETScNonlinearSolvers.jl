@@ -48,14 +48,14 @@ function snes_residual(csnes::Ptr{Cvoid},
   cache  = unsafe_pointer_to_objref(ctx)
 
   # 1. Transfer cx to Julia data structures
-  copy!(cache.x_sys_layout, Vec(cx))
+  _copy!(cache.x_sys_layout, Vec(cx))
   copy!(cache.x_fe_space_layout,cache.x_sys_layout)
 
   # 2. Evaluate residual into Julia data structures
   residual!(cache.res_sys_layout, cache.op, cache.x_fe_space_layout)
 
   # 3. Transfer Julia residual to PETSc residual (cfx)
-  copy!(Vec(cfx), cache.res_sys_layout)
+  _copy!(Vec(cfx), cache.res_sys_layout)
 
   return PetscInt(0)
 end
@@ -70,14 +70,14 @@ function snes_jacobian(csnes:: Ptr{Cvoid},
 
   # 1. Transfer cx to Julia data structures
   #    Extract pointer to array of values out of cx and put it in a PVector
-  copy!(cache.x_sys_layout, Vec(cx))
+  _copy!(cache.x_sys_layout, Vec(cx))
   copy!(cache.x_fe_space_layout,cache.x_sys_layout)
 
   # 2. Evaluate Jacobian into Julia data structures
   jacobian!(cache.jac_mat_A,cache.op,cache.x_fe_space_layout)
 
   # 3. Transfer nls.jac_mat_A/P to PETSc (cA/cP)
-  copy!(Mat(cA), cache.jac_mat_A)
+  _copy!(Mat(cA), cache.jac_mat_A)
 
   return PetscInt(0)
 end
@@ -157,7 +157,7 @@ function _myexchange!(x::PVector)
 end
 
 function _copy_and_exchange!(a::AbstractVector,b::PETScVector)
-  copy!(a,b.vec[])
+  copy!(a,b)
   _myexchange!(a)
 end
 
