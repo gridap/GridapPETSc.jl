@@ -66,6 +66,10 @@ function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
+  if (x.comm != MPI.COMM_SELF)
+    gridap_petsc_gc() # Do garbage collection of PETSc objects
+  end
+
   B = convert(PETScVector,b)
   @check_error_code PETSC.KSPSolve(ns.ksp[],B.vec[],x.vec[])
   x

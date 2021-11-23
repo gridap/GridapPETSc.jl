@@ -172,6 +172,10 @@ end
 function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
   cache=_setup_cache(x,nls,op)
 
+  if (nls.comm != MPI.COMM_SELF)
+    gridap_petsc_gc() # Do garbage collection of PETSc objects
+  end
+
   # set petsc residual function
   ctx  = pointer_from_objref(cache)
   fptr = @cfunction(snes_residual, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}))
