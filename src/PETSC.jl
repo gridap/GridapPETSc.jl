@@ -451,6 +451,8 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
 @wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
 @wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetBlockSize.html")
+@wrapper(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetIcntl.html")
+@wrapper(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetCntl.html")
 
 # Null space related
 
@@ -618,6 +620,10 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
+@wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
+@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
+@wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
+
 
 """
 Julia alias for the `SNES` C type.
@@ -665,5 +671,6 @@ manualpages/SNES/SNESSetType.html")
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
+
 
 end # module
