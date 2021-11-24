@@ -1,7 +1,6 @@
 
 mutable struct PETScNonlinearSolver{F} <: NonlinearSolver
   setup::F
-  comm::MPI.Comm
 end
 
 mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
@@ -109,12 +108,9 @@ end
 
 snes_from_options(snes) = @check_error_code PETSC.SNESSetFromOptions(snes[])
 
-function PETScNonlinearSolver(comm::MPI.Comm)
-  PETScNonlinearSolver(snes_from_options,comm)
+function PETScNonlinearSolver()
+  PETScNonlinearSolver(snes_from_options)
 end
-
-PETScNonlinearSolver(setup::Function) = PETScNonlinearSolver(setup,MPI.COMM_WORLD)
-PETScNonlinearSolver() = PETScNonlinearSolver(MPI.COMM_WORLD)
 
 function _set_petsc_residual_function!(nls::PETScNonlinearSolver, cache)
   ctx = pointer_from_objref(cache)
@@ -149,10 +145,10 @@ function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearO
   x_petsc = convert(PETScVector,x_sys_layout)
 
   snes_ref=Ref{SNES}()
-  @check_error_code PETSC.SNESCreate(nls.comm,snes_ref)
+  @check_error_code PETSC.SNESCreate(jac_petsc_mat_A.comm,snes_ref)
   nls.setup(snes_ref)
 
-  PETScNonlinearSolverCache(nls.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
+  PETScNonlinearSolverCache(jac_petsc_mat_A.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
                            jac_mat_A, jac_mat_A,
                            x_petsc, res_petsc,
                            jac_petsc_mat_A, jac_petsc_mat_A)
@@ -172,7 +168,7 @@ end
 function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
   cache=_setup_cache(x,nls,op)
 
-  if (nls.comm != MPI.COMM_SELF)
+  if (cache.comm != MPI.COMM_SELF)
     gridap_petsc_gc() # Do garbage collection of PETSc objects
   end
 

@@ -1,18 +1,13 @@
 
 struct PETScLinearSolver{F} <: LinearSolver
   setup::F
-  comm::MPI.Comm
 end
 
 ksp_from_options(ksp) = @check_error_code PETSC.KSPSetFromOptions(ksp[])
 
-function PETScLinearSolver(comm::MPI.Comm)
-  PETScLinearSolver(ksp_from_options,comm)
+function PETScLinearSolver()
+  PETScLinearSolver(ksp_from_options)
 end
-
-PETScLinearSolver() = PETScLinearSolver(MPI.COMM_WORLD)
-
-PETScLinearSolver(setup::Function) = PETScLinearSolver(setup,MPI.COMM_WORLD)
 
 struct PETScLinearSolverSS{F} <: SymbolicSetup
   solver::PETScLinearSolver{F}
@@ -25,12 +20,11 @@ end
 mutable struct PETScLinearSolverNS{T} <: NumericalSetup
   A::T
   B::PETScMatrix
-  comm::MPI.Comm
   ksp::Ref{KSP}
   initialized::Bool
-  function PETScLinearSolverNS(A,B::PETScMatrix,comm::MPI.Comm)
+  function PETScLinearSolverNS(A,B::PETScMatrix)
     T=typeof(A)
-    new{T}(A,B,comm,Ref{KSP}(),false)
+    new{T}(A,B,Ref{KSP}(),false)
   end
 end
 
@@ -43,7 +37,7 @@ end
 
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
-    if ns.comm == MPI.COMM_SELF
+    if ns.B.comm == MPI.COMM_SELF
       @check_error_code PETSC.KSPDestroy(ns.ksp)
     else
       @check_error_code PETSC.PetscObjectRegisterDestroy(ns.ksp[].ptr)
@@ -57,8 +51,8 @@ end
 
 function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
   B = convert(PETScMatrix,A)
-  ns = PETScLinearSolverNS(A,B,ss.solver.comm)
-  @check_error_code PETSC.KSPCreate(ns.comm,ns.ksp)
+  ns = PETScLinearSolverNS(A,B)
+  @check_error_code PETSC.KSPCreate(B.comm,ns.ksp)
   ss.solver.setup(ns.ksp)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
