@@ -8,28 +8,6 @@ using GridapPETSc: PetscScalar, PetscInt
 using SparseArrays
 using SparseMatricesCSR
 
-# GridapDistributedPETScWrappers.C.KSPCreate(comm(A),ksp)
-# GridapDistributedPETScWrappers.C.KSPSetOperators(ksp[],A.p,A.p)
-# GridapDistributedPETScWrappers.C.KSPSetType(ksp[],GridapDistributedPETScWrappers.C.KSPPREONLY)
-# GridapDistributedPETScWrappers.C.KSPGetPC(ksp[],pc)
-
-# # If system is SPD use the following two calls
-# GridapDistributedPETScWrappers.C.PCSetType(pc[],GridapDistributedPETScWrappers.C.PCCHOLESKY)
-# GridapDistributedPETScWrappers.C.MatSetOption(A.p,
-#                                               GridapDistributedPETScWrappers.C.MAT_SPD,GridapDistributedPETScWrappers.C.PETSC_TRUE);
-# # Else ... use only the following one
-# # GridapDistributedPETScWrappers.C.PCSetType(pc,GridapDistributedPETScWrappers.C.PCLU)
-
-# PCFactorSetMatSolverType(pc[],GridapDistributedPETScWrappers.C.MATSOLVERMUMPS)
-# PCFactorSetUpMatSolverType(pc[])
-# GridapDistributedPETScWrappers.C.PCFactorGetMatrix(pc[],mumpsmat)
-# MatMumpsSetIcntl(mumpsmat[],4 ,2)     # level of printing (0 to 4)
-# MatMumpsSetIcntl(mumpsmat[],28,2)     # use 1 for sequential analysis and ictnl(7) ordering,
-#                                     # or 2 for parallel analysis and ictnl(29) ordering
-# MatMumpsSetIcntl(mumpsmat[],29,2)     # parallel ordering 1 = ptscotch, 2 = parmetis
-# MatMumpsSetCntl(mumpsmat[] ,3,1.0e-6)  # threshhold for row pivot detection
-
-
 tol = 1e-10
 maxits = 1000
 options = [

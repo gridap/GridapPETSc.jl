@@ -5,6 +5,11 @@ using PartitionedArrays
 using GridapPETSc
 using Test
 
+
+function mysnessetup(snes)
+end
+
+
 function main(parts)
   options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -ksp_monitor -snes_converged_reason"
 
@@ -47,7 +52,7 @@ function main(parts,strategy)
   # fill!(x,1)
   # @test (norm(A*x-_A*x)+1) ≈ 1
 
-  nls = PETScNonlinearSolver()
+  nls = PETScNonlinearSolver(mysnessetup)
   solver = FESolver(nls)
   uh = solve(solver,op)
 

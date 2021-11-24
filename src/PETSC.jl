@@ -417,6 +417,24 @@ const MATLMVMDIAGBROYDEN   = "lmvmdiagbroyden"
 const MATCONSTANTDIAGONAL  = "constantdiagonal"
 const MATHARA              = "hara"
 
+const MATSOLVERSUPERLU          = "superlu"
+const MATSOLVERSUPERLU_DIST     = "superlu_dist"
+const MATSOLVERSTRUMPACK        = "strumpack"
+const MATSOLVERUMFPACK          = "umfpack"
+const MATSOLVERCHOLMOD          = "cholmod"
+const MATSOLVERKLU              = "klu"
+const MATSOLVERSPARSEELEMENTAL  = "sparseelemental"
+const MATSOLVERELEMENTAL        = "elemental"
+const MATSOLVERESSL             = "essl"
+const MATSOLVERLUSOL            = "lusol"
+const MATSOLVERMUMPS            = "mumps"
+const MATSOLVERMKL_PARDISO      = "mkl_pardiso"
+const MATSOLVERMKL_CPARDISO     = "mkl_cpardiso"
+const MATSOLVERPASTIX           = "pastix"
+const MATSOLVERMATLAB           = "matlab"
+const MATSOLVERPETSC            = "petsc"
+const MATSOLVERCUSPARSE         = "cusparse"
+
 """
 Julia alias for the `Mat` C type.
 
@@ -618,7 +636,7 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
 @wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
-@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
+@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
 
 
@@ -664,6 +682,7 @@ const SNESPATCH            = "patch"
 @wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFromOptions.html")
 @wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
 @wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/manualpages/SNES/SNESSetType.html")
+@wrapper(:SNESGetKSP,PetscErrorCode,(SNES,Ptr{PC}),(snes,pc),"https://petsc.org/release/docs/manualpages/SNES/SNESGetKSP.html")
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
