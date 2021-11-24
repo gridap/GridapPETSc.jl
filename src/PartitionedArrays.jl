@@ -20,9 +20,10 @@ function _petsc_vector(v::PVector,::SequentialBackend)
 end
 
 function _petsc_vector(v::PVector,::MPIBackend)
-  w = PETScVector()
-  N = num_gids(v.rows)
   comm = v.values.comm # Not sure about this
+
+  w = PETScVector(comm)
+  N = num_gids(v.rows)
 
   map_parts(v.values,v.rows.partition) do lid_to_value, rows
     @check isa(rows,IndexRange) "Unsupported partition for PETSc vectors"
@@ -35,7 +36,7 @@ function _petsc_vector(v::PVector,::MPIBackend)
     w.ownership = (array,ghost)
     @check_error_code PETSC.VecCreateGhostWithArray(comm,n,N,nghost,ghost,array,w.vec)
     @check_error_code PETSC.VecSetOption(w.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
-    Init(w,comm)
+    Init(w)
   end
   w
 end
@@ -161,10 +162,10 @@ function _petsc_matrix(a::PSparseMatrix,::SequentialBackend)
 end
 
 function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
-  b = PETScMatrix()
+  comm = a.values.comm # Not sure about this
+  b = PETScMatrix(comm)
   M = num_gids(a.rows)
   N = num_gids(a.cols)
-  comm = a.values.comm # Not sure about this
   map_parts(a.values,a.rows.partition,a.cols.partition) do values,rows,cols
     @check isa(rows,IndexRange) "Not supported partition for PETSc matrices"
     @check isa(cols,IndexRange) "Not supported partition for PETSc matrices"
@@ -182,7 +183,7 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
     @check_error_code PETSC.MatCreateMPIAIJWithArrays(comm,m,n,M,N,i,j,v,b.mat)
     @check_error_code PETSC.MatAssemblyBegin(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     @check_error_code PETSC.MatAssemblyEnd(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-    Init(b,comm)
+    Init(b)
   end
   b
 end

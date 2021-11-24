@@ -6,17 +6,16 @@ mutable struct PETScVector <: AbstractVector{PetscScalar}
   ownership::Any
   size::Tuple{Int}
   comm::MPI.Comm
-  PETScVector() = new(Ref{Vec}(),false,nothing,(-1,))
+  PETScVector(comm::MPI.Comm) = new(Ref{Vec}(),false,nothing,(-1,),comm)
 end
 
-function Init(a::PETScVector,comm::MPI.Comm)
+function Init(a::PETScVector)
   n = Ref{PetscInt}()
   @check_error_code PETSC.VecGetSize(a.vec[],n)
   a.size = (Int(n[]),)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
-  a.comm=comm
   finalizer(Finalize,a)
 end
 
@@ -60,20 +59,20 @@ end
 # Constructors
 
 function PETScVector(n::Integer)
-  v = PETScVector()
+  v = PETScVector(MPI.COMM_SELF)
   @check_error_code PETSC.VecCreateSeq(MPI.COMM_SELF,n,v.vec)
   @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
-  Init(v,MPI.COMM_SELF)
+  Init(v)
 end
 
 function PETScVector(array::Vector{PetscScalar},bs=1)
-  v = PETScVector()
   comm = MPI.COMM_SELF
+  v = PETScVector(comm)
   n = length(array)
   @check_error_code PETSC.VecCreateSeqWithArray(comm,bs,n,array,v.vec)
   @check_error_code PETSC.VecSetOption(v.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
   v.ownership = array
-  Init(v,comm)
+  Init(v)
 end
 
 function PETScVector(a::PetscScalar,ax::AbstractUnitRange)
@@ -97,10 +96,10 @@ function Base.similar(::Type{PETScVector},ax::Tuple{<:Base.OneTo})
 end
 
 function Base.copy(a::PETScVector)
-  v = PETScVector()
+  v = PETScVector(a.comm)
   @check_error_code PETSC.VecDuplicate(a.vec[],v.vec)
   @check_error_code PETSC.VecCopy(a.vec[],v.vec[])
-  Init(v,a.comm)
+  Init(v)
 end
 
 function Base.convert(::Type{PETScVector},a::PETScVector)
@@ -140,11 +139,11 @@ function _copy!(a::Vec,b::Vector)
 end
 
 function _get_local_oh_vector(a::Vec)
-  v=PETScVector()
+  v=PETScVector(MPI.COMM_SELF)
   @check_error_code PETSC.VecGhostGetLocalForm(a.ptr,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
     v.ownership=a
-    Init(v,MPI.COMM_SELF)
+    Init(v)
     return v
   else                  # a is NOT a ghosted vector
     return _get_local_vector(a)
@@ -180,10 +179,10 @@ mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   ownership::Any
   size::Tuple{Int,Int}
   comm::MPI.Comm
-  PETScMatrix() = new(Ref{Mat}(),false,nothing,(-1,-1))
+  PETScMatrix(comm::MPI.Comm) = new(Ref{Mat}(),false,nothing,(-1,-1),comm)
 end
 
-function Init(a::PETScMatrix,comm::MPI.Comm)
+function Init(a::PETScMatrix)
   m = Ref{PetscInt}()
   n = Ref{PetscInt}()
   @check_error_code PETSC.MatGetSize(a.mat[],m,n)
@@ -191,7 +190,6 @@ function Init(a::PETScMatrix,comm::MPI.Comm)
   @assert Threads.threadid() == 1
   _NREFS[] += 1
   a.initialized = true
-  a.comm = comm
   finalizer(Finalize,a)
 end
 
@@ -247,23 +245,23 @@ end
 
 # Using a matrix in this way is VERY inefficient
 function PETScMatrix(m::Integer,n::Integer)
-  v = PETScMatrix()
+  v = PETScMatrix(MPI.COMM_SELF)
   nz = PETSC.PETSC_DEFAULT
   nnz = C_NULL
   @check_error_code PETSC.MatCreateSeqAIJ(MPI.COMM_SELF,m,n,nz,nnz,v.mat)
   @check_error_code PETSC.MatAssemblyBegin(v.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(v.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  Init(v,MPI.COMM_SELF)
+  Init(v)
 end
 
 function PETScMatrix(csr::SparseMatrixCSR{0,PetscScalar,PetscInt})
   m, n = size(csr); i = csr.rowptr; j = csr.colval; v = csr.nzval
-  A = PETScMatrix()
+  A = PETScMatrix(MPI.COMM_SELF)
   A.ownership = csr
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  Init(A,MPI.COMM_SELF)
+  Init(A)
 end
 
 
@@ -292,10 +290,10 @@ function Base.similar(a::PETScMatrix,::Type{PetscScalar},ax::Tuple{<:Base.OneTo}
 end
 
 function Base.copy(a::PETScMatrix)
-  v = PETScMatrix()
+  v = PETScMatrix(a.comm)
   @check_error_code PETSC.MatConvert(
     a.mat[],PETSC.MATSAME,PETSC.MAT_INITIAL_MATRIX,v.mat)
-  Init(v,a.comm)
+  Init(v)
 end
 
 function Base.copy!(a::PETScMatrix,b::AbstractMatrix)
@@ -339,12 +337,12 @@ function Base.convert(::Type{PETScMatrix}, a::AbstractMatrix{PetscScalar})
   i = [PetscInt(n*(i-1)) for i=1:m+1]
   j = [PetscInt(j-1) for i=1:m for j=1:n]
   v = [ a[i,j] for i=1:m for j=1:n]
-  A = PETScMatrix()
+  A = PETScMatrix(MPI.COMM_SELF)
   A.ownership = (i,j,v)
   @check_error_code PETSC.MatCreateSeqAIJWithArrays(MPI.COMM_SELF,m,n,i,j,v,A.mat)
   @check_error_code PETSC.MatAssemblyBegin(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(A.mat[],PETSC.MAT_FINAL_ASSEMBLY)
-  Init(A,MPI.COMM_SELF)
+  Init(A)
 end
 
 function petsc_sparse(i,j,v,m,n)
