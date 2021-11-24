@@ -1,4 +1,4 @@
-module PETScVectorsTests
+module PETScArraysTests
 
 using GridapPETSc
 using Test
@@ -8,15 +8,15 @@ using GridapPETSc: PetscScalar, PetscInt
 using LinearAlgebra
 
 options = "-info"
-GridapPETSc.with(args=split(options)) do 
+GridapPETSc.with(args=split(options)) do
 
   n = 10
   v = PETScVector(n)
-  
+
   @test length(v) == n
   v[4] = 30
   @test 30 == v[4]
-  
+
   s = similar(v,PetscScalar,4)
   w = similar(v)
 
@@ -35,7 +35,7 @@ GridapPETSc.with(args=split(options)) do
   a = PETScVector(10)
   b = convert(PETScVector,a)
   @test a === b
-  
+
   m = 4
   n = 5
   A = PETScMatrix(m,n)
@@ -45,7 +45,7 @@ GridapPETSc.with(args=split(options)) do
   @test A[1,3] == 5
   @test A[3,5] == 7
   display(A)
-  
+
   B = similar(A,PetscScalar,3,2)
   @test typeof(A) == typeof(B)
   @test size(B) == (3,2)
@@ -80,7 +80,7 @@ GridapPETSc.with(args=split(options)) do
   aj = rand(PetscScalar,n)
   ap = convert(PETScVector,aj)
   @test ap == aj
-  @test norm(ap) == norm(aj)
+  @test norm(ap) ≈ norm(aj)
   @test ap+2*ap == ap+2*ap
   @test typeof(ap+2*ap) ==  PETScVector
   @test ap-2*ap == ap-2*ap

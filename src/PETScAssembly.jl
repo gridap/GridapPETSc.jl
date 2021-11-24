@@ -2,14 +2,9 @@
 # Some methods from the Gridap.Algebra interface
 # not sure if all are needed....
 
-function Algebra.fill_entries!(a::PETScMatrix,v)
-  @notimplementedif v!=0
+function LinearAlgebra.fillstored!(a::PETScMatrix,v)
+  @notimplementedif v!=zero(typeof(v))
   @check_error_code PETSC.MatZeroEntries(a.mat[])
-  a
-end
-
-function Algebra.fill_entries!(a::PETScVector,v)
-  fill!(a,v)
   a
 end
 
@@ -27,12 +22,12 @@ function Algebra.copy_entries!(a::PETScMatrix,b::PETScMatrix)
   a
 end
 
-function Algebra.scale_entries!(a::PETScVector,b)
+function LinearAlgebra.rmul!(a::PETScVector,b::Number)
   @check_error_code PETSC.VecScale(a.vec[],PetscScalar(b))
   a
 end
 
-function Algebra.scale_entries!(a::PETScMatrix,b)
+function LinearAlgebra.rmul!(a::PETScMatrix,b::Number)
   @check_error_code PETSC.MatScale(a.mat[],PetscScalar(b))
   a
 end
@@ -178,8 +173,10 @@ function Algebra.nz_allocation(a::MatCounter)
   m = a.nrows
   n = a.ncols
   nz = PETSC.PETSC_DEFAULT
-  nnz = a.rownnzmax
-  b = PETScMatrix()
+  # nnz cannot be larger than the number of columns
+  # Otherwise PETSc complains when compiled in DEBUG mode
+  nnz = broadcast(min,a.rownnzmax,PetscInt(n))
+  b = PETScMatrix(comm)
   @check_error_code PETSC.MatCreateSeqAIJ(comm,m,n,nz,nnz,b.mat)
   Init(b)
 end
@@ -301,4 +298,3 @@ function Algebra.create_from_nz(a::PETScMatrix)
   @check_error_code PETSC.MatAssemblyEnd(a.mat[],PETSC.MAT_FINAL_ASSEMBLY)
   a
 end
-

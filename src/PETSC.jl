@@ -189,11 +189,21 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 
 @wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeq.html")
 @wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html")
+@wrapper(:VecCreateGhost,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Vec}),(comm,n,N,nghost,ghosts,vv),"https://petsc.org/release/docs/manualpages/Vec/VecCreateGhost.html")
+@wrapper(:VecCreateGhostWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},Ptr{Vec}),(comm,n,N,nghost,ghosts,array,vv),"https://petsc.org/release/docs/manualpages/Vec/VecCreateGhostWithArray.html")
+@wrapper(:VecCreateMPI,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Vec),(comm,n,N,v),"https://petsc.org/release/docs/manualpages/Vec/VecCreateMPI.html")
 @wrapper(:VecDestroy,PetscErrorCode,(Ptr{Vec},),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDestroy.html")
 @wrapper(:VecView,PetscErrorCode,(Vec,PetscViewer),(vec,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecView.html")
 @wrapper(:VecSetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(x,ni,ix,y,iora),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html")
 @wrapper(:VecGetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(x,ni,ix,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetValues.html")
+@wrapper(:VecGetArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArray.html")
+@wrapper(:VecGetArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArrayRead.html")
+@wrapper(:VecGetArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArrayWrite.html")
+@wrapper(:VecRestoreArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArray.html")
+@wrapper(:VecRestoreArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArrayRead.html")
+@wrapper(:VecRestoreArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArrayWrite.html")
 @wrapper(:VecGetSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetSize.html")
+@wrapper(:VecGetLocalSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://petsc.org/release/docs/manualpages/Vec/VecGetLocalSize.html")
 @wrapper(:VecAssemblyBegin,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyBegin.html")
 @wrapper(:VecAssemblyEnd,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html")
 @wrapper(:VecPlaceArray,PetscErrorCode,(Vec,Ptr{PetscScalar}),(vec,array),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecPlaceArray.html")
@@ -207,6 +217,8 @@ Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 @wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPBY.html")
 @wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html")
 @wrapper(:VecNorm,PetscErrorCode,(Vec,NormType,Ptr{PetscReal}),(x,typ,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecNorm.html")
+@wrapper(:VecGhostGetLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostGetLocalForm.html")
+@wrapper(:VecGhostRestoreLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostRestoreLocalForm.html")
 
 # Matrix related functions
 
@@ -416,8 +428,10 @@ end
 Mat() = Mat(Ptr{Cvoid}())
 Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 
+@wrapper(:MatCreateAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,M,N,d_nz,d_nnz,o_nz,o_nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateAIJ.html")
 @wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html")
 @wrapper(:MatCreateSeqAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,i,j,a,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJWithArrays.html")
+@wrapper(:MatCreateMPIAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,M,N,i,j,a,mat),"https://petsc.org/release/docs/manualpages/Mat/MatCreateMPIAIJWithArrays.html")
 @wrapper(:MatDestroy,PetscErrorCode,(Ptr{Mat},),(A,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDestroy.html")
 @wrapper(:MatView,PetscErrorCode,(Mat,PetscViewer),(mat,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatView.html")
 @wrapper(:MatSetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(mat,m,idxm,n,idxn,v,addv),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetValues.html")
@@ -602,5 +616,50 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
 
+"""
+Julia alias for the `SNES` C type.
+
+See [PETSc manual](https://petsc.org/release/docs/manualpages/SNES/SNES.html).
+"""
+struct SNES
+  ptr::Ptr{Cvoid}
+end
+SNES() = SNES(Ptr{Cvoid}())
+Base.convert(::Type{SNES},p::Ptr{Cvoid}) = SNES(p)
+
+const SNESType = Cstring
+const SNESNEWTONLS         = "newtonls"
+const SNESNEWTONTR         = "newtontr"
+const SNESPYTHON           = "python"
+const SNESNRICHARDSON      = "nrichardson"
+const SNESKSPONLY          = "ksponly"
+const SNESKSPTRANSPOSEONLY = "ksptransposeonly"
+const SNESVINEWTONRSLS     = "vinewtonrsls"
+const SNESVINEWTONSSLS     = "vinewtonssls"
+const SNESNGMRES           = "ngmres"
+const SNESQN               = "qn"
+const SNESSHELL            = "shell"
+const SNESNGS              = "ngs"
+const SNESNCG              = "ncg"
+const SNESFAS              = "fas"
+const SNESMS               = "ms"
+const SNESNASM             = "nasm"
+const SNESANDERSON         = "anderson"
+const SNESASPIN            = "aspin"
+const SNESCOMPOSITE        = "composite"
+const SNESPATCH            = "patch"
+
+
+@wrapper(:SNESCreate,PetscErrorCode,(MPI.Comm,Ptr{SNES}),(comm,snes),"https://petsc.org/release/docs/manualpages/SNES/SNESCreate.html")
+@wrapper(:SNESSetFunction,PetscErrorCode,(SNES,Vec,Ptr{Cvoid},Ptr{Cvoid}),(snes,vec,fptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFunction.html")
+@wrapper(:SNESSetJacobian,PetscErrorCode,(SNES,Mat,Mat,Ptr{Cvoid},Ptr{Cvoid}),(snes,A,P,jacptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetJacobian.html")
+@wrapper(:SNESSolve,PetscErrorCode,(SNES,Vec,Vec),(snes,b,x),"https://petsc.org/release/docs/manualpages/SNES/SNESSolve.html")
+@wrapper(:SNESDestroy,PetscErrorCode,(Ptr{SNES},),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESDestroy.html")
+@wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFromOptions.html")
+@wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
+@wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/manualpages/SNES/SNESSetType.html")
+# Garbage collection of PETSc objects
+@wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
+@wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
 end # module

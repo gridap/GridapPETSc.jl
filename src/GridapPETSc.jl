@@ -8,27 +8,28 @@ using Gridap.Arrays
 using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
+using PartitionedArrays
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
 
   if !isfile(deps_jl)
     msg = """
     GridapPETSc needs to be configured before use. Type
-  
+
     pkg> build
-  
+
     and try again.
     """
     error(msg)
   end
-  
+
   include(deps_jl)
 end
 
 if !libpetsc_found
   msg = """
   GridapPETSc was not configured correcnly. See the errors in file:
-  
+
   $(joinpath(@__DIR__,"..","deps","build.log"))
 
   If you are using the environment variable JULIA_PETSC_LIBRARY, make sure
@@ -58,14 +59,14 @@ function __init__()
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
   end
   for (handle,sym) in _PRELOADS
-    handle[] = Libdl.dlsym(libpetsc_handle[],sym) 
+    handle[] = Libdl.dlsym(libpetsc_handle[],sym)
   end
 end
 
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
-using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, SNES
 #export PETSC
 export @check_error_code
 export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
@@ -76,9 +77,13 @@ export PETScVector
 export PETScMatrix
 export petsc_sparse
 include("PETScArrays.jl")
+include("PartitionedArrays.jl")
 
-export PETScSolver
-include("PETScSolvers.jl")
+export PETScLinearSolver
+include("PETScLinearSolvers.jl")
+
+export PETScNonlinearSolver
+include("PETScNonlinearSolvers.jl")
 
 include("PETScAssembly.jl")
 

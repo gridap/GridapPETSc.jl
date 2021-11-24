@@ -76,13 +76,13 @@ GridapPETSc.with(args=split(options)) do
   has_constant = PETSC.PETSC_TRUE
   vecs = map(i->i.vec[],ns_vecs)
   nvecs = length(vecs)
-  @check_error_code PETSC.MatNullSpaceCreate(comm,has_constant,nvecs,vecs,nulls)
-  @check_error_code PETSC.MatSetNearNullSpace(A.mat[],nulls[])
+  #@check_error_code PETSC.MatNullSpaceCreate(comm,has_constant,nvecs,vecs,nulls)
+  #@check_error_code PETSC.MatSetNearNullSpace(A.mat[],nulls[])
 
-  solver = PETScSolver()
+  solver = PETScLinearSolver()
   solve!(x,solver,A,b)
 
-  @check_error_code PETSC.MatNullSpaceDestroy(nulls)
+  #@check_error_code PETSC.MatNullSpaceDestroy(nulls)
 
   r = A*x-b
   @test norm(r) < tol
