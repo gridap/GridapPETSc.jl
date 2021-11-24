@@ -74,8 +74,6 @@ export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
 include("Environment.jl")
 
 export PETScVector
-export get_local_oh_vector
-export get_local_vector, restore_local_vector!
 export PETScMatrix
 export petsc_sparse
 include("PETScArrays.jl")

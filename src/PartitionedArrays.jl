@@ -87,7 +87,7 @@ _copy!(a::Vec,b::PVector{T,<:SequentialData}) where T = @notimplemented
 
 function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
   map_parts(get_part_ids(pvec.values),pvec.values,pvec.rows.partition) do part, values, indices
-    lg=get_local_oh_vector(petscvec)
+    lg=_get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # petsc_vec is a ghosted vector
       # Only copying owned DoFs. This should be followed by
       # an exchange if the ghost DoFs of pvec are to be consumed.
@@ -97,16 +97,16 @@ function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
       # convert petscvec into a PVector to avoid extra memory allocation
       # and copies.
       @assert pvec.rows.ghost
-      lx=get_local_vector(lg)
+      lx=_get_local_vector(lg)
       vvalues=view(values,indices.oid_to_lid)
       vvalues .= lx[1:num_oids(indices)]
-      restore_local_vector!(lx,lg)
+      _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else                    # petsc_vec is NOT a ghosted vector
       # @assert !pvec.rows.ghost
       # @assert length(lg)==length(values)
       # values .= lg
-      # restore_local_vector!(petscvec,lg)
+      # _restore_local_vector!(petscvec,lg)
 
       # If am not wrong, the code should never enter here. At least
       # given how it is being leveraged at present from GridapPETsc.
@@ -121,16 +121,16 @@ end
 function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIData}) where T
   map_parts(pvec.values,pvec.rows.partition) do values, indices
     @check isa(indices,IndexRange) "Unsupported partition for PETSc vectors"
-    lg=get_local_oh_vector(petscvec)
+    lg=_get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # petscvec is a ghosted vector
-      lx=get_local_vector(lg)
+      lx=_get_local_vector(lg)
       # Only copying owned DoFs. This should be followed by
       # an exchange if the ghost DoFs of petscvec are to be consumed.
       # We are assuming here that the layout of pvec and petsvec
       # are compatible. We do not have any information about the
       # layout of petscvec to check this out.
       lx[1:num_oids(indices)] .= values[1:num_oids(indices)]
-      restore_local_vector!(lx,lg)
+      _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else
     #  @assert !pvec.rows.ghost

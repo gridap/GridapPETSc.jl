@@ -57,9 +57,9 @@ function partitioned_tests(parts)
   function test_get_local_vector(v::PVector,x::PETScVector)
     if (get_backend(v.values)==mpi)
       map_parts(parts) do part
-        lg=get_local_oh_vector(x.vec[])
+        lg=GridapPETSc._get_local_oh_vector(x.vec[])
         @test isa(lg,PETScVector)
-        lx=get_local_vector(lg)
+        lx=GridapPETSc._get_local_vector(lg)
         if part==1
           @test length(lx)==5
         elseif part==2
@@ -67,7 +67,7 @@ function partitioned_tests(parts)
         elseif part==3
           @test length(lx)==3
         end
-        restore_local_vector!(lx,lg)
+        GridapPETSc._restore_local_vector!(lx,lg)
         GridapPETSc.Finalize(lg)
       end
     end

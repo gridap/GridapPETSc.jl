@@ -139,7 +139,7 @@ function _copy!(a::Vec,b::Vector)
   @check_error_code PETSC.VecSetValues(a.ptr,ni,ix,v,PETSC.INSERT_VALUES)
 end
 
-function get_local_oh_vector(a::Vec)
+function _get_local_oh_vector(a::Vec)
   v=PETScVector()
   @check_error_code PETSC.VecGhostGetLocalForm(a.ptr,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
@@ -147,7 +147,7 @@ function get_local_oh_vector(a::Vec)
     Init(v,MPI.COMM_SELF)
     return v
   else                  # a is NOT a ghosted vector
-    return get_local_vector(a)
+    return _get_local_vector(a)
   end
 end
 
@@ -160,14 +160,14 @@ end
 # This function works with either ghosted or non-ghosted MPI vectors.
 # In the case of a ghosted vector it solely returns the locally owned
 # entries.
-function get_local_vector(a::PETScVector)
+function _get_local_vector(a::PETScVector)
   r_pv = Ref{Ptr{PetscScalar}}()
   @check_error_code PETSC.VecGetArray(a.vec[], r_pv)
   v = unsafe_wrap(Array, r_pv[], _local_size(a); own = false)
   return v
 end
 
-function restore_local_vector!(v::Array,a::PETScVector)
+function _restore_local_vector!(v::Array,a::PETScVector)
   @check_error_code PETSC.VecRestoreArray(a.vec[], Ref(pointer(v)))
   nothing
 end
