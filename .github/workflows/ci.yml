@@ -1,7 +1,37 @@
 name: CI
 on: [push, pull_request]
 jobs:
+<<<<<<< HEAD
   Tests:
+=======
+  SeqTests:
+    name: Tests ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1.5'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()'
+      - run: julia --project=. --color=yes --check-bounds=yes test/sequential/runtests.jl
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          file: lcov.info
+  MPITests:
+>>>>>>> f1e8687a35c853ef6e1870568ea42920ef2f109d
     name: Tests ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     env:
@@ -60,7 +90,7 @@ jobs:
              --with-mpi=1 --with-64-bit-indices
           make
           make install  
-      - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
+      - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()'
       - run: julia --project=. --color=yes --check-bounds=yes test/runtests.jl
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
