@@ -5,7 +5,7 @@ function run_mpi_driver(;procs,file)
   testdir = joinpath(mpidir,"..")
   repodir = joinpath(testdir,"..")
   mpiexec() do cmd
-    run(`$cmd -n $procs $(Base.julia_cmd()) --project=$repodir $(joinpath(mpidir,file))`)
+    run(`$cmd -n $procs --allow-run-as-root --oversubscribe $(Base.julia_cmd()) --project=$repodir $(joinpath(mpidir,file))`)
     @test true
   end
 end
