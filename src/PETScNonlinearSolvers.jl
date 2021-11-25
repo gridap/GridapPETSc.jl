@@ -146,7 +146,6 @@ function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearO
 
   snes_ref=Ref{SNES}()
   @check_error_code PETSC.SNESCreate(jac_petsc_mat_A.comm,snes_ref)
-  nls.setup(snes_ref)
 
   PETScNonlinearSolverCache(jac_petsc_mat_A.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
                            jac_mat_A, jac_mat_A,
@@ -180,6 +179,8 @@ function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::Nonlinea
   # set petsc jacobian function
   fptr = @cfunction(snes_jacobian, PetscInt, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid},Ptr{Cvoid}))
   PETSC.SNESSetJacobian(cache.snes[],cache.jac_petsc_mat_A.mat[],cache.jac_petsc_mat_A.mat[],fptr,ctx)
+
+  nls.setup(cache.snes)
 
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   copy!(x,cache.x_petsc)
