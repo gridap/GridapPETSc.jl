@@ -320,6 +320,40 @@ function _copy!(petscmat::Mat,mat::Matrix)
    @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
 end
 
+function _copy!(petscmat::Mat,mat::AbstractSparseMatrix)
+  Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
+  csr = convert(Tm,mat)
+  ia  = csr.rowptr
+  ja  = csr.colval
+  a   = csr.nzval
+  m   = csr.m
+  n   = csr.n
+  maxnnz = maximum( ia[i+1]-ia[i] for i=1:m )
+  row    = Vector{PetscInt}(undef,1)
+  cols   = Vector{PetscInt}(undef,maxnnz)
+  for i=1:size(mat,1)
+    row[1]=PetscInt(i-1)
+    current=1
+    for j=ia[i]+1:ia[i+1]
+      col=ja[j]+1
+      cols[current]=PetscInt(col-1)
+      current=current+1
+    end
+    vals = view(a,ia[i]+1:ia[i+1])
+    PETSC.MatSetValues(
+      petscmat.ptr,
+      PetscInt(1),
+      row,
+      ia[i+1]-ia[i],
+      cols,
+      vals,
+      PETSC.INSERT_VALUES)
+  end
+  @check_error_code PETSC.MatAssemblyBegin(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
+end
+
+
 
 
 function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
