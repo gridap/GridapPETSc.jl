@@ -8,7 +8,8 @@ using GridapPETSc: PetscScalar, PetscInt
 using LinearAlgebra
 
 options = "-info"
-GridapPETSc.with(args=split(options)) do
+out_1 = "some output"
+out_2 = GridapPETSc.with(args=split(options)) do
 
   n = 10
   v = PETScVector(n)
@@ -90,6 +91,9 @@ GridapPETSc.with(args=split(options)) do
   @test typeof(C*aj) == PETScVector
   @test C*ap == C*aj
 
+  out_1
 end
+
+@test out_1 === out_2
 
 end # module
