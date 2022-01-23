@@ -1,3 +1,4 @@
+using SparseMatricesCSR
 using Gridap
 using Gridap.Algebra
 using Gridap.FESpaces
@@ -52,7 +53,8 @@ function main(parts)
 
       a(u,v) = ∫( ∇(v)⋅∇(u) )dΩ
       l(v) = ∫( v*f )dΩ + ∫( v*g )dΓn
-      op = AffineFEOperator(a,l,U,V)
+      assem=SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{Float64},U,V)
+      op = AffineFEOperator(a,l,U,V,assem)
 
       ls = PETScLinearSolver(mykspsetup)
       fels = LinearFESolver(ls)
