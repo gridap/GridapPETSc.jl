@@ -18,6 +18,7 @@ module PETSC
 using Libdl
 using GridapPETSc: libpetsc_handle
 using GridapPETSc: _PRELOADS
+using Gridap.Helpers: @check
 using MPI
 
 include("Config.jl")
@@ -59,6 +60,7 @@ macro wrapper(fn,rt,argts,args,url)
     push!(_PRELOADS,($hn,$fn))
     @doc $str
     @inline function $(fn.value)($(args.args...))
+      @check $(hn)[] != C_NULL "Missing symbol. Re-configure and compile PETSc."
       ccall($(hn)[],$rt,$argts,$(args.args...))
     end
   end
