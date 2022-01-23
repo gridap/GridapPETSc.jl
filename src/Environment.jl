@@ -35,8 +35,9 @@ end
 
 function with(f;kwargs...)
   Init(;kwargs...)
-  f()
+  out = f()
   Finalize()
+  out
 end
 
 # In an MPI environment context,

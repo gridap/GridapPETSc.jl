@@ -24,7 +24,7 @@ function Finalize(a::PETScVector)
     if a.comm == MPI.COMM_SELF
        @check_error_code PETSC.VecDestroy(a.vec)
     else
-       @check_error_code PETSC.PetscObjectRegisterDestroy(a.vec[].ptr)
+       @check_error_code PETSC.PetscObjectRegisterDestroy(a.vec[])
     end
     a.initialized = false
     @assert Threads.threadid() == 1
@@ -120,7 +120,7 @@ function _copy!(a::Vector,b::Vec)
   ni = length(a)
   ix = collect(PetscInt,0:(ni-1))
   v = convert(Vector{PetscScalar},a)
-  @check_error_code PETSC.VecGetValues(b.ptr,ni,ix,v)
+  @check_error_code PETSC.VecGetValues(b,ni,ix,v)
   if !(v === a)
     a .= v
   end
@@ -135,12 +135,12 @@ function _copy!(a::Vec,b::Vector)
   ni = length(b)
   ix = collect(PetscInt,0:(ni-1))
   v = convert(Vector{PetscScalar},b)
-  @check_error_code PETSC.VecSetValues(a.ptr,ni,ix,v,PETSC.INSERT_VALUES)
+  @check_error_code PETSC.VecSetValues(a,ni,ix,v,PETSC.INSERT_VALUES)
 end
 
 function _get_local_oh_vector(a::Vec)
   v=PETScVector(MPI.COMM_SELF)
-  @check_error_code PETSC.VecGhostGetLocalForm(a.ptr,v.vec)
+  @check_error_code PETSC.VecGhostGetLocalForm(a,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
     v.ownership=a
     Init(v)
@@ -198,7 +198,7 @@ function Finalize(a::PETScMatrix)
     if a.comm == MPI.COMM_SELF
       @check_error_code PETSC.MatDestroy(a.mat)
     else
-      @check_error_code PETSC.PetscObjectRegisterDestroy(a.mat[].ptr)
+      @check_error_code PETSC.PetscObjectRegisterDestroy(a.mat[])
     end
     a.initialized = false
     @assert Threads.threadid() == 1
@@ -308,7 +308,7 @@ function _copy!(petscmat::Mat,mat::Matrix)
    for i=1:size(mat)[1]
      row[1]=PetscInt(i-1)
      vals .= view(mat,i,:)
-     PETSC.MatSetValues(petscmat.ptr,
+     PETSC.MatSetValues(petscmat,
                         PetscInt(1),
                         row,
                         n,
@@ -316,9 +316,43 @@ function _copy!(petscmat::Mat,mat::Matrix)
                         vals,
                         PETSC.INSERT_VALUES)
    end
-   @check_error_code PETSC.MatAssemblyBegin(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
-   @check_error_code PETSC.MatAssemblyEnd(petscmat.ptr, PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyBegin(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
+   @check_error_code PETSC.MatAssemblyEnd(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
 end
+
+function _copy!(petscmat::Mat,mat::AbstractSparseMatrix)
+  Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
+  csr = convert(Tm,mat)
+  ia  = csr.rowptr
+  ja  = csr.colval
+  a   = csr.nzval
+  m   = csr.m
+  n   = csr.n
+  maxnnz = maximum( ia[i+1]-ia[i] for i=1:m )
+  row    = Vector{PetscInt}(undef,1)
+  cols   = Vector{PetscInt}(undef,maxnnz)
+  for i=1:size(mat,1)
+    row[1]=PetscInt(i-1)
+    current=1
+    for j=ia[i]+1:ia[i+1]
+      col=ja[j]+1
+      cols[current]=PetscInt(col-1)
+      current=current+1
+    end
+    vals = view(a,ia[i]+1:ia[i+1])
+    PETSC.MatSetValues(
+      petscmat,
+      PetscInt(1),
+      row,
+      ia[i+1]-ia[i],
+      cols,
+      vals,
+      PETSC.INSERT_VALUES)
+  end
+  @check_error_code PETSC.MatAssemblyBegin(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
+  @check_error_code PETSC.MatAssemblyEnd(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
+end
+
 
 
 
