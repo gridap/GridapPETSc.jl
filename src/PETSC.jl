@@ -65,6 +65,33 @@ macro wrapper(fn,rt,argts,args,url)
   esc(expr)
 end
 
+macro wrapper_no_preload(fn,rt,argts,args,url)
+  hn = Symbol("$(fn.value)_handle")
+  sargs = "$(args)"
+  if length(args.args) == 1
+    sargs = sargs[1:end-2]*")"
+  end
+  if isempty(rstrip(url))
+    str = """
+        $(fn.value)$(sargs)
+    """
+  else
+    str = """
+        $(fn.value)$(sargs)
+
+    See [PETSc manual]($url).
+    """
+  end
+  expr = quote
+    @doc $str
+    @inline function $(fn.value)($(args.args...))
+      $(hn) = Libdl.dlsym(libpetsc_handle[],$(fn))
+      ccall($(hn),$rt,$argts,$(args.args...))
+    end
+  end
+  esc(expr)
+end
+
 #Petsc init related functions
 
 @wrapper(:PetscInitializeNoArguments,PetscErrorCode,(),(),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitializeNoArguments.html")
@@ -466,8 +493,8 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
 @wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
 @wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetBlockSize.html")
-@wrapper(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetIcntl.html")
-@wrapper(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetCntl.html")
+@wrapper_no_preload(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetIcntl.html")
+@wrapper_no_preload(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetCntl.html")
 
 # Null space related
 
