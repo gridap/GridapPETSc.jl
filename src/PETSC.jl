@@ -87,6 +87,7 @@ struct PetscViewer
 end
 PetscViewer() = PetscViewer(Ptr{Cvoid}())
 Base.convert(::Type{PetscViewer},p::Ptr{Cvoid}) = PetscViewer(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PetscViewer) = v.ptr
 
 @wrapper(:PETSC_VIEWER_STDOUT_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_.html")
 @wrapper(:PETSC_VIEWER_DRAW_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_.html")
@@ -188,6 +189,7 @@ struct Vec
 end
 Vec() = Vec(Ptr{Cvoid}())
 Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::Vec) = v.ptr
 
 @wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeq.html")
 @wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html")
@@ -447,6 +449,7 @@ struct Mat
 end
 Mat() = Mat(Ptr{Cvoid}())
 Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::Mat) = v.ptr
 
 @wrapper(:MatCreateAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,M,N,d_nz,d_nnz,o_nz,o_nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateAIJ.html")
 @wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html")
@@ -483,6 +486,7 @@ struct MatNullSpace
 end
 MatNullSpace() = MatNullSpace(Ptr{Cvoid}())
 Base.convert(::Type{MatNullSpace},p::Ptr{Cvoid}) = MatNullSpace(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::MatNullSpace) = v.ptr
 
 @wrapper(:MatSetNearNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNearNullSpace.html")
 @wrapper(:MatNullSpaceCreateRigidBody,PetscErrorCode,(Vec,Ptr{MatNullSpace}),(coords,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreateRigidBody.html")
@@ -610,6 +614,7 @@ struct KSP
 end
 KSP() = KSP(Ptr{Cvoid}())
 Base.convert(::Type{KSP},p::Ptr{Cvoid}) = KSP(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::KSP) = v.ptr
 
 """
 Julia alias for the `PC` C type.
@@ -621,6 +626,7 @@ struct PC
 end
 PC() = PC(Ptr{Cvoid}())
 Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 
 @wrapper(:KSPCreate,PetscErrorCode,(MPI.Comm,Ptr{KSP}),(comm,inksp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPCreate.html")
 @wrapper(:KSPDestroy,PetscErrorCode,(Ptr{KSP},),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPDestroy.html")
@@ -653,6 +659,7 @@ struct SNES
 end
 SNES() = SNES(Ptr{Cvoid}())
 Base.convert(::Type{SNES},p::Ptr{Cvoid}) = SNES(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::SNES) = v.ptr
 
 const SNESType = Cstring
 const SNESNEWTONLS         = "newtonls"
