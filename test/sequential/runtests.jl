@@ -18,6 +18,8 @@ using Test
 
 @time @testset "ElasticityDriver" begin include("ElasticityDriver.jl") end
 
+@time @testset "DarcyDriver" begin include("DarcyDriver.jl") end
+
 @time @testset "PLaplacianDriver" begin include("PLaplacianDriver.jl") end
 
 end # module
