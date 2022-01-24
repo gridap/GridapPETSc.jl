@@ -37,7 +37,7 @@ jobs:
            sudo apt-get update 
            sudo apt-get install -y wget gfortran g++ openmpi-bin libopenmpi-dev  
       - name: Install petsc
-        if: steps.cache-petsc.outputs.cache-hit != 'true'
+        ##if: steps.cache-petsc.outputs.cache-hit != 'true'
         run: |
           CURR_DIR=$(pwd)
           PACKAGE=petsc
@@ -58,7 +58,7 @@ jobs:
              --download-ptscotch --with-debugging --with-x=0 --with-shared=1 \
              --with-mpi=1 --with-64-bit-indices
           make
-          make install  
+          make install
       - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()'
       - run: julia --project=. --color=yes --check-bounds=yes test/sequential/runtests.jl
       - run: julia --project=. --color=yes --check-bounds=yes test/mpi/runtests.jl
