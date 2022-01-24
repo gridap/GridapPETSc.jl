@@ -1,7 +1,7 @@
-name: CI_CUSTOM_BUILD
+name: CI_EXTRA
 on: [push, pull_request]
 jobs:
-  Tests_custom_build:
+  test:
     name: Tests ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     env:
@@ -27,7 +27,7 @@ jobs:
          restore-keys: |
           ${{ runner.os }}-build-${{ env.JULIA_PETSC_LIBRARY }}-
           ${{ runner.os }}-build-
-          ${{ runner.os }}-       
+          ${{ runner.os }}-
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
@@ -58,7 +58,7 @@ jobs:
              --download-ptscotch --with-debugging --with-x=0 --with-shared=1 \
              --with-mpi=1 --with-64-bit-indices
           make
-          make install  
+          make install
       - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()'
       - run: julia --project=. --color=yes --check-bounds=yes test/sequential/runtests.jl
       - run: julia --project=. --color=yes --check-bounds=yes test/mpi/runtests.jl
