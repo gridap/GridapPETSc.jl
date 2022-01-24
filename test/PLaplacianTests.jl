@@ -3,6 +3,7 @@ using Gridap.Algebra
 using GridapDistributed
 using PartitionedArrays
 using GridapPETSc
+using GridapPETSc: PETSC
 using Test
 
 
@@ -26,17 +27,28 @@ function mysnessetup(snes)
   @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
 end
 
-
 function main(parts)
-  options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason"
-
-  GridapPETSc.with(args=split(options)) do
-     main(parts,FullyAssembledRows())
-     main(parts,SubAssembledRows())
+  main(parts,:gmres)
+  if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
+    main(parts,:mumps)
   end
 end
 
-function main(parts,strategy)
+function main(parts,solver)
+  if solver == :mumps
+    options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason"
+  elseif solver == :gmres
+    options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -ksp_monitor -snes_converged_reason"
+  else
+    error()
+  end
+  GridapPETSc.with(args=split(options)) do
+     main(parts,solver,FullyAssembledRows())
+     main(parts,solver,SubAssembledRows())
+  end
+end
+
+function main(parts,solver,strategy)
 
   domain = (0,4,0,4)
   cells = (100,100)
@@ -69,9 +81,13 @@ function main(parts,strategy)
   # fill!(x,1)
   # @test (norm(A*x-_A*x)+1) ≈ 1
 
-  nls = PETScNonlinearSolver(mysnessetup)
-  solver = FESolver(nls)
-  uh = solve(solver,op)
+  if solver == :mumps
+    nls = PETScNonlinearSolver(mysnessetup)
+  else
+    nls = PETScNonlinearSolver()
+  end
+  fesolver = FESolver(nls)
+  uh = solve(fesolver,op)
 
   Ωo = Triangulation(model)
   dΩo = Measure(Ωo,2*k)

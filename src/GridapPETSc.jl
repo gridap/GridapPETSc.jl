@@ -59,7 +59,10 @@ function __init__()
     libpetsc_handle[] = PETSc_jll.libpetsc_handle
   end
   for (handle,sym) in _PRELOADS
-    handle[] = Libdl.dlsym(libpetsc_handle[],sym)
+    _handle = Libdl.dlsym(libpetsc_handle[],sym;throw_error=false)
+    if _handle !== nothing
+      handle[] = _handle
+    end
   end
 end
 
