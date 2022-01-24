@@ -3,18 +3,52 @@ using Gridap.Algebra
 using GridapDistributed
 using PartitionedArrays
 using GridapPETSc
+using GridapPETSc: PETSC
 using Test
 
-function main(parts)
-  options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -ksp_monitor -snes_converged_reason"
 
-  GridapPETSc.with(args=split(options)) do
-     main(parts,FullyAssembledRows())
-     main(parts,SubAssembledRows())
+function mysnessetup(snes)
+  ksp      = Ref{GridapPETSc.PETSC.KSP}()
+  pc       = Ref{GridapPETSc.PETSC.PC}()
+  mumpsmat = Ref{GridapPETSc.PETSC.Mat}()
+  @check_error_code GridapPETSc.PETSC.SNESSetFromOptions(snes[])
+  @check_error_code GridapPETSc.PETSC.SNESGetKSP(snes[],ksp)
+  @check_error_code GridapPETSc.PETSC.KSPView(ksp[],C_NULL)
+  @check_error_code GridapPETSc.PETSC.KSPSetType(ksp[],GridapPETSc.PETSC.KSPPREONLY)
+  @check_error_code GridapPETSc.PETSC.KSPGetPC(ksp[],pc)
+  @check_error_code GridapPETSc.PETSC.PCView(pc[],C_NULL)
+  @check_error_code GridapPETSc.PETSC.PCSetType(pc[],GridapPETSc.PETSC.PCLU)
+  @check_error_code GridapPETSc.PETSC.PCFactorSetMatSolverType(pc[],GridapPETSc.PETSC.MATSOLVERMUMPS)
+  @check_error_code GridapPETSc.PETSC.PCFactorSetUpMatSolverType(pc[])
+  @check_error_code GridapPETSc.PETSC.PCFactorGetMatrix(pc[],mumpsmat)
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[],  4, 2)
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2)
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2)
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
+end
+
+function main(parts)
+  main(parts,:gmres)
+  if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
+    main(parts,:mumps)
   end
 end
 
-function main(parts,strategy)
+function main(parts,solver)
+  if solver == :mumps
+    options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason"
+  elseif solver == :gmres
+    options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -ksp_monitor -snes_converged_reason"
+  else
+    error()
+  end
+  GridapPETSc.with(args=split(options)) do
+     main(parts,solver,FullyAssembledRows())
+     main(parts,solver,SubAssembledRows())
+  end
+end
+
+function main(parts,solver,strategy)
 
   domain = (0,4,0,4)
   cells = (100,100)
@@ -47,9 +81,13 @@ function main(parts,strategy)
   # fill!(x,1)
   # @test (norm(A*x-_A*x)+1) ≈ 1
 
-  nls = PETScNonlinearSolver()
-  solver = FESolver(nls)
-  uh = solve(solver,op)
+  if solver == :mumps
+    nls = PETScNonlinearSolver(mysnessetup)
+  else
+    nls = PETScNonlinearSolver()
+  end
+  fesolver = FESolver(nls)
+  uh = solve(fesolver,op)
 
   Ωo = Triangulation(model)
   dΩo = Measure(Ωo,2*k)

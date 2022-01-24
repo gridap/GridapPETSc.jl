@@ -18,6 +18,7 @@ module PETSC
 using Libdl
 using GridapPETSc: libpetsc_handle
 using GridapPETSc: _PRELOADS
+using Gridap.Helpers: @check
 using MPI
 
 include("Config.jl")
@@ -59,6 +60,7 @@ macro wrapper(fn,rt,argts,args,url)
     push!(_PRELOADS,($hn,$fn))
     @doc $str
     @inline function $(fn.value)($(args.args...))
+      @check $(hn)[] != C_NULL "Missing symbol. Re-configure and compile PETSc."
       ccall($(hn)[],$rt,$argts,$(args.args...))
     end
   end
@@ -417,6 +419,24 @@ const MATLMVMDIAGBROYDEN   = "lmvmdiagbroyden"
 const MATCONSTANTDIAGONAL  = "constantdiagonal"
 const MATHARA              = "hara"
 
+const MATSOLVERSUPERLU          = "superlu"
+const MATSOLVERSUPERLU_DIST     = "superlu_dist"
+const MATSOLVERSTRUMPACK        = "strumpack"
+const MATSOLVERUMFPACK          = "umfpack"
+const MATSOLVERCHOLMOD          = "cholmod"
+const MATSOLVERKLU              = "klu"
+const MATSOLVERSPARSEELEMENTAL  = "sparseelemental"
+const MATSOLVERELEMENTAL        = "elemental"
+const MATSOLVERESSL             = "essl"
+const MATSOLVERLUSOL            = "lusol"
+const MATSOLVERMUMPS            = "mumps"
+const MATSOLVERMKL_PARDISO      = "mkl_pardiso"
+const MATSOLVERMKL_CPARDISO     = "mkl_cpardiso"
+const MATSOLVERPASTIX           = "pastix"
+const MATSOLVERMATLAB           = "matlab"
+const MATSOLVERPETSC            = "petsc"
+const MATSOLVERCUSPARSE         = "cusparse"
+
 """
 Julia alias for the `Mat` C type.
 
@@ -448,6 +468,8 @@ Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 @wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
 @wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
 @wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetBlockSize.html")
+@wrapper(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetIcntl.html")
+@wrapper(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetCntl.html")
 
 # Null space related
 
@@ -615,6 +637,11 @@ Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
+@wrapper(:PCView,PetscErrorCode,(PC,PetscViewer),(pc,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCView.html")
+@wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
+@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
+@wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
+
 
 """
 Julia alias for the `SNES` C type.
@@ -658,6 +685,7 @@ const SNESPATCH            = "patch"
 @wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFromOptions.html")
 @wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
 @wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/manualpages/SNES/SNESSetType.html")
+@wrapper(:SNESGetKSP,PetscErrorCode,(SNES,Ptr{KSP}),(snes,ksp),"https://petsc.org/release/docs/manualpages/SNES/SNESGetKSP.html")
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
