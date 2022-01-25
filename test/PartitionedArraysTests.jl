@@ -52,7 +52,7 @@ function partitioned_tests(parts)
 
   end
 
-  GridapPETSc.Init(args=split("-ksp_type gmres -ksp_monitor -pc_type jacobi"))
+  GridapPETSc.Init(args=split("-ksp_type gmres -ksp_converged_reason -ksp_error_if_not_converged true -pc_type jacobi"))
 
   function test_get_local_vector(v::PVector,x::PETScVector)
     if (get_backend(v.values)==mpi)

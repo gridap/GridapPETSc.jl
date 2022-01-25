@@ -34,9 +34,9 @@ end
 
 function main(parts,solver)
   if solver == :mumps
-    options = "-info  -ksp_error_if_not_converged true"
+    options = "-ksp_error_if_not_converged true -ksp_converged_reason"
   elseif solver == :cg
-    options = "-info -pc_type jacobi -ksp_type cg -ksp_monitor -ksp_rtol 1.0e-12"
+    options = "-pc_type jacobi -ksp_type cg -ksp_error_if_not_converged true -ksp_converged_reason -ksp_rtol 1.0e-12"
   else
     error()
   end
