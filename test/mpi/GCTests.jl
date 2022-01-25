@@ -23,7 +23,7 @@ function report_memory_and_random_gc(parts)
 end
 
 function main_bis(parts)
-  main(parts,SubAssembledRows())
+  main(parts,:gmres,SubAssembledRows())
   report_memory_and_random_gc(parts)
 end
 
