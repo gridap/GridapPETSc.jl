@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/gridap/GridapPETSc.jl/workflows/CI/badge.svg?branch=master)](https://github.com/gridap/GridapPETSc.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/gridap/GridapPETSc.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gridap/GridapPETSc.jl)
 
-`GridapPETSc` is a plugin of [`GridapDistributed.jl`](https://github.com/gridap/GridapDistributed.jl) that provides the  full set of scalable linear and nonlinear solvers in the [PETSc](https://petsc.org/release/).
+`GridapPETSc` is a plugin of [`GridapDistributed.jl`](https://github.com/gridap/GridapDistributed.jl) that provides the  full set of scalable linear and nonlinear solvers in the [PETSc](https://petsc.org/release/) library.
 
 ## Documentation
 
