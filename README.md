@@ -5,11 +5,13 @@
 [![Build Status](https://github.com/gridap/GridapPETSc.jl/workflows/CI/badge.svg?branch=master)](https://github.com/gridap/GridapPETSc.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/gridap/GridapPETSc.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gridap/GridapPETSc.jl)
 
-`GridapPETSc` is a plugin of [`GridapDistributed.jl`](https://github.com/gridap/GridapDistributed.jl) that provides the  full set of scalable linear and nonlinear solvers in the [PETSc](https://petsc.org/release/) library.
+`GridapPETSc` is a plugin of [`GridapDistributed.jl`](https://github.com/gridap/GridapDistributed.jl) that provides the  full set of scalable linear and nonlinear solvers in the [PETSc](https://petsc.org/release/) library. It also provides serial solvers to [`Gridap.jl`](https://github.com/gridap/Gridap.jl).
 
 ## Documentation
 
-Take a look at this [tutorial](https://gridap.github.io/Tutorials/dev/pages/t016_poisson_distributed/#Tutorial-16:-Poisson-equation-on-parallel-distributed-memory-computers-1) for learning how to use `GridapPETSc` in distributed-memory simulations of PDEs.
+Take a look at this [tutorial](https://gridap.github.io/Tutorials/dev/pages/t016_poisson_distributed/#Tutorial-16:-Poisson-equation-on-parallel-distributed-memory-computers-1) for learning how to use `GridapPETSc` in distributed-memory simulations of PDEs. 
+
+It can also been used in the serial case, as shown in this [test](https://github.com/gridap/GridapPETSc.jl/blob/master/test/sequential/PoissonDriver.jl).
 
 ## Installation
 
