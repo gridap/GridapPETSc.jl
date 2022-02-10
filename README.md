@@ -5,7 +5,11 @@
 [![Build Status](https://github.com/gridap/GridapPETSc.jl/workflows/CI/badge.svg?branch=master)](https://github.com/gridap/GridapPETSc.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/gridap/GridapPETSc.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gridap/GridapPETSc.jl)
 
-[Gridap](https://github.com/gridap/Gridap.jl) plugin to use PETSC ([Portable, Extensible Toolkit for Scientific Computation](https://www.mcs.anl.gov/petsc/)).
+`GridapPETSc` is a plugin of [`GridapDistributed.jl`](https://github.com/gridap/GridapDistributed.jl) that provides the  full set of scalable linear and nonlinear solvers in the [PETSc](https://petsc.org/release/).
+
+## Documentation
+
+Take a look at this [tutorial](https://gridap.github.io/Tutorials/dev/pages/t016_poisson_distributed/#Tutorial-16:-Poisson-equation-on-parallel-distributed-memory-computers-1) for learning how to use `GridapPETSc` in distributed-memory simulations of PDEs.
 
 ## Installation
 
