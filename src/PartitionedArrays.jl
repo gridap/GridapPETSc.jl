@@ -83,8 +83,29 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIBackend)
   PVector(values,ids)
 end
 
-_copy!(a::PVector{T,<:SequentialData},b::Vec) where T = @notimplemented
-_copy!(a::Vec,b::PVector{T,<:SequentialData}) where T = @notimplemented
+function _copy!(a::PVector{T,<:SequentialData},b::Vec) where T
+  ni = length(a)
+  ix = collect(PetscInt,0:(ni-1))
+  y = zeros(PetscScalar,ni)
+  @check_error_code PETSC.VecGetValues(b,ni,ix,y)
+  map_parts(a.rows.partition,a.values) do ids,z
+    oid_to_gid = view(ids.lid_to_gid,ids.oid_to_lid)
+    z[ids.oid_to_lid] = y[oid_to_gid]
+  end
+  a
+end
+
+function _copy!(a::Vec,b::PVector{T,<:SequentialData}) where T
+  ni = length(b)
+  ix = collect(PetscInt,0:(ni-1))
+  y = zeros(PetscScalar,ni)
+  map_parts(b.rows.partition,b.values) do ids,z
+    oid_to_gid = view(ids.lid_to_gid,ids.oid_to_lid)
+    y[oid_to_gid] = z[ids.oid_to_lid]
+  end
+  @check_error_code PETSC.VecSetValues(a,ni,ix,y,PETSC.INSERT_VALUES)
+  a
+end
 
 function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
   map_parts(get_part_ids(pvec.values),pvec.values,pvec.rows.partition) do part, values, indices
