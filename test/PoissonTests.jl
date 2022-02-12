@@ -70,6 +70,11 @@ function main(parts,solver)
       assem=SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{Float64},U,V)
       op = AffineFEOperator(a,l,U,V,assem)
 
+      v_julia = get_vector(op)
+      v_petsc = convert(PETScVector,v_julia)
+      copy!(v_julia,v_petsc)
+      copy!(v_petsc,v_julia)
+
       if solver == :mumps
         ls = PETScLinearSolver(mykspsetup)
       else

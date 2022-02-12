@@ -22,6 +22,12 @@ using Test
 
 @time @testset "PLaplacianDriver" begin include("PLaplacianDriver.jl") end
 
+# Partitioned in sequential mode
+
+@time @testset "PoissonTests" begin include("PoissonTests.jl") end
+
+@time @testset "PLaplacianTests" begin include("PLaplacianTests.jl") end
+
 end # module
 
 
