@@ -192,7 +192,12 @@ function _petsc_matrix(a::PSparseMatrix,::MPIBackend)
     @check isa(cols,IndexRange) "Not supported partition for PETSc matrices"
     Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
     csr = convert(Tm,values)
-    i = csr.rowptr; j = csr.colval; v = csr.nzval
+    i = csr.rowptr; _j = csr.colval; v = csr.nzval
+    if values === csr
+      j = copy(_j)
+    else
+      j = _j
+    end
     u = PetscInt(1)
     for k in 1:length(j)
       lid = j[k] + u
