@@ -87,7 +87,14 @@ function main(parts,solver,strategy)
     nls = PETScNonlinearSolver()
   end
   fesolver = FESolver(nls)
-  uh = solve(fesolver,op)
+  uh = zero(U)
+  uh,cache = solve!(uh,fesolver,op)
+  snes = cache.snes[]
+  i_petsc = Ref{PetscInt}()
+  @check_error_code PETSC.SNESGetIterationNumber(snes,i_petsc)
+  @check_error_code PETSC.SNESGetLinearSolveIterations(snes,i_petsc)
+  @check_error_code PETSC.SNESGetNumberFunctionEvals(snes,i_petsc)
+  @check_error_code PETSC.SNESGetLinearSolveFailures(snes,i_petsc)
 
   Ωo = Triangulation(model)
   dΩo = Measure(Ωo,2*k)
