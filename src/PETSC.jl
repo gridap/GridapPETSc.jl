@@ -693,6 +693,12 @@ const SNESPATCH            = "patch"
 @wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
 @wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/manualpages/SNES/SNESSetType.html")
 @wrapper(:SNESGetKSP,PetscErrorCode,(SNES,Ptr{KSP}),(snes,ksp),"https://petsc.org/release/docs/manualpages/SNES/SNESGetKSP.html")
+@wrapper(:SNESGetIterationNumber,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/docs/manualpages/SNES/SNESGetIterationNumber.html")
+@wrapper(:SNESGetLinearSolveIterations,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/docs/manualpages/SNES/SNESGetLinearSolveIterations.html")
+@wrapper(:SNESSetCountersReset,PetscErrorCode,(SNES,PetscBool),(snes,reset),"https://petsc.org/release/docs/manualpages/SNES/SNESSetCountersReset.html")
+@wrapper(:SNESGetNumberFunctionEvals,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfuncs),"https://petsc.org/release/docs/manualpages/SNES/SNESGetNumberFunctionEvals.html")
+@wrapper(:SNESGetLinearSolveFailures,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfails),"https://petsc.org/release/docs/manualpages/SNES/SNESGetLinearSolveFailures.html")
+
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
