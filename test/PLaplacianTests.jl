@@ -5,6 +5,7 @@ using PartitionedArrays
 using GridapPETSc
 using GridapPETSc: PETSC
 using Test
+using SparseMatricesCSR
 
 
 function mysnessetup(snes)
@@ -69,9 +70,11 @@ function main(parts,solver,strategy)
   V = TestFESpace(model,reffe,dirichlet_tags="boundary")
   U = TrialFESpace(u,V)
 
-  op = FEOperator(r,j,U,V,strategy)
+  assem=SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},
+                              Vector{PetscScalar},U,V,strategy)
 
-  uh = zero(U)
+  op = FEOperator(r,j,U,V,assem)
+
   # b,A = residual_and_jacobian(op,uh)
   # _A = copy(A)
   # _b = copy(b)
@@ -98,6 +101,11 @@ function main(parts,solver,strategy)
 
   Ωo = Triangulation(model)
   dΩo = Measure(Ωo,2*k)
+  eh = u - uh
+  @test sqrt(sum(∫( abs2(eh) )dΩo)) < 1.0e-9
+
+  uh = zero(U)
+  uh, cache = solve!(uh,nls,op,cache)
   eh = u - uh
   @test sqrt(sum(∫( abs2(eh) )dΩo)) < 1.0e-9
 
