@@ -7,6 +7,8 @@ using GridapPETSc
 using GridapPETSc: PETSC
 using PartitionedArrays
 using Test
+using SparseMatricesCSR
+
 
 # Setup solver via low level PETSC API calls
 function mykspsetup(ksp)
@@ -67,13 +69,32 @@ function main(parts,solver)
 
       a(u,v) = ∫( ∇(v)⋅∇(u) )dΩ
       l(v) = ∫( v*f )dΩ + ∫( v*g )dΓn
-      assem=SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{Float64},U,V)
+
+      Tm=SparseMatrixCSR{0,PetscScalar,PetscInt}
+      Tv=Vector{PetscScalar}
+      assem=SparseMatrixAssembler(Tm,Tv,U,V)
       op = AffineFEOperator(a,l,U,V,assem)
 
       v_julia = get_vector(op)
       v_petsc = convert(PETScVector,v_julia)
       copy!(v_julia,v_petsc)
       copy!(v_petsc,v_julia)
+
+      # Checking that convert performs deep copies and does not modify A
+      A=get_matrix(op)
+      vals_copy=map_parts(A.values) do A
+        @test typeof(A)==SparseMatrixCSR{0,PetscScalar,PetscInt}
+        i=copy(A.rowptr)
+        j=copy(A.colval)
+        a=copy(A.nzval)
+        i,j,a
+      end
+      Apetsc=convert(PETScMatrix,A)
+      map_parts(A.values,vals_copy) do A, (i,j,a)
+        @test all(i .== A.rowptr)
+        @test all(j .== A.colval)
+        @test all(a .== A.nzval)
+      end
 
       if solver == :mumps
         ls = PETScLinearSolver(mykspsetup)
