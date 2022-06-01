@@ -166,6 +166,16 @@ function _get_local_vector(a::PETScVector)
   return v
 end
 
+# This function works with either ghosted or non-ghosted MPI vectors.
+# In the case of a ghosted vector it solely returns the locally owned
+# entries.
+function _get_local_vector_read(a::PETScVector)
+  r_pv = Ref{Ptr{PetscScalar}}()
+  @check_error_code PETSC.VecGetArrayRead(a.vec[], r_pv)
+  v = unsafe_wrap(Array, r_pv[], _local_size(a); own = false)
+  return v
+end
+
 function _restore_local_vector!(v::Array,a::PETScVector)
   @check_error_code PETSC.VecRestoreArray(a.vec[], Ref(pointer(v)))
   nothing

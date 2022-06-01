@@ -119,7 +119,7 @@ function _copy!(pvec::PVector{T,<:MPIData},petscvec::Vec) where T
       # convert petscvec into a PVector to avoid extra memory allocation
       # and copies.
       @assert pvec.rows.ghost
-      lx=_get_local_vector(lg)
+      lx=_get_local_vector_read(lg)
       vvalues=view(values,indices.oid_to_lid)
       vvalues .= lx[1:num_oids(indices)]
       _restore_local_vector!(lx,lg)
