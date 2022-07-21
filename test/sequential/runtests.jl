@@ -1,6 +1,7 @@
 module GridapPETScSequentialTests
 
 using Test
+using MPI
 
 @time @testset "PETSC" begin include("PETSCTests.jl") end
 
@@ -28,8 +29,10 @@ using Test
 
 @time @testset "PLaplacianTests" begin include("PLaplacianTests.jl") end
 
+if MPI.Initialized()
+    MPI.Finalize()
+end
+
 end # module
-
-
 
 
