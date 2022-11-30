@@ -704,5 +704,12 @@ const SNESPATCH            = "patch"
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
 
-@wrapper(:PetscObjectSetName, PetscErrorCode, (Ptr{Cvoid}, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
+struct FIELD
+  ptr::Ptr{Cvoid}
+end
+FIELD() = FIELD(Ptr{Cvoid}())
+Base.convert(::Type{PC},p::Ptr{Cvoid}) = FIELD(p)
+Base.unsafe_convert(::Type{Ptr{Cvoid}},v::FIELD) = v.ptr
+
+@wrapper(:PetscObjectSetName, PetscErrorCode, (Ptr{FIELD}, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
 end # module
