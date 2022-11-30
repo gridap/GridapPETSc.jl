@@ -704,5 +704,5 @@ const SNESPATCH            = "patch"
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
 
-@wrapper(:PetscObjectSetName, PetscErrorCode, ((obj,)), (Cstring), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
+@wrapper(:PetscObjectSetName, PetscErrorCode, (obj, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
 end # module
