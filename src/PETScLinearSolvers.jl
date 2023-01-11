@@ -61,7 +61,7 @@ end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
   if (x.comm != MPI.COMM_SELF)
-    gridap_petsc_gc() # Do garbage collection of PETSc objects
+    #gridap_petsc_gc() # Do garbage collection of PETSc objects
   end
 
   B = convert(PETScVector,b)
