@@ -703,4 +703,43 @@ const SNESPATCH            = "patch"
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
+"""
+ Julia alias for the `IS` C type.
+ See [PETSc manual](https://petsc.org/release/docs/manualpages/IS/IS/)).
+ """
+ struct IS
+   ptr::Ptr{Cvoid}
+ end
+ IS() = IS(Ptr{Cvoid}())
+ Base.convert(::Type{IS},p::Ptr{Cvoid}) = IS(p)
+ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::IS) = v.ptr
+ const ISType = Cstring
+
+
+
+ """
+ Julia alias for `PetscCopyMode` C type.
+ See [PETSc manual](https://petsc.org/main/docs/manualpages/Sys/PetscCopyMode/).
+ """
+ @enum PetscCopyMode begin
+   PETSC_COPY_VALUES
+   PETSC_OWN_POINTER
+   PETSC_USE_POINTER
+ end
+@wrapper(:PetscObjectSetName, PetscErrorCode, (Ptr{Cvoid}, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
+@wrapper(:ISCreateGeneral,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, PetscCopyMode, Ptr{IS}),(comm, n, idx, mode, is), "https://petsc.org/main/docs/manualpages/IS/ISCreateGeneral/")
+@wrapper(:ISView,PetscErrorCode,(IS, PetscViewer),(is, viewer), "https://petsc.org/main/docs/manualpages/IS/ISView/")
+@wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, PetscInt, PetscCopyMode, Ptr{IS}),(comm, bs, n, idx, mode, is), "https://petsc.org/release/docs/manualpages/IS/ISCreateBlock/")
+@wrapper(:ISGetIndices,PetscErrorCode,(IS, Ptr{PetscInt}),(is, ptr), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
+@wrapper(:ISExpand,PetscErrorCode,(IS, IS, Ptr{IS}),(is1, is2, isout), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
+@wrapper(:ISGetSize,PetscErrorCode,(IS, Ptr{PetscInt}), (is, nsize), "https://petsc.org/main/docs/manualpages/IS/ISGetSize/")
+@wrapper(:ISDestroy, PetscErrorCode,(Ptr{IS},) ,(pis,), "https://petsc.org/main/docs/manualpages/IS/ISDestroy/")
+@wrapper(:PCFieldSplitSetIS,PetscErrorCode,(PC, Cstring, IS),(pc, Cfieldname, is), "https://petsc.org/release/docs/manualpages/PC/PCFieldSplitSetIS/")
+
+
+
+#PETSc Print
+@wrapper(:PetscPrintf,PetscErrorCode,(MPI.Comm, Cstring ),(comm, args ),"https://petsc.org/release/docs/manualpages/Sys/PetscPrintf/")
+@wrapper(:PetscSynchronizedPrintf,PetscErrorCode,(MPI.Comm, Cstring),(comm, args),"https://petsc.org/main/docs/manualpages/Sys/PetscSynchronizedPrintf/")
+
 end # module
