@@ -38,15 +38,15 @@ end
     v.size
   end
   
-  Base.@propagate_inbounds function Base.getindex(v::PETScIS,i1::Integer)
-    @boundscheck checkbounds(v, i1)
-    n = one(PetscInt)
-    # i0 = Ref(i1-n)
-    pi0 = Ref{PetscInt}()
-    # pi0 = reinterpret(Ptr{PetscInt},pointer_from_objref(i0))
-    @check_error_code PETSC.ISGetIndices(v.is[], pi0)
-    return pi0
-  end
+  # Base.@propagate_inbounds function Base.getindex(v::PETScIS,i1::Integer)
+  #   @boundscheck checkbounds(v, i1)
+  #   n = one(PetscInt)
+  #   # i0 = Ref(i1-n)
+  #   pi0 = Ref{PetscInt}()
+  #   # pi0 = reinterpret(Ptr{PetscInt},pointer_from_objref(i0))
+  #   @check_error_code PETSC.ISGetIndices(v.is[], pi0)
+  #   return pi0
+  # end
   
   # Base.@propagate_inbounds function Base.setindex!(v::PETScIS,y,i1::Integer)
   #   @boundscheck checkbounds(v, i1)
