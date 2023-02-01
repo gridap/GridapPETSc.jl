@@ -158,7 +158,8 @@ function Algebra.solve!(x::T,
                         op::NonlinearOperator,
                         cache::PETScNonlinearSolverCache{<:T}) where T <: AbstractVector
 
-  @assert cache.op === op
+  #@assert cache.op === op
+  cache.op = op
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   copy!(x,cache.x_petsc)
   cache
