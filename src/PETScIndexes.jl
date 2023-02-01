@@ -5,11 +5,9 @@ mutable struct PETScIS <: AbstractVector{PetscInt}
     initialized::Bool
     size::Tuple{Int}
     comm::MPI.Comm
-    function PETScIS(comm::MPI.Comm)
-    new(Ref{IS}(),false,(-1,),comm)
+    PETScIS(comm::MPI.Comm) =  new(Ref{IS}(),false,(-1,),comm)
 end
 
-end
   
   function Init(a::PETScIS)
     n = Ref{PetscInt}()

@@ -733,7 +733,7 @@ const SNESPATCH            = "patch"
 @wrapper(:ISGetIndices,PetscErrorCode,(IS, Ptr{PetscInt}),(is, ptr), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
 @wrapper(:ISExpand,PetscErrorCode,(IS, IS, Ptr{IS}),(is1, is2, isout), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
 @wrapper(:ISGetSize,PetscErrorCode,(IS, Ptr{PetscInt}), (is, nsize), "https://petsc.org/main/docs/manualpages/IS/ISGetSize/")
-@wrapper(:ISDestroy, PetscErrorCode,(Ptr{IS},) ,(pis,), "https://petsc.org/main/docs/manualpages/IS/ISDestroy/")
+@wrapper(:ISDestroy, PetscErrorCode,(Ptr{IS},), (pis,), "https://petsc.org/main/docs/manualpages/IS/ISDestroy/")
 @wrapper(:PCFieldSplitSetIS,PetscErrorCode,(PC, Cstring, IS),(pc, Cfieldname, is), "https://petsc.org/release/docs/manualpages/PC/PCFieldSplitSetIS/")
 
 

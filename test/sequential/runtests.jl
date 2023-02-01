@@ -7,6 +7,8 @@ using MPI
 
 @time @testset "PETScArrays" begin include("PETScArraysTests.jl") end
 
+@time @testset "PETScIndexes" begin include("PETScIndexesTests.jl") end
+
 @time @testset "PartitionedArrays (sequential)" begin include("PartitionedArraysTests.jl") end
 
 @time @testset "PETScLinearSolvers" begin include("PETScLinearSolversTests.jl") end
