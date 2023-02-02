@@ -11,7 +11,7 @@ end
   
   function Init(a::PETScIS)
     n = Ref{PetscInt}()
-    @check_error_code PETSC.ISGetSize(a.is[],n)
+    @check_error_code PETSC.ISGetSize(a.is[], n)
     a.size = (Int(n[]),)
     @assert Threads.threadid() == 1
     _NREFS[] += 1
@@ -38,15 +38,14 @@ end
     v.size
   end
   
-  # Base.@propagate_inbounds function Base.getindex(v::PETScIS,i1::Integer)
-  #   @boundscheck checkbounds(v, i1)
-  #   n = one(PetscInt)
-  #   # i0 = Ref(i1-n)
-  #   pi0 = Ref{PetscInt}()
-  #   # pi0 = reinterpret(Ptr{PetscInt},pointer_from_objref(i0))
-  #   @check_error_code PETSC.ISGetIndices(v.is[], pi0)
-  #   return pi0
-  # end
+  Base.@propagate_inbounds function Base.getindex(v::PETScIS,i1::Integer)
+    @boundscheck checkbounds(v, i1)
+    n = one(PetscInt)
+    i0 = Ref(i1-n)
+    pi0 = reinterpret(Ptr{PetscInt},pointer_from_objref(i0))
+    @check_error_code PETSC.ISGetIndices(v.is[], pi0)
+    return pi0
+  end
   
   # Base.@propagate_inbounds function Base.setindex!(v::PETScIS,y,i1::Integer)
   #   @boundscheck checkbounds(v, i1)
@@ -68,20 +67,32 @@ end
     Init(v)
   end
   
-  function PETScIS(array::Vector, bs=1)
+
+
+
+  function PETScIS(idx::Vector{PetscInt}, bs=1)
     comm = MPI.COMM_SELF
     is = PETScIS(comm)
-    n = length(array)
-    p_idx = Ref{Ptr{PetscInt}}()
-    xp=reinterpret(Ptr{PetscInt},pointer_from_objref(p_idx))
-    for i = 1:1:n
-        unsafe_store!(xp, array[i], i)
-    end
-    @check_error_code GridapPETSc.PETSC.ISCreateGeneral(MPI.COMM_WORLD, n, xp, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
-
+    n = length(idx)
+    @check_error_code GridapPETSc.PETSC.ISCreateGeneral(comm, n, idx, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
     Init(is)
   end
-  
+
+  function PETScIS(idx::Vector, bs=1)
+    idx = PetscInt.(idx)
+    PETScIS(idx)
+  end
+
+#Block Implementation
+  function PETScIS(array::Vector{PetscInt},n, bs=1)
+    comm = MPI.COMM_SELF
+    is = PETScIS(comm)
+    n = PetscInt(n)
+    bs = PetscInt(bs)
+    @check_error_code GridapPETSc.PETSC.ISCreateBlock(comm, n, bs, array, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
+    Init(is)
+  end
+
 #   function PETScVector(a::PetscScalar,ax::AbstractUnitRange)
 #     PETScVector(fill(a,length(ax)))
 #   end
