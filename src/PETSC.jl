@@ -727,9 +727,9 @@ const SNESPATCH            = "patch"
    PETSC_USE_POINTER
  end
 @wrapper(:PetscObjectSetName, PetscErrorCode, (Ptr{Cvoid}, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
-@wrapper(:ISCreateGeneral,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, PetscCopyMode, Ptr{IS}),(comm, n, idx, mode, is), "https://petsc.org/main/docs/manualpages/IS/ISCreateGeneral/")
+@wrapper(:ISCreateGeneral,PetscErrorCode,(MPI.Comm, PetscInt, Ptr{PetscInt}, PetscCopyMode, Ptr{IS}),(comm, n, idx, mode, is), "https://petsc.org/main/docs/manualpages/IS/ISCreateGeneral/")
 @wrapper(:ISView,PetscErrorCode,(IS, PetscViewer),(is, viewer), "https://petsc.org/main/docs/manualpages/IS/ISView/")
-@wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, PetscInt, PetscCopyMode, Ptr{IS}),(comm, bs, n, idx, mode, is), "https://petsc.org/release/docs/manualpages/IS/ISCreateBlock/")
+@wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, Ptr{PetscInt}, PetscCopyMode, Ptr{IS}),(comm, bs, n, idx, mode, is), "https://petsc.org/release/docs/manualpages/IS/ISCreateBlock/")
 @wrapper(:ISGetIndices,PetscErrorCode,(IS, Ptr{PetscInt}),(is, ptr), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
 @wrapper(:ISExpand,PetscErrorCode,(IS, IS, Ptr{IS}),(is1, is2, isout), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
 @wrapper(:ISGetSize,PetscErrorCode,(IS, Ptr{PetscInt}), (is, nsize), "https://petsc.org/main/docs/manualpages/IS/ISGetSize/")
@@ -741,5 +741,24 @@ const SNESPATCH            = "patch"
 #PETSc Print
 @wrapper(:PetscPrintf,PetscErrorCode,(MPI.Comm, Cstring ),(comm, args ),"https://petsc.org/release/docs/manualpages/Sys/PetscPrintf/")
 @wrapper(:PetscSynchronizedPrintf,PetscErrorCode,(MPI.Comm, Cstring),(comm, args),"https://petsc.org/main/docs/manualpages/Sys/PetscSynchronizedPrintf/")
+
+#PETSc Alloc
+@wrapper(:PetscMallocA,PetscErrorCode,(PetscInt, PetscBool, PetscInt, Ptr{Cstring}, Ptr{Cstring}, Csize_t, Ptr{Cvoid},), (n, clear,  lineno, fun, fname, bytes0, ptr0,), "https://petsc.org/release/docs/manualpages/Sys/PetscMallocA/#petscmalloca")
+#PETSC_EXTERN PetscErrorCode PetscMallocA(int,PetscBool,int,const char *,const char *,size_t,void *,...);
+
+"""
+    @PetscMalloc1
+
+See [PETSc manual](https://petsc.org/release/docs/manualpages/Sys/PetscMalloc1/).
+"""
+macro PetscMalloc1(m1,r1)
+  quote
+    func = Ptr{Nothing}()
+    linec = Ptr{Nothing}()
+    PetscMallocA(1,PETSC_FALSE, Cint(11), Ref(Cstring(linec)), Ref(Cstring(func)), (Csize_t)($m1)*sizeof($r1),($r1))
+  end
+end
+# PetscMalloc1(m1,r1) PetscMallocA(1,PETSC_FALSE,__LINE__,PETSC_FUNCTION_NAME,__FILE__,(size_t)(m1)*sizeof(**(r1)),(r1))
+
 
 end # module
