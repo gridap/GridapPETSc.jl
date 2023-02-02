@@ -47,26 +47,7 @@ end
     return pi0
   end
   
-  # Base.@propagate_inbounds function Base.setindex!(v::PETScIS,y,i1::Integer)
-  #   @boundscheck checkbounds(v, i1)
-  #   n = one(PetscInt)
-  #   i0 = Ref(PetscInt(i1-n))
-  #   vi = Ref(PetscInt(y))
-  #   @check_error_code PETSC.VecSetValues(v.is[],n,i0,vi,PETSC.INSERT_VALUES)
-  #   v.is[i0] .= y
-  #   y
-  # end
-  
-  # Constructors
-  
-  function PETScIS(n::Integer)
-    println("PETScIS")
-    v = Ref{Ptr{PetscInt}}()
-    println("Construct\n")
-    @check_error_code PETSC.PetscMalloc1(n, v)
-    Init(v)
-  end
-  
+
 
 
 
@@ -92,6 +73,29 @@ end
     @check_error_code GridapPETSc.PETSC.ISCreateBlock(comm, n, bs, array, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
     Init(is)
   end
+
+
+  # Base.@propagate_inbounds function Base.setindex!(v::PETScIS,y,i1::Integer)
+  #   @boundscheck checkbounds(v, i1)
+  #   n = one(PetscInt)
+  #   i0 = Ref(PetscInt(i1-n))
+  #   vi = Ref(PetscInt(y))
+  #   @check_error_code PETSC.VecSetValues(v.is[],n,i0,vi,PETSC.INSERT_VALUES)
+  #   v.is[i0] .= y
+  #   y
+  # end
+  
+  # Constructors
+  
+  function PETScIS(n::Integer)
+    println("PETScIS")
+    v = Ref{Ptr{PetscInt}}()
+    println("Construct\n")
+    @check_error_code PETSC.PetscMalloc1(n, v)
+    Init(v)
+  end
+  
+
 
 #   function PETScVector(a::PetscScalar,ax::AbstractUnitRange)
 #     PETScVector(fill(a,length(ax)))
