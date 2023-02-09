@@ -47,10 +47,6 @@ end
     return pi0
   end
   
-
-
-
-
   function PETScIS(idx::Vector{PetscInt}, bs=1)
     comm = MPI.COMM_SELF
     is = PETScIS(comm)
