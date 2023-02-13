@@ -55,20 +55,20 @@ end
     Init(is)
   end
 
-  function PETScIS(idx::Vector, bs=1)
+  function PETScIS(idx::AbstractVector, bs=1)
     idx = PetscInt.(idx)
     PETScIS(idx)
   end
 
-#Block Implementation
-  function PETScIS(array::Vector{PetscInt},n, bs=1)
-    comm = MPI.COMM_SELF
-    is = PETScIS(comm)
-    n = PetscInt(n)
-    bs = PetscInt(bs)
-    @check_error_code GridapPETSc.PETSC.ISCreateBlock(comm, n, bs, array, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
-    Init(is)
-  end
+# #Block Implementation
+#   function PETScIS(array::Vector{PetscInt},n, bs=1)
+#     comm = MPI.COMM_SELF
+#     is = PETScIS(comm)
+#     n = PetscInt(n)
+#     bs = PetscInt(bs)
+#     @check_error_code GridapPETSc.PETSC.ISCreateBlock(comm, n, bs, array, GridapPETSc.PETSC.PETSC_COPY_VALUES, is.is)
+#     Init(is)
+#   end
 
 
   # Base.@propagate_inbounds function Base.setindex!(v::PETScIS,y,i1::Integer)
