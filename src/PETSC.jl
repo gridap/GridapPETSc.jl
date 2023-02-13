@@ -648,6 +648,9 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
 
+#PCType() = PCType(Ptr{Cvoid}())
+@wrapper(:PCGetType,PetscErrorCode,(PC, Ptr{Ptr{Cstring}}),(pc,typ),"https://petsc.org/main/docs/manualpages/PC/PCGetType/")
+
 
 """
 Julia alias for the `SNES` C type.
@@ -713,8 +716,14 @@ const SNESPATCH            = "patch"
  IS() = IS(Ptr{Cvoid}())
  Base.convert(::Type{IS},p::Ptr{Cvoid}) = IS(p)
  Base.unsafe_convert(::Type{Ptr{Cvoid}},v::IS) = v.ptr
- const ISType = Cstring
 
+
+"""
+Julia alias for `ISType` C type.
+
+See [PETSc manual](https://petsc.org/main/docs/manualpages/IS/ISType/).
+"""
+const ISType = Cstring
 
 
  """

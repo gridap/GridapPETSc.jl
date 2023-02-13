@@ -1,9 +1,43 @@
 
+struct PETScFieldSplit{F}
+  setup::F
+end
+
+function set_fieldsplit(pc)
+  println("here")
+  println(typeof(pc))
+end
+
+function PETScFieldSplit()
+  PETScFieldSplit(set_fieldsplit)
+end
+
+
+
 struct PETScLinearSolver{F} <: LinearSolver
   setup::F
 end
 
-ksp_from_options(ksp) = @check_error_code PETSC.KSPSetFromOptions(ksp[])
+function ksp_from_options(ksp)
+    pc = Ref{GridapPETSc.PETSC.PC}()
+    pctype = Ref{Ptr{Cstring}}()
+    kspset = @check_error_code PETSC.KSPSetFromOptions(ksp[])
+    @check_error_code GridapPETSc.PETSC.KSPGetPC(ksp[],pc)
+    @check_error_code GridapPETSc.PETSC.PCGetType(pc[], pctype)
+    
+    #Get PC-string name
+    pc_ptr_conv = reinterpret(Ptr{UInt8}, pctype[])
+    GC.@preserve pc_name = unsafe_string(pc_ptr_conv)
+
+    if pc_name == "fieldsplit"
+      println("SplitFields Function")
+    else
+      splitfields()
+    end
+    println("Preondition type: $(pc_name)")
+
+    kspset
+end
 
 function PETScLinearSolver()
   PETScLinearSolver(ksp_from_options)
