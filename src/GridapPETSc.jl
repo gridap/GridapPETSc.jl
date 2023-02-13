@@ -5,6 +5,11 @@ using Libdl
 using Gridap.Helpers
 using Gridap.Algebra
 using Gridap.Arrays
+using Gridap.FESpaces
+using Gridap.MultiField
+
+using GridapDistributed
+
 using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
@@ -83,6 +88,10 @@ export PETScIS
 include("PETScArrays.jl")
 include("PETScIndexes.jl")
 include("PartitionedArrays.jl")
+
+
+export PETScFieldSplit
+include("PETScFieldSplits.jl")
 
 export PETScLinearSolver
 include("PETScLinearSolvers.jl")
