@@ -763,10 +763,6 @@ end
 @wrapper(:PCFieldSplitSetType,PetscErrorCode,(PC, PCCompositeType),(pc, pcctype), "https://petsc.org/release/docs/manualpages/PC/PCFieldSplitSetType/")
 
 
-
-
-
-
 #PETSc Print
 @wrapper(:PetscPrintf,PetscErrorCode,(MPI.Comm, Cstring ),(comm, args ),"https://petsc.org/release/docs/manualpages/Sys/PetscPrintf/")
 @wrapper(:PetscSynchronizedPrintf,PetscErrorCode,(MPI.Comm, Cstring),(comm, args),"https://petsc.org/main/docs/manualpages/Sys/PetscSynchronizedPrintf/")
@@ -774,26 +770,5 @@ end
 
 #PETSc Sleep
 @wrapper(:PetscSleep,PetscErrorCode,(PetscReal,),(s,),"https://petsc.org/main/docs/manualpages/Sys/PetscSleep/")
-
-
-
-#PETSc Alloc
-@wrapper(:PetscMallocA,PetscErrorCode,(PetscInt, PetscBool, PetscInt, Ptr{Cstring}, Ptr{Cstring}, Csize_t, Ptr{Cvoid},), (n, clear,  lineno, fun, fname, bytes0, ptr0,), "https://petsc.org/release/docs/manualpages/Sys/PetscMallocA/#petscmalloca")
-#PETSC_EXTERN PetscErrorCode PetscMallocA(int,PetscBool,int,const char *,const char *,size_t,void *,...);
-
-"""
-    @PetscMalloc1
-
-See [PETSc manual](https://petsc.org/release/docs/manualpages/Sys/PetscMalloc1/).
-"""
-macro PetscMalloc1(m1,r1)
-  quote
-    func = Ptr{Nothing}()
-    linec = Ptr{Nothing}()
-    PetscMallocA(1,PETSC_FALSE, Cint(11), Ref(Cstring(linec)), Ref(Cstring(func)), (Csize_t)($m1)*sizeof($r1),($r1))
-  end
-end
-# PetscMalloc1(m1,r1) PetscMallocA(1,PETSC_FALSE,__LINE__,PETSC_FUNCTION_NAME,__FILE__,(size_t)(m1)*sizeof(**(r1)),(r1))
-
 
 end # module
