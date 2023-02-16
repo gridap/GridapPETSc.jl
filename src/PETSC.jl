@@ -771,6 +771,12 @@ end
 @wrapper(:PetscPrintf,PetscErrorCode,(MPI.Comm, Cstring ),(comm, args ),"https://petsc.org/release/docs/manualpages/Sys/PetscPrintf/")
 @wrapper(:PetscSynchronizedPrintf,PetscErrorCode,(MPI.Comm, Cstring),(comm, args),"https://petsc.org/main/docs/manualpages/Sys/PetscSynchronizedPrintf/")
 
+
+#PETSc Sleep
+@wrapper(:PetscSleep,PetscErrorCode,(PetscReal,),(s,),"https://petsc.org/main/docs/manualpages/Sys/PetscSleep/")
+
+
+
 #PETSc Alloc
 @wrapper(:PetscMallocA,PetscErrorCode,(PetscInt, PetscBool, PetscInt, Ptr{Cstring}, Ptr{Cstring}, Csize_t, Ptr{Cvoid},), (n, clear,  lineno, fun, fname, bytes0, ptr0,), "https://petsc.org/release/docs/manualpages/Sys/PetscMallocA/#petscmalloca")
 #PETSC_EXTERN PetscErrorCode PetscMallocA(int,PetscBool,int,const char *,const char *,size_t,void *,...);
