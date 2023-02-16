@@ -5,6 +5,12 @@ using Libdl
 using Gridap.Helpers
 using Gridap.Algebra
 using Gridap.Arrays
+using Gridap.FESpaces
+using Gridap.MultiField
+
+using GridapDistributed
+using GridapDistributed.MultiField
+
 using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
@@ -69,18 +75,24 @@ end
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
-using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, SNES
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, SNES, IS
 #export PETSC
 export @check_error_code
-export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, IS
 
 include("Environment.jl")
 
 export PETScVector
 export PETScMatrix
 export petsc_sparse
+export PETScIS
 include("PETScArrays.jl")
+include("PETScIndexes.jl")
 include("PartitionedArrays.jl")
+
+
+export PETScFieldSplit
+include("PETScFieldSplits.jl")
 
 export PETScLinearSolver
 include("PETScLinearSolvers.jl")

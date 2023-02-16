@@ -7,6 +7,8 @@ using MPI
 
 @time @testset "PETScArrays" begin include("PETScArraysTests.jl") end
 
+@time @testset "PETScIndexes" begin include("PETScIndexesTests.jl") end
+
 @time @testset "PartitionedArrays (sequential)" begin include("PartitionedArraysTests.jl") end
 
 @time @testset "PETScLinearSolvers" begin include("PETScLinearSolversTests.jl") end
@@ -18,6 +20,8 @@ using MPI
 @time @testset "PoissonDriver" begin include("PoissonDriver.jl") end
 
 @time @testset "ElasticityDriver" begin include("ElasticityDriver.jl") end
+
+@time @testset "StokesTest" begin include("StokesTest.jl") end
 
 @time @testset "DarcyDriver" begin include("DarcyDriver.jl") end
 

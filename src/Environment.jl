@@ -3,6 +3,12 @@ function Init(;args=String[],file="",help="",finalize_atexit=true)
   if !MPI.Initialized()
       MPI.Init()
   end
+  #To avoid multiple printing of the same line in parallel
+  # if MPI.Comm_rank(MPI.COMM_WORLD) != 0
+  #   redirect_stderr(devnull)
+  #   redirect_stdout(devnull)
+  # end 
+
   if finalize_atexit
     atexit(Finalize)
   end

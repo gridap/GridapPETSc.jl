@@ -648,6 +648,9 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
 
+#PCType() = PCType(Ptr{Cvoid}())
+@wrapper(:PCGetType,PetscErrorCode,(PC, Ptr{Ptr{Cstring}}),(pc,typ),"https://petsc.org/main/docs/manualpages/PC/PCGetType/")
+
 
 """
 Julia alias for the `SNES` C type.
@@ -702,5 +705,89 @@ const SNESPATCH            = "patch"
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
+
+"""
+ Julia alias for the `IS` C type.
+ See [PETSc manual](https://petsc.org/release/docs/manualpages/IS/IS/)).
+ """
+ struct IS
+   ptr::Ptr{Cvoid}
+ end
+ IS() = IS(Ptr{Cvoid}())
+ Base.convert(::Type{IS},p::Ptr{Cvoid}) = IS(p)
+ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::IS) = v.ptr
+
+
+"""
+Julia alias for `ISType` C type.
+
+See [PETSc manual](https://petsc.org/main/docs/manualpages/IS/ISType/).
+"""
+const ISType = Cstring
+
+
+ """
+ Julia alias for `PetscCopyMode` C type.
+ See [PETSc manual](https://petsc.org/main/docs/manualpages/Sys/PetscCopyMode/).
+ """
+ @enum PetscCopyMode begin
+   PETSC_COPY_VALUES
+   PETSC_OWN_POINTER
+   PETSC_USE_POINTER
+ end
+@wrapper(:PetscObjectSetName, PetscErrorCode, (Ptr{Cvoid}, Cstring), (field, name), "https://petsc.org/main/docs/manualpages/Sys/PetscObjectSetName/") 
+@wrapper(:ISCreateGeneral,PetscErrorCode,(MPI.Comm, PetscInt, Ptr{PetscInt}, PetscCopyMode, Ptr{IS}),(comm, n, idx, mode, is), "https://petsc.org/main/docs/manualpages/IS/ISCreateGeneral/")
+@wrapper(:ISView,PetscErrorCode,(IS, PetscViewer),(is, viewer), "https://petsc.org/main/docs/manualpages/IS/ISView/")
+@wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm, PetscInt, PetscInt, Ptr{PetscInt}, PetscCopyMode, Ptr{IS}),(comm, bs, n, idx, mode, is), "https://petsc.org/release/docs/manualpages/IS/ISCreateBlock/")
+@wrapper(:ISGetIndices,PetscErrorCode,(IS, Ptr{PetscInt}),(is, ptr), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
+@wrapper(:ISExpand,PetscErrorCode,(IS, IS, Ptr{IS}),(is1, is2, isout), "https://petsc.org/release/docs/manualpages/IS/ISGetIndices/")
+@wrapper(:ISGetSize,PetscErrorCode,(IS, Ptr{PetscInt}), (is, nsize), "https://petsc.org/main/docs/manualpages/IS/ISGetSize/")
+@wrapper(:ISDestroy, PetscErrorCode,(Ptr{IS},), (pis,), "https://petsc.org/main/docs/manualpages/IS/ISDestroy/")
+
+@wrapper(:PCFieldSplitSetIS,PetscErrorCode,(PC, Cstring, IS),(pc, Cfieldname, is), "https://petsc.org/release/docs/manualpages/PC/PCFieldSplitSetIS/")
+
+"""
+Julia alias for `PCCompositeType` C type.
+See [PETSc manual](https://petsc.org/release/docs/manualpages/PC/PCCompositeType/).
+"""
+@enum PCCompositeType begin
+  PC_COMPOSITE_ADDITIVE
+  PC_COMPOSITE_MULTIPLICATIVE
+  PC_COMPOSITE_SYMMETRIC_MULTIPLICATIVE
+  PC_COMPOSITE_SPECIAL
+  PC_COMPOSITE_SCHUR
+  PC_COMPOSITE_GKB
+end
+
+
+@wrapper(:PCFieldSplitSetType,PetscErrorCode,(PC, PCCompositeType),(pc, pcctype), "https://petsc.org/release/docs/manualpages/PC/PCFieldSplitSetType/")
+
+
+#PETSc Print
+@wrapper(:PetscPrintf,PetscErrorCode,(MPI.Comm, Cstring ),(comm, args ),"https://petsc.org/release/docs/manualpages/Sys/PetscPrintf/")
+@wrapper(:PetscSynchronizedPrintf,PetscErrorCode,(MPI.Comm, Cstring),(comm, args),"https://petsc.org/main/docs/manualpages/Sys/PetscSynchronizedPrintf/")
+
+
+#PETSc Sleep
+@wrapper(:PetscSleep,PetscErrorCode,(PetscReal,),(s,),"https://petsc.org/main/docs/manualpages/Sys/PetscSleep/")
+
+
+#PETSc Alloc
+@wrapper(:PetscMallocA,PetscErrorCode,(PetscInt, PetscBool, PetscInt, Ptr{Cstring}, Ptr{Cstring}, Csize_t, Ptr{Cvoid},), (n, clear,  lineno, fun, fname, bytes0, ptr0,), "https://petsc.org/release/docs/manualpages/Sys/PetscMallocA/#petscmalloca")
+#PETSC_EXTERN PetscErrorCode PetscMallocA(int,PetscBool,int,const char *,const char *,size_t,void *,...);
+
+"""
+    @PetscMalloc1
+
+See [PETSc manual](https://petsc.org/release/docs/manualpages/Sys/PetscMalloc1/).
+"""
+macro PetscMalloc1(m1,r1)
+  quote
+    func = Ptr{Nothing}()
+    linec = Ptr{Nothing}()
+    PetscMallocA(1,PETSC_FALSE, Cint(11), Ref(Cstring(linec)), Ref(Cstring(func)), (Csize_t)($m1)*sizeof($r1),($r1))
+  end
+end
+# PetscMalloc1(m1,r1) PetscMallocA(1,PETSC_FALSE,__LINE__,PETSC_FUNCTION_NAME,__FILE__,(size_t)(m1)*sizeof(**(r1)),(r1))
 
 end # module

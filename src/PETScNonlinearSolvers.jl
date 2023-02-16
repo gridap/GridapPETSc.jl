@@ -1,6 +1,7 @@
 
 mutable struct PETScNonlinearSolver{F} <: NonlinearSolver
   setup::F
+  fieldsplit::Union{PETScFieldSplit, Nothing}
 end
 
 mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
@@ -108,8 +109,18 @@ end
 
 snes_from_options(snes) = @check_error_code PETSC.SNESSetFromOptions(snes[])
 
+
+function PETScNonlinearSolver(SplitField::PETScFieldSplit)
+  PETScNonlinearSolver(snes_from_options,SplitField)
+end
+
+function PETScNonlinearSolver(snes_options)
+  PETScNonlinearSolver(snes_options,nothing)
+end
+
+
 function PETScNonlinearSolver()
-  PETScNonlinearSolver(snes_from_options)
+  PETScNonlinearSolver(snes_from_options,nothing)
 end
 
 function _set_petsc_residual_function!(nls::PETScNonlinearSolver, cache)
@@ -182,6 +193,10 @@ function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::Nonlinea
 
   nls.setup(cache.snes)
 
+  if typeof(nls.fieldsplit) == PETScFieldSplit
+    set_fieldsplit(cache.snes, nls.fieldsplit)
+  end
+  
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   copy!(x,cache.x_petsc)
   cache
