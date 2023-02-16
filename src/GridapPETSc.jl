@@ -9,6 +9,7 @@ using Gridap.FESpaces
 using Gridap.MultiField
 
 using GridapDistributed
+using GridapDistributed.MultiField
 
 using LinearAlgebra
 using SparseArrays
