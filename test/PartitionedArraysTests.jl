@@ -6,21 +6,23 @@ using SparseMatricesCSR
 using Test
 using LinearAlgebra
 
-function partitioned_tests(parts)
+function partitioned_tests(distribute,nparts)
+  parts = distribute(LinearIndices((prod(nparts),)))
 
+  ngids = 7
   if length(parts) > 1
 
-    noids,firstgid,hid_to_gid,hid_to_part = map_parts(parts) do part
+    ids_partition = map(parts) do part
       if part == 1
-        3,1,[5,6],Int32[2,3]
+        LocalIndices(ngids,1,[1,2,3,5,6],Int32[1,1,1,2,3])
       elseif part == 2
-        2,4,[7,3,6],Int32[3,1,3]
+        LocalIndices(ngids,2,[4,5,7,3,6],Int32[2,2,3,1,3])
       elseif part == 3
-        2,6,[4],Int32[2]
+        LocalIndices(ngids,3,[6,7,4],Int32[3,3,2])
       end
     end
 
-    I,J,V = map_parts(parts) do part
+    I,J,V = map(parts) do part
       if part == 1
         I = [1,2,3,1,3]
         J = [1,2,3,5,6]
@@ -35,31 +37,31 @@ function partitioned_tests(parts)
         V = [9,9,1]
       end
       I,J,Float64.(V)
-    end
+    end |> tuple_of_arrays
 
   else
 
-    noids,firstgid,hid_to_gid,hid_to_part = map_parts(parts) do part
-      7,1,Int[],Int32[]
+    ids_partition = map(parts) do part
+      LocalIndices(ngids,part,collect(1:ngids),fill(Int32(1),ngids))
     end
 
-    I,J,V = map_parts(parts) do part
+    I,J,V = map(parts) do part
       I = [1,2,3,1,3,4,5,5,4,5,6,7,6]
       J = [1,2,3,5,6,4,5,3,6,7,6,7,4]
       V = [9,9,9,1,1,9,9,1,1,1,9,9,1]
       I,J,Float64.(V)
-    end
+    end |> tuple_of_arrays
 
   end
 
   GridapPETSc.Init(args=split("-ksp_type gmres -ksp_converged_reason -ksp_error_if_not_converged true -pc_type jacobi"))
 
   function test_get_local_vector(v::PVector,x::PETScVector)
-    if (get_backend(v.values)==mpi)
-      map_parts(parts) do part
-        lg=GridapPETSc._get_local_oh_vector(x.vec[])
+    if isa(partition(v),MPIArray)
+      map(parts) do part
+        lg = GridapPETSc._get_local_oh_vector(x.vec[])
         @test isa(lg,PETScVector)
-        lx=GridapPETSc._get_local_vector(lg)
+        lx = GridapPETSc._get_local_vector(lg)
         if part==1
           @test length(lx)==5
         elseif part==2
@@ -73,46 +75,45 @@ function partitioned_tests(parts)
     end
   end
 
-  ngids = 7
-  ids = PRange(parts,ngids,noids,firstgid,hid_to_gid,hid_to_part)
-  values = map_parts(ids.partition) do ids
-    println(ids.lid_to_gid)
-    10.0*ids.lid_to_gid
-  end
-
   function test_vectors(v::PVector,x::PETScVector,ids)
     PETSC.@check_error_code PETSC.VecView(x.vec[],C_NULL)
     u = PVector(x,ids)
-    exchange!(u)
-    map_parts(u.values,v.values) do u,v
+    consistent!(v) |> fetch
+    consistent!(u) |> fetch
+    map(partition(u),partition(v)) do u,v
       @test u == v
     end
   end
 
-  v = PVector(values,ids)
+  ids = PRange(ids_partition)
+  values = map(partition(ids)) do ids
+    println(local_to_global(ids))
+    return 10.0*local_to_global(ids)
+  end
+
+  v = PVector(values,partition(ids))
   x = convert(PETScVector,v)
   test_get_local_vector(v,x)
   test_vectors(v,x,ids)
 
-  if (get_backend(v.values)==mpi)
+  if isa(partition(v),MPIArray)
     # Copy v into v1 to circumvent (potentia) aliasing of v and x
-    v1=copy(v)
+    v1 = copy(v)
     fill!(v1,zero(eltype(v)))
     copy!(v1,x)
-    exchange!(v1)
+    consistent!(v1) |> fetch
     test_vectors(v1,x,ids)
 
     # Copy x into x1 to circumvent (potential) aliasing of v and x
-    x1=copy(x)
+    x1 = copy(x)
     fill!(x1,PetscScalar(0.0))
     copy!(x1,v)
     test_vectors(v,x1,ids)
     GridapPETSc.Finalize(x1)
   end
 
-
-  A = PSparseMatrix(I,J,V,ids,ids,ids=:global)
-  display(A.values)
+  A = psparse!(I,J,V,partition(ids),partition(ids);discover_rows=true) |> fetch
+  display(partition(A))
   B = convert(PETScMatrix,A)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
 
@@ -125,8 +126,8 @@ function partitioned_tests(parts)
      x̂ = PETScVector(0.0,ids)
      solve!(x̂,ns,y)
      z = PVector(x̂,ids)
-     exchange!(z)
-     map_parts(z.values,v.values) do z,v
+     consistent!(z) |> fetch
+     map(partition(z),partition(v)) do z,v
       @test maximum(abs.(z-v)) < 1e-5
      end
      GridapPETSc.Finalize(x̂)

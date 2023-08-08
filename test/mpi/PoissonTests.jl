@@ -1,3 +1,6 @@
 include("../PoissonTests.jl")
 nparts = (2,2)
-prun(main,mpi,nparts)
+with_mpi() do distribute
+  parts = distribute(LinearIndices((prod(nparts),)))
+  main(parts)
+end

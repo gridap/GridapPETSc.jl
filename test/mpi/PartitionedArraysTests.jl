@@ -1,3 +1,6 @@
 include("../PartitionedArraysTests.jl")
 nparts = 3
-prun(partitioned_tests,mpi,nparts)
+with_mpi() do distribute
+  parts = distribute(LinearIndices((prod(nparts),)))
+  partitioned_tests(parts)
+end

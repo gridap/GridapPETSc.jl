@@ -46,16 +46,17 @@ function _petsc_vector(v::PVector,::MPIArray)
 end
 
 function PETScVector(a::PetscScalar,ax::PRange)
-  convert(PETScVector,PVector(a,ax))
+  rows = partition(ax)
+  convert(PETScVector,PVector(a,rows))
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange)
   rows = partition(ids)
-  PVector(v,ids,backend)
+  PVector(v,ids,rows)
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::DebugArray)
-  @assert length(v) == global_length(ids)
+  @assert length(v) == PartitionedArrays.getany(map(global_length,partition(ids)))
   ni = length(v)
   ix = collect(PetscInt,0:(ni-1))
   y  = zeros(PetscScalar,ni)
@@ -67,7 +68,7 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::DebugArray)
     z[oid_to_lid] = y[oid_to_gid]
     z
   end
-  return PVector(values,ids)
+  return PVector(values,partition(ids))
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIArray)
@@ -87,7 +88,7 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::MPIArray)
     @check_error_code PETSC.VecGetValues(v.vec[],ni,ix,y)
     y
   end
-  return PVector(values,ids)
+  return PVector(values,partition(ids))
 end
 
 function _copy!(a::PVector{T,<:DebugArray},b::Vec) where T

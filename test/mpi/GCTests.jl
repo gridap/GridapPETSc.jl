@@ -34,10 +34,13 @@ nparts = (2,2)
 
 NEXECS=10
 for i =1:NEXECS
-   prun(main_bis,mpi,nparts)
-   if (i%2==0)
-     GridapPETSc.gridap_petsc_gc()
-   end
+  with_mpi() do distribute
+    parts = distribute(LinearIndices((prod(nparts),)))
+    main(parts)
+  end
+  if (i%2==0)
+    GridapPETSc.gridap_petsc_gc()
+  end
 end
 
 GridapPETSc.Finalize()

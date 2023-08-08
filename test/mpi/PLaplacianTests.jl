@@ -1,4 +1,10 @@
 include("../PLaplacianTests.jl")
 nparts = (2,1)
-prun(main,mpi,nparts)
-prun(main,mpi,nparts)
+with_mpi() do distribute
+  parts = distribute(LinearIndices((prod(nparts),)))
+  main(parts)
+end
+with_mpi() do distribute
+  parts = distribute(LinearIndices((prod(nparts),)))
+  main(parts)
+end
