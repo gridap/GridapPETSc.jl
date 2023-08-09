@@ -28,7 +28,7 @@ function _petsc_vector(v::PVector,::MPIArray)
   comm = values.comm # Not sure about this
 
   w = PETScVector(comm)
-  N = global_length(rows)
+  N = length(rows)
 
   map(values,partition(rows)) do lid_to_value, rows
     @check isa(rows,LocalIndices) "Unsupported partition for PETSc vectors"
@@ -125,8 +125,7 @@ end
 
 function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
   rows = axes(pvec,1)
-  own_values = own_values(pvec)
-  map(own_values,partition(rows)) do own_values, indices
+  map(own_values(pvec),partition(rows)) do values, indices
     lg = _get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # A) petsc_vec is a ghosted vector
       # Only copying owned DoFs. This should be followed by
@@ -136,13 +135,13 @@ function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
       # layout of petscvec to check this out. We decided NOT to
       # convert petscvec into a PVector to avoid extra memory allocation
       # and copies.
-      @assert rows.ghost
+      @assert ghost_length(indices) > 0
       lx = _get_local_vector_read(lg)
-      own_values .= lx[1:own_length(indices)]
+      values .= lx[1:own_length(indices)]
       _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else                    # B) petsc_vec is NOT a ghosted vector
-      # @assert !pvec.rows.ghost
+      # @assert !ghost_length(indices) == 0
       # @assert length(lg)==length(values)
       # values .= lg
       # _restore_local_vector!(petscvec,lg)
@@ -159,8 +158,7 @@ end
 
 function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
   rows = axes(pvec,1)
-  own_values = own_values(pvec)
-  map(own_values,partition(rows)) do own_values, indices
+  map(own_values(pvec),partition(rows)) do values, indices
     @check isa(indices,LocalIndices) "Unsupported partition for PETSc vectors"
     lg = _get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # A) petscvec is a ghosted vector
@@ -170,11 +168,11 @@ function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
       # We are assuming here that the layout of pvec and petsvec
       # are compatible. We do not have any information about the
       # layout of petscvec to check this out.
-      lx[1:own_length(indices)] .= own_values
+      lx[1:own_length(indices)] .= values
       _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else                     # B) petscvec is NOT a ghosted vector
-    #  @assert !pvec.rows.ghost
+    #  @assert !ghost_length(indices) > 0
     #  @assert length(lg)==length(values)
     #  lg .= values
     #  restore_local_vector!(lg,petscvec)
@@ -208,8 +206,8 @@ function _petsc_matrix(a::PSparseMatrix,::MPIArray)
   values = partition(a)
   comm = values.comm # Not sure about this
   b = PETScMatrix(comm)
-  M = global_length(rows)
-  N = global_length(cols)
+  M = length(rows)
+  N = length(cols)
   map(values,partition(rows),partition(cols)) do values,rows,cols
     @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices"
     @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices"
@@ -307,7 +305,7 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIArray}) where T
         petsc_cols[col_counter] = PetscInt(cols_local_to_global[col_lid]-1)
       end
       num_nz = ia[row_lid+1]-ia[row_lid]
-      petsc_nzvals = view(a,ia[lid]+1:ia[lid+1])
+      petsc_nzvals = view(a,ia[row_lid]+1:ia[row_lid+1])
       PETSC.MatSetValues(petscmat.ptr,
                          PetscInt(1),
                          petsc_row,
