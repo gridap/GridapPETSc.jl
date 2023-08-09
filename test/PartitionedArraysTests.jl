@@ -6,6 +6,27 @@ using SparseMatricesCSR
 using Test
 using LinearAlgebra
 
+using PartitionedArrays: assemble_coo!
+
+function PartitionedArrays.psparse!(f,I,J,V,row_partition,col_partition;discover_rows=true,discover_cols=true)
+  if discover_rows
+      I_owner = find_owner(row_partition,I)
+      row_partition = map(union_ghost,row_partition,I,I_owner)
+  end
+  t = assemble_coo!(I,J,V,row_partition)
+  @async begin
+      wait(t)
+      if discover_cols
+        J_owner = find_owner(col_partition,J)
+        col_partition = map(union_ghost,col_partition,J,J_owner)
+      end
+      map(to_local!,I,row_partition)
+      map(to_local!,J,col_partition)
+      matrix_partition = map(f,I,J,V,row_partition,col_partition)
+      PSparseMatrix(matrix_partition,row_partition,col_partition)
+  end
+end
+
 function partitioned_tests(distribute,nparts)
   parts = distribute(LinearIndices((prod(nparts),)))
 
@@ -112,7 +133,7 @@ function partitioned_tests(distribute,nparts)
     GridapPETSc.Finalize(x1)
   end
 
-  A = psparse!(I,J,V,partition(ids),partition(ids);discover_rows=true) |> fetch
+  A = psparse!(I,J,V,partition(ids),partition(ids);discover_rows=false,discover_cols=false) |> fetch
   display(partition(A))
   B = convert(PETScMatrix,A)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)

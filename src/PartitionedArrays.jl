@@ -47,7 +47,7 @@ end
 
 function PETScVector(a::PetscScalar,ax::PRange)
   rows = partition(ax)
-  convert(PETScVector,PVector(a,rows))
+  convert(PETScVector,pfill(a,rows))
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange)
@@ -198,7 +198,8 @@ function _petsc_matrix(a::PSparseMatrix,::DebugArray)
     @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
     @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
   end
-  A = getany(partition(gather(a)))
+  a_main = PartitionedArrays.to_trivial_partition(a) # Assemble global matrix in MAIN
+  A = PartitionedArrays.getany(partition(a_main))
   convert(PETScMatrix,A)
 end
 

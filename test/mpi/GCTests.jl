@@ -9,7 +9,7 @@ Random.seed!(1234)
 
 iteration=0
 function report_memory_and_random_gc(parts)
-  map_parts(parts) do part
+  map(parts) do part
     if (rand(1:length(parts)) == part)
       GC.gc()
       print("!!!GC.gc()ed on part $(part)!!!", "\n")
