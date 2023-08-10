@@ -56,7 +56,7 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange)
 end
 
 function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::DebugArray)
-  @assert length(v) == PartitionedArrays.getany(map(global_length,partition(ids)))
+  @assert length(v) == length(ids)
   ni = length(v)
   ix = collect(PetscInt,0:(ni-1))
   y  = zeros(PetscScalar,ni)
@@ -135,13 +135,11 @@ function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
       # layout of petscvec to check this out. We decided NOT to
       # convert petscvec into a PVector to avoid extra memory allocation
       # and copies.
-      @assert ghost_length(indices) > 0
       lx = _get_local_vector_read(lg)
       values .= lx[1:own_length(indices)]
       _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else                    # B) petsc_vec is NOT a ghosted vector
-      # @assert !ghost_length(indices) == 0
       # @assert length(lg)==length(values)
       # values .= lg
       # _restore_local_vector!(petscvec,lg)
@@ -172,7 +170,6 @@ function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
       _restore_local_vector!(lx,lg)
       GridapPETSc.Finalize(lg)
     else                     # B) petscvec is NOT a ghosted vector
-    #  @assert !ghost_length(indices) > 0
     #  @assert length(lg)==length(values)
     #  lg .= values
     #  restore_local_vector!(lg,petscvec)
@@ -296,8 +293,8 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIArray}) where T
     cols_local_to_global = local_to_global(cols)
   
     maxnnz = maximum(map(i -> ia[i+1]-ia[i], 1:csr.m))
-    petsc_row    = Vector{PetscInt}(undef,1)
-    petsc_cols   = Vector{PetscInt}(undef,maxnnz)
+    petsc_row  = Vector{PetscInt}(undef,1)
+    petsc_cols = Vector{PetscInt}(undef,maxnnz)
     for row_lid in rows_own_to_local
       petsc_row[1] = PetscInt(rows_local_to_global[row_lid]-1)
       for (col_counter,j) in enumerate(ia[row_lid]+1:ia[row_lid+1])
