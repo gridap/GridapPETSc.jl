@@ -84,7 +84,7 @@ function main(distribute,nparts,solver)
 
       # Checking that convert performs deep copies and does not modify A
       A = get_matrix(op)
-      vals_copy = map(A.values) do A
+      vals_copy = map(partition(A)) do A
         @test typeof(A)==SparseMatrixCSR{0,PetscScalar,PetscInt}
         i = copy(A.rowptr)
         j = copy(A.colval)
@@ -92,7 +92,7 @@ function main(distribute,nparts,solver)
         i,j,a
       end
       Apetsc = convert(PETScMatrix,A)
-      map(A.values,vals_copy) do A, (i,j,a)
+      map(partition(A),vals_copy) do A, (i,j,a)
         @test all(i .== A.rowptr)
         @test all(j .== A.colval)
         @test all(a .== A.nzval)
