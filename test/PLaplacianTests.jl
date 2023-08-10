@@ -54,7 +54,7 @@ function main(distribute,nparts,solver,strategy)
 
   domain = (0,4,0,4)
   cells = (100,100)
-  model = CartesianDiscreteModel(parts,domain,cells)
+  model = CartesianDiscreteModel(parts,nparts,domain,cells)
 
   k = 1
   u((x,y)) = (x+y)^k

@@ -14,7 +14,7 @@ function _petsc_vector(v::PVector,::DebugArray)
   rows = axes(v,1)
   values = partition(v)
   map(values,partition(rows)) do values,rows
-    @check isa(rows,LocalIndices) "Unsupported partition for PETSc vectors" # to be consistent with MPI
+    @check isa(rows,OwnAndGhostIndices) "Unsupported partition for PETSc vectors" # to be consistent with MPI
     oid_to_gid = own_to_global(rows)
     oid_to_value = view(values,own_to_local(rows))
     gid_to_value[oid_to_gid] = oid_to_value
@@ -31,7 +31,7 @@ function _petsc_vector(v::PVector,::MPIArray)
   N = length(rows)
 
   map(values,partition(rows)) do lid_to_value, rows
-    @check isa(rows,LocalIndices) "Unsupported partition for PETSc vectors"
+    @check isa(rows,OwnAndGhostIndices) "Unsupported partition for PETSc vectors"
     n_owned = own_length(rows)
     n_ghost = ghost_length(rows)
     array   = convert(Vector{PetscScalar},lid_to_value)
@@ -117,7 +117,7 @@ function _copy!(a::Vec,b::PVector{T,<:DebugArray}) where T
   map(partition(rows),values) do rows,values
     oid_to_gid = own_to_global(rows)
     oid_to_lid = own_to_local(rows)
-    y[oid_to_gid] = z[oid_to_lid]
+    y[oid_to_gid] = values[oid_to_lid]
   end
   @check_error_code PETSC.VecSetValues(a,ni,ix,y,PETSC.INSERT_VALUES)
   return a
@@ -159,7 +159,7 @@ end
 function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
   rows = axes(pvec,1)
   map(own_values(pvec),partition(rows)) do values, indices
-    @check isa(indices,LocalIndices) "Unsupported partition for PETSc vectors"
+    @check isa(indices,OwnAndGhostIndices) "Unsupported partition for PETSc vectors"
     lg = _get_local_oh_vector(petscvec)
     if (isa(lg,PETScVector)) # A) petscvec is a ghosted vector
       lx=_get_local_vector(lg)
@@ -193,8 +193,8 @@ end
 function _petsc_matrix(a::PSparseMatrix,::DebugArray)
   rows, cols = axes(a)
   map(partition(rows),partition(cols)) do rows,cols
-    @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
-    @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
+    @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
+    @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices" # to be consistent with MPI
   end
   a_main = PartitionedArrays.to_trivial_partition(a) # Assemble global matrix in MAIN
   A = PartitionedArrays.getany(partition(a_main))
@@ -209,8 +209,8 @@ function _petsc_matrix(a::PSparseMatrix,::MPIArray)
   M = length(rows)
   N = length(cols)
   map(values,partition(rows),partition(cols)) do values,rows,cols
-    @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices"
-    @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices"
+    @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
+    @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
     Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
     csr = convert(Tm,values)
     i = csr.rowptr; _j = csr.colval; v = csr.nzval
@@ -240,8 +240,8 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:DebugArray}) where {T}
   rows, cols = axes(mat)
   values = partition(mat)
   map(values,partition(rows),partition(cols)) do values, rows, cols
-    @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices"
-    @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices"
+    @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
+    @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
     Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
     csr = convert(Tm,values)
     ia  = csr.rowptr
@@ -283,8 +283,8 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIArray}) where T
   rows, cols = axes(mat)
   values = partition(mat)
   map(values,partition(rows),partition(cols)) do values, rows, cols
-    @check isa(rows,LocalIndices) "Not supported partition for PETSc matrices"
-    @check isa(cols,LocalIndices) "Not supported partition for PETSc matrices"
+    @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
+    @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
     Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
     csr = convert(Tm,values)
     ia  = csr.rowptr

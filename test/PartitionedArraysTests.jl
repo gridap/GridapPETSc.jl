@@ -8,25 +8,6 @@ using LinearAlgebra
 
 using PartitionedArrays: assemble_coo!
 
-function PartitionedArrays.psparse!(f,I,J,V,row_partition,col_partition;discover_rows=true,discover_cols=true)
-  if discover_rows
-      I_owner = find_owner(row_partition,I)
-      row_partition = map(union_ghost,row_partition,I,I_owner)
-  end
-  t = assemble_coo!(I,J,V,row_partition)
-  @async begin
-      wait(t)
-      if discover_cols
-        J_owner = find_owner(col_partition,J)
-        col_partition = map(union_ghost,col_partition,J,J_owner)
-      end
-      map(to_local!,I,row_partition)
-      map(to_local!,J,col_partition)
-      matrix_partition = map(f,I,J,V,row_partition,col_partition)
-      PSparseMatrix(matrix_partition,row_partition,col_partition)
-  end
-end
-
 function partitioned_tests(distribute,nparts)
   parts = distribute(LinearIndices((prod(nparts),)))
 
@@ -35,11 +16,17 @@ function partitioned_tests(distribute,nparts)
 
     ids_partition = map(parts) do part
       if part == 1
-        LocalIndices(ngids,1,[1,2,3,5,6],Int32[1,1,1,2,3])
+        own   = OwnIndices(ngids,1,[1,2,3])
+        ghost = GhostIndices(ngids,[5,6],[2,3])
+        OwnAndGhostIndices(own,ghost)
       elseif part == 2
-        LocalIndices(ngids,2,[4,5,7,3,6],Int32[2,2,3,1,3])
+        own   = OwnIndices(ngids,2,[4,5])
+        ghost = GhostIndices(ngids,[7,3,6],[3,1,3])
+        OwnAndGhostIndices(own,ghost)
       elseif part == 3
-        LocalIndices(ngids,3,[6,7,4],Int32[3,3,2])
+        own   = OwnIndices(ngids,3,[6,7])
+        ghost = GhostIndices(ngids,[4],[2])
+        OwnAndGhostIndices(own,ghost)
       end
     end
 
@@ -63,7 +50,9 @@ function partitioned_tests(distribute,nparts)
   else
 
     ids_partition = map(parts) do part
-      LocalIndices(ngids,part,collect(1:ngids),fill(Int32(1),ngids))
+      own   = OwnIndices(ngids,part,collect(1:ngids))
+      ghost = GhostIndices(ngids,Int[],Int32[])
+      OwnAndGhostIndices(own,ghost)
     end
 
     I,J,V = map(parts) do part

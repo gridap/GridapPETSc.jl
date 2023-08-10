@@ -47,7 +47,7 @@ function main(distribute,nparts,solver)
   GridapPETSc.with(args=split(options)) do
       domain = (0,4,0,4)
       cells = (4,4)
-      model = CartesianDiscreteModel(parts,domain,cells)
+      model = CartesianDiscreteModel(parts,nparts,domain,cells)
 
       labels = get_face_labeling(model)
       add_tag_from_tags!(labels,"dirichlet",[1,2,3,5,7])
