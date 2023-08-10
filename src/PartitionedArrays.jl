@@ -35,14 +35,14 @@ function _petsc_vector(v::PVector,::MPIArray)
     n_owned = own_length(rows)
     n_ghost = ghost_length(rows)
     array   = convert(Vector{PetscScalar},lid_to_value)
-    ghost   = convert(Vector{PetscInt},ghost_to_global(rows))
-    ghost  .= ghost .- PetscInt(1)
+    ghost   = convert(Vector{PetscInt},copy(ghost_to_global(rows)))
+    ghost  .-= PetscInt(1)
     w.ownership = (array,ghost)
     @check_error_code PETSC.VecCreateGhostWithArray(comm,n_owned,N,n_ghost,ghost,array,w.vec)
     @check_error_code PETSC.VecSetOption(w.vec[],PETSC.VEC_IGNORE_NEGATIVE_INDICES,PETSC.PETSC_TRUE)
     Init(w)
   end
-  w
+  return w
 end
 
 function PETScVector(a::PetscScalar,ax::PRange)
@@ -65,7 +65,7 @@ function PartitionedArrays.PVector(v::PETScVector,ids::PRange,::DebugArray)
     oid_to_gid = own_to_global(ids)
     oid_to_lid = own_to_local(ids)
     z = zeros(PetscScalar,local_length(ids))
-    z[oid_to_lid] = y[oid_to_gid]
+    z[oid_to_lid] .= y[oid_to_gid]
     z
   end
   return PVector(values,partition(ids))
@@ -102,7 +102,7 @@ function _copy!(a::PVector{T,<:DebugArray},b::Vec) where T
   map(partition(rows),values) do rows,values
     oid_to_gid = own_to_global(rows)
     oid_to_lid = own_to_local(rows)
-    values[oid_to_lid] = y[oid_to_gid]
+    values[oid_to_lid] .= y[oid_to_gid]
   end
   return a
 end
@@ -117,7 +117,7 @@ function _copy!(a::Vec,b::PVector{T,<:DebugArray}) where T
   map(partition(rows),values) do rows,values
     oid_to_gid = own_to_global(rows)
     oid_to_lid = own_to_local(rows)
-    y[oid_to_gid] = values[oid_to_lid]
+    y[oid_to_gid] .= values[oid_to_lid]
   end
   @check_error_code PETSC.VecSetValues(a,ni,ix,y,PETSC.INSERT_VALUES)
   return a
