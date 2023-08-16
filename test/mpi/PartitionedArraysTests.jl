@@ -1,3 +1,5 @@
 include("../PartitionedArraysTests.jl")
 nparts = 3
-prun(partitioned_tests,mpi,nparts)
+with_mpi() do distribute
+  partitioned_tests(distribute,nparts)
+end

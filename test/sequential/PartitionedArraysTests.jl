@@ -1,5 +1,7 @@
 module PartitionedArraysTests
 include("../PartitionedArraysTests.jl")
 nparts = 3
-prun(partitioned_tests,sequential,nparts)
+with_debug() do distribute
+  partitioned_tests(distribute,nparts)
+end
 end # module

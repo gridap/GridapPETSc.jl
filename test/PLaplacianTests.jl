@@ -28,14 +28,14 @@ function mysnessetup(snes)
   @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
 end
 
-function main(parts)
-  main(parts,:gmres)
+function main(distribute,nparts)
+  main(distribute,nparts,:gmres)
   if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
-    main(parts,:mumps)
+    main(distribute,nparts,:mumps)
   end
 end
 
-function main(parts,solver)
+function main(distribute,nparts,solver)
   if solver == :mumps
     options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason -ksp_converged_reason -ksp_error_if_not_converged true"
   elseif solver == :gmres
@@ -44,24 +44,25 @@ function main(parts,solver)
     error()
   end
   GridapPETSc.with(args=split(options)) do
-     main(parts,solver,FullyAssembledRows())
-     main(parts,solver,SubAssembledRows())
+     main(distribute,nparts,solver,FullyAssembledRows())
+     main(distribute,nparts,solver,SubAssembledRows())
   end
 end
 
-function main(parts,solver,strategy)
+function main(distribute,nparts,solver,strategy)
+  parts = distribute(LinearIndices((prod(nparts),)))
 
   domain = (0,4,0,4)
-  cells = (100,100)
-  model = CartesianDiscreteModel(parts,domain,cells)
+  cells  = (100,100)
+  model  = CartesianDiscreteModel(parts,nparts,domain,cells)
 
   k = 1
   u((x,y)) = (x+y)^k
-  σ(∇u) =(1.0+∇u⋅∇u)*∇u
+  σ(∇u) = (1.0+∇u⋅∇u)*∇u
   dσ(∇du,∇u) = 2*∇u⋅∇du + (1.0+∇u⋅∇u)*∇du
   f(x) = -divergence(y->σ(∇(u,y)),x)
 
-  Ω = Triangulation(strategy,model)
+  Ω  = Triangulation(strategy,model)
   dΩ = Measure(Ω,2*k)
   r(u,v) = ∫( ∇(v)⋅(σ∘∇(u)) - v*f )dΩ
   j(u,du,v) = ∫( ∇(v)⋅(dσ∘(∇(du),∇(u))) )dΩ
@@ -70,8 +71,8 @@ function main(parts,solver,strategy)
   V = TestFESpace(model,reffe,dirichlet_tags="boundary")
   U = TrialFESpace(u,V)
 
-  assem=SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},
-                              Vector{PetscScalar},U,V,strategy)
+  assem = SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},
+                                Vector{PetscScalar},U,V,strategy)
 
   op = FEOperator(r,j,U,V,assem)
 
@@ -99,9 +100,9 @@ function main(parts,solver,strategy)
   @check_error_code PETSC.SNESGetNumberFunctionEvals(snes,i_petsc)
   @check_error_code PETSC.SNESGetLinearSolveFailures(snes,i_petsc)
 
-  Ωo = Triangulation(model)
+  Ωo  = Triangulation(model)
   dΩo = Measure(Ωo,2*k)
-  eh = u - uh
+  eh  = u - uh
   @test sqrt(sum(∫( abs2(eh) )dΩo)) < 1.0e-9
 
   uh = zero(U)

@@ -27,14 +27,16 @@ function mykspsetup(ksp)
   @check_error_code GridapPETSc.PETSC.KSPSetFromOptions(ksp[])
 end
 
-function main(parts)
-  main(parts,:cg)
+function main(distribute,nparts)
+  main(distribute,nparts,:cg)
   if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
-    main(parts,:mumps)
+    main(distribute,nparts,:mumps)
   end
 end
 
-function main(parts,solver)
+function main(distribute,nparts,solver)
+  parts = distribute(LinearIndices((prod(nparts),)))
+  
   if solver == :mumps
     options = "-ksp_error_if_not_converged true -ksp_converged_reason"
   elseif solver == :cg
@@ -45,7 +47,7 @@ function main(parts,solver)
   GridapPETSc.with(args=split(options)) do
       domain = (0,4,0,4)
       cells = (4,4)
-      model = CartesianDiscreteModel(parts,domain,cells)
+      model = CartesianDiscreteModel(parts,nparts,domain,cells)
 
       labels = get_face_labeling(model)
       add_tag_from_tags!(labels,"dirichlet",[1,2,3,5,7])
@@ -70,9 +72,9 @@ function main(parts,solver)
       a(u,v) = ∫( ∇(v)⋅∇(u) )dΩ
       l(v) = ∫( v*f )dΩ + ∫( v*g )dΓn
 
-      Tm=SparseMatrixCSR{0,PetscScalar,PetscInt}
-      Tv=Vector{PetscScalar}
-      assem=SparseMatrixAssembler(Tm,Tv,U,V)
+      Tm = SparseMatrixCSR{0,PetscScalar,PetscInt}
+      Tv = Vector{PetscScalar}
+      assem = SparseMatrixAssembler(Tm,Tv,U,V)
       op = AffineFEOperator(a,l,U,V,assem)
 
       v_julia = get_vector(op)
@@ -81,16 +83,16 @@ function main(parts,solver)
       copy!(v_petsc,v_julia)
 
       # Checking that convert performs deep copies and does not modify A
-      A=get_matrix(op)
-      vals_copy=map_parts(A.values) do A
+      A = get_matrix(op)
+      vals_copy = map(partition(A)) do A
         @test typeof(A)==SparseMatrixCSR{0,PetscScalar,PetscInt}
-        i=copy(A.rowptr)
-        j=copy(A.colval)
-        a=copy(A.nzval)
+        i = copy(A.rowptr)
+        j = copy(A.colval)
+        a = copy(A.nzval)
         i,j,a
       end
-      Apetsc=convert(PETScMatrix,A)
-      map_parts(A.values,vals_copy) do A, (i,j,a)
+      Apetsc = convert(PETScMatrix,A)
+      map(partition(A),vals_copy) do A, (i,j,a)
         @test all(i .== A.rowptr)
         @test all(j .== A.colval)
         @test all(a .== A.nzval)

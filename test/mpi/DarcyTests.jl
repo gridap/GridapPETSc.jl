@@ -1,3 +1,5 @@
 include("../DarcyTests.jl")
 nparts = (2,2)
-prun(main,mpi,nparts)
+with_mpi() do distribute
+  main(distribute,nparts)
+end

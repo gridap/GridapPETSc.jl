@@ -8,22 +8,23 @@ using Random
 Random.seed!(1234)
 
 iteration=0
-function report_memory_and_random_gc(parts)
-  map_parts(parts) do part
+function report_memory_and_random_gc(distribute,nparts)
+  parts = distribute(LinearIndices((prod(nparts),)))
+  map(parts) do part
     if (rand(1:length(parts)) == part)
       GC.gc()
       print("!!!GC.gc()ed on part $(part)!!!", "\n")
     end
     global iteration
-    iteration=iteration+1
+    iteration = iteration + 1
     if (part==1)
       run(`ps -p $(getpid()) -o pid,comm,vsize,rss,size`)
     end
   end
 end
 
-function main_bis(parts)
-  main(parts,:gmres,SubAssembledRows())
+function main_bis(distribute,nparts)
+  main(distribute,nparts,:gmres,SubAssembledRows())
   report_memory_and_random_gc(parts)
 end
 
@@ -31,13 +32,14 @@ options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_dam
 GridapPETSc.Init(args=split(options))
 
 nparts = (2,2)
-
-NEXECS=10
+NEXECS = 10
 for i =1:NEXECS
-   prun(main_bis,mpi,nparts)
-   if (i%2==0)
-     GridapPETSc.gridap_petsc_gc()
-   end
+  with_mpi() do distribute
+    main(distribute,nparts)
+  end
+  if (i%2==0)
+    GridapPETSc.gridap_petsc_gc()
+  end
 end
 
 GridapPETSc.Finalize()

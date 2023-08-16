@@ -5,7 +5,8 @@ using GridapPETSc: PetscScalar, PetscInt, PETSC
 using SparseMatricesCSR
 using PartitionedArrays
 
-function main(parts)
+function main(distribute,nparts)
+  parts = distribute(LinearIndices((prod(nparts),)))
 
   if PETSC.MatMumpsSetIcntl_handle[] == C_NULL
     @info "Skipping DarcyTests since petsc is not configured with mumps."
@@ -14,7 +15,7 @@ function main(parts)
 
   domain = (0,1,0,1)
   partition = (100,100)
-  model = CartesianDiscreteModel(parts,domain,partition)
+  model = CartesianDiscreteModel(parts,nparts,domain,partition)
 
   k = 1
   reffe_u = ReferenceFE(raviart_thomas,Float64,k)
