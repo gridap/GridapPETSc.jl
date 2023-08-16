@@ -1,7 +1,7 @@
 authors = ["Francesc Verdugo <fverdugo@cimne.upc.edu>", "Víctor Sande <vsande@cimne.upc.edu>", "Alberto F. Martin <alberto.martin@monash.edu>"]
 name = "GridapPETSc"
 uuid = "bcdc36c2-0c3e-11ea-095a-c9dadae499f1"
-version = "0.4.5"
+version = "0.5.0"
 
 [compat]
 Gridap = "0.17"
