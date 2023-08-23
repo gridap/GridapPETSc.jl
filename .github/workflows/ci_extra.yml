@@ -5,7 +5,6 @@ jobs:
     name: Tests ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     env:
-      JULIA_MPI_BINARY: "system"
       JULIA_PETSC_LIBRARY: "/opt/petsc/3.15.4/lib/libpetsc"
     strategy:
       fail-fast: false
@@ -16,6 +15,10 @@ jobs:
           - ubuntu-latest
         arch:
           - x64
+        petsc_version:
+          - '3.15.4'
+          - '3.18.4'
+          - '3.19.4'
     steps:
       - uses: actions/checkout@v2
       - name: Cache petsc
@@ -41,7 +44,7 @@ jobs:
         run: |
           CURR_DIR=$(pwd)
           PACKAGE=petsc
-          VERSION=3.15.4
+          VERSION=${{ matrix.petsc_version }}
           INSTALL_ROOT=/opt
           PETSC_INSTALL=$INSTALL_ROOT/$PACKAGE/$VERSION
           TAR_FILE=$PACKAGE-$VERSION.tar.gz
