@@ -2,7 +2,7 @@ name: CI_EXTRA
 on: [push, pull_request]
 jobs:
   test:
-    name: Tests ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+    name: Tests ${{ matrix.version }} - petsc ${{ matrix.petsc_version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     env:
       JULIA_PETSC_LIBRARY: "/opt/petsc/3.15.4/lib/libpetsc"
