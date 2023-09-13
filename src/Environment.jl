@@ -1,7 +1,7 @@
 
 function Init(;args=String[],file="",help="",finalize_atexit=true)
   if !MPI.Initialized()
-      MPI.Init()
+    MPI.Init()
   end
   if finalize_atexit
     atexit(Finalize)
