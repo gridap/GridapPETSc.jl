@@ -648,6 +648,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
 
+@wrapper(:PCSetCoordinates,PetscErrorCode,(PC,PetscInt,PetscInt,PetscScalar),(pc,dim,nloc,coords),"")
 
 """
 Julia alias for the `SNES` C type.
