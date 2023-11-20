@@ -704,4 +704,13 @@ const SNESPATCH            = "patch"
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
+# HYPRE
+
+@wrapper(:PCHYPRESetDiscreteGradient,PetscErrorCode,(PC,Mat),(pc,G),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteGradient.html")
+@wrapper(:PCHYPRESetDiscreteCurl,PetscErrorCode,(PC,Mat),(pc,C),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteCurl.html")
+@wrapper(:PCHYPRESetAlphaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetAlphaPoissonMatrix.html")
+@wrapper(:PCHYPRESetBetaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetBetaPoissonMatrix.html")
+@wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations.html")
+@wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors.html")
+@wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes.html")
 end # module
