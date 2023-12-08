@@ -51,8 +51,8 @@ end
 
 function Algebra.numerical_setup(ss::PETScLinearSolverSS,_A::AbstractMatrix)
   A = convert(PETScMatrix,_A)
-  X = convert(PETScVector,allocate_col_vector(_A))
-  B = convert(PETScVector,allocate_col_vector(_A))
+  X = convert(PETScVector,allocate_in_domain(_A))
+  B = convert(PETScVector,allocate_in_domain(_A))
   ns = PETScLinearSolverNS(A,X,B)
   @check_error_code PETSC.KSPCreate(A.comm,ns.ksp)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
