@@ -9,6 +9,7 @@ using LinearAlgebra
 using SparseArrays
 using SparseMatricesCSR
 using PartitionedArrays
+using GridapDistributed: allocate_col_vector, allocate_row_vector
 
 let deps_jl = joinpath(@__DIR__,"..","deps","deps.jl")
 

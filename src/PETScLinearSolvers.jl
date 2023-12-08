@@ -17,14 +17,14 @@ function Algebra.symbolic_setup(solver::PETScLinearSolver,mat::AbstractMatrix)
   PETScLinearSolverSS(solver)
 end
 
-mutable struct PETScLinearSolverNS{T} <: NumericalSetup
-  A::T
-  B::PETScMatrix
+mutable struct PETScLinearSolverNS <: NumericalSetup
+  A::PETScMatrix
+  X::PETScVector
+  B::PETScVector
   ksp::Ref{KSP}
   initialized::Bool
-  function PETScLinearSolverNS(A,B::PETScMatrix)
-    T=typeof(A)
-    new{T}(A,B,Ref{KSP}(),false)
+  function PETScLinearSolverNS(A::PETScMatrix,X::PETScVector,B::PETScVector)
+    new(A,X,B,Ref{KSP}(),false)
   end
 end
 
@@ -37,7 +37,7 @@ end
 
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
-    if ns.B.comm == MPI.COMM_SELF
+    if ns.A.comm == MPI.COMM_SELF
       @check_error_code PETSC.KSPDestroy(ns.ksp)
     else
       @check_error_code PETSC.PetscObjectRegisterDestroy(ns.ksp[].ptr)
@@ -49,53 +49,29 @@ function Finalize(ns::PETScLinearSolverNS)
   nothing
 end
 
-function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
-  B = convert(PETScMatrix,A)
-  ns = PETScLinearSolverNS(A,B)
-  @check_error_code PETSC.KSPCreate(B.comm,ns.ksp)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+function Algebra.numerical_setup(ss::PETScLinearSolverSS,_A::AbstractMatrix)
+  A = convert(PETScMatrix,_A)
+  X = convert(PETScVector,allocate_col_vector(_A))
+  B = convert(PETScVector,allocate_col_vector(_A))
+  ns = PETScLinearSolverNS(A,X,B)
+  @check_error_code PETSC.KSPCreate(A.comm,ns.ksp)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
   ss.solver.setup(ns.ksp)
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   Init(ns)
 end
 
-function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  if (x.comm != MPI.COMM_SELF)
-    gridap_petsc_gc() # Do garbage collection of PETSc objects
-  end
-
-  B = convert(PETScVector,b)
-  @check_error_code PETSC.KSPSolve(ns.ksp[],B.vec[],x.vec[])
-  x
-end
-
-function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
-  X = convert(PETScVector,x)
-  solve!(X,ns,b)
-  x
-end
-
-function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  X = convert(Vector{PetscScalar},x)
-  solve!(X,ns,b)
-  x .= X
-  x
-end
-
-function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
-  X = similar(b,(axes(ns.A)[2],))
-  B = similar(b,(axes(ns.A)[2],))
-  copy!(X,x)
+function Algebra.solve!(x::AbstractVector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector{PetscScalar})
+  X, B = ns.X, ns.B
   copy!(B,b)
-  Y = convert(PETScVector,X)
-  solve!(Y,ns,B)
-  copy!(x,Y)
+  @check_error_code PETSC.KSPSolve(ns.ksp[],B.vec[],X.vec[])
+  copy!(x,X)
+  return x
 end
 
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
-  ns.A = A
-  ns.B = convert(PETScMatrix,A)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+  ns.A = convert(PETScMatrix,A)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.A.mat[],ns.A.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   ns
 end
