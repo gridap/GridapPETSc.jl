@@ -25,7 +25,7 @@ end
 function _petsc_vector(v::PVector,::MPIArray)
   rows = axes(v,1)
   values = partition(v)
-  comm = values.comm # Not sure about this
+  comm = values.comm
 
   w = PETScVector(comm)
   N = length(rows)
