@@ -2,21 +2,21 @@
 """
 Julia alias to `PetscErrorCode` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscErrorCode.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscErrorCode.html).
 """
 const PetscErrorCode = Cint
 
 """
 Julia alias to `PetscBool` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscBool.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscBool.html).
 """
 @enum PetscBool PETSC_FALSE PETSC_TRUE
 
 """
 Julia alias to `PetscDataType` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscDataType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscDataType.html).
 """
 @enum PetscDataType begin
   PETSC_DATATYPE_UNKNOWN = 0
@@ -42,7 +42,7 @@ end
 """
     PetscDataTypeFromString(name,ptype,found)
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscDataTypeFromString.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscDataTypeFromString.html).
 """
 function PetscDataTypeFromString(name,ptype,found)
   ccall(
@@ -54,7 +54,7 @@ end
 """
     PetscDataTypeGetSize(ptype,size)
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscDataTypeGetSize.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscDataTypeGetSize.html).
 """
 function PetscDataTypeGetSize(ptype,size)
   ccall(
