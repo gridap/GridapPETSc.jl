@@ -223,6 +223,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::Vec) = v.ptr
 @wrapper(:VecNorm,PetscErrorCode,(Vec,NormType,Ptr{PetscReal}),(x,typ,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecNorm.html")
 @wrapper(:VecGhostGetLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostGetLocalForm.html")
 @wrapper(:VecGhostRestoreLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostRestoreLocalForm.html")
+@wrapper(:VecSetBlockSize,PetscErrorCode,(Vec,PetscInt),(v,bs),"https://petsc.org/release/manualpages/Vec/VecSetBlockSize.html")
 
 # Matrix related functions
 
@@ -488,6 +489,7 @@ MatNullSpace() = MatNullSpace(Ptr{Cvoid}())
 Base.convert(::Type{MatNullSpace},p::Ptr{Cvoid}) = MatNullSpace(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::MatNullSpace) = v.ptr
 
+@wrapper(:MatSetNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNullSpace.html")
 @wrapper(:MatSetNearNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNearNullSpace.html")
 @wrapper(:MatNullSpaceCreateRigidBody,PetscErrorCode,(Vec,Ptr{MatNullSpace}),(coords,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreateRigidBody.html")
 @wrapper(:MatNullSpaceCreate,PetscErrorCode,(MPI.Comm,PetscBool,PetscInt,Ptr{Vec},Ptr{MatNullSpace}),(comm,has_cnst,n,vecs,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreate.html")
@@ -647,7 +649,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
 @wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
-
+@wrapper(:PCSetCoordinates,PetscErrorCode,(PC,PetscInt,PetscInt,Ptr{PetscScalar}),(pc,dim,nloc,coords),"https://petsc.org/release/manualpages/PC/PCSetCoordinates.html")
 
 """
 Julia alias for the `SNES` C type.
@@ -703,4 +705,13 @@ const SNESPATCH            = "patch"
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
 
+# HYPRE
+
+@wrapper(:PCHYPRESetDiscreteGradient,PetscErrorCode,(PC,Mat),(pc,G),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteGradient.html")
+@wrapper(:PCHYPRESetDiscreteCurl,PetscErrorCode,(PC,Mat),(pc,C),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteCurl.html")
+@wrapper(:PCHYPRESetAlphaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetAlphaPoissonMatrix.html")
+@wrapper(:PCHYPRESetBetaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetBetaPoissonMatrix.html")
+@wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations.html")
+@wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors.html")
+@wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes.html")
 end # module
