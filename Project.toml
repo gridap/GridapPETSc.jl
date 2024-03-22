@@ -1,7 +1,7 @@
 name = "GridapPETSc"
 uuid = "bcdc36c2-0c3e-11ea-095a-c9dadae499f1"
 authors = ["Francesc Verdugo <fverdugo@cimne.upc.edu>", "Víctor Sande <vsande@cimne.upc.edu>", "Alberto F. Martin <alberto.martin@monash.edu>"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 Gridap = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
@@ -16,8 +16,8 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SparseMatricesCSR = "a0a7dd2c-ebf4-11e9-1f05-cf50bc540ca1"
 
 [compat]
-Gridap = "0.17"
-GridapDistributed = "0.3"
+Gridap = "0.17, 0.18"
+GridapDistributed = "0.3, 0.4"
 MPI = "0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20"
 PETSc_jll = "=3.13.4, =3.15.2"
 PartitionedArrays = "0.3"
