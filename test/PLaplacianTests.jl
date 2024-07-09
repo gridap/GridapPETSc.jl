@@ -37,15 +37,16 @@ end
 
 function main(distribute,nparts,solver)
   if solver == :mumps
-    options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason -ksp_converged_reason -ksp_error_if_not_converged true"
+    # MUMPS not testes for p-Laplacian
+    # options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -snes_converged_reason -ksp_converged_reason -ksp_error_if_not_converged true"
   elseif solver == :gmres
     options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -snes_converged_reason -ksp_converged_reason -ksp_error_if_not_converged true"
+    GridapPETSc.with(args=split(options)) do
+      main(distribute,nparts,solver,FullyAssembledRows())
+      main(distribute,nparts,solver,SubAssembledRows())
+    end
   else
     error()
-  end
-  GridapPETSc.with(args=split(options)) do
-     main(distribute,nparts,solver,FullyAssembledRows())
-     main(distribute,nparts,solver,SubAssembledRows())
   end
 end
 
@@ -72,7 +73,7 @@ function main(distribute,nparts,solver,strategy)
   U = TrialFESpace(u,V)
 
   assem = SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},
-                                Vector{PetscScalar},U,V,strategy)
+  Vector{PetscScalar},U,V,strategy)
 
   op = FEOperator(r,j,U,V,assem)
 
