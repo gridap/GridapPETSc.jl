@@ -17,10 +17,10 @@ It can also be used in the serial case, as shown in this [test](https://github.c
 
 `GridapPETSc` julia package requires the `PETSC` library ([Portable, Extensible Toolkit for Scientific Computation](https://www.mcs.anl.gov/petsc/)) and `MPI` to work correctly. You have two main options to install these dependencies. 
 
-- **Do nothing [recommended in most cases].** Use the default precompiled `MPI` installation provided by [`MPI.jl`](https://github.com/JuliaParallel/MPI.jl) and the pre-compiled `PETSc` library provided by [`PETSc_jll`](https://github.com/JuliaBinaryWrappers/PETSc_jll.jl). This will happen under the hood when you install `GridapPETSc`. You can also force the installation of these default dependencies by setting the environment variables `JULIA_MPI_BINARY` and `JULIA_PETSC_LIBRARY` to empty values.
+- **Do nothing [recommended in most cases].** Use the default precompiled `MPI` installation provided by [`MPI.jl`](https://github.com/JuliaParallel/MPI.jl) and the pre-compiled `PETSc` library provided by [`PETSc_jll`](https://github.com/JuliaBinaryWrappers/PETSc_jll.jl). This will happen under the hood when you install `GridapPETSc`. In the case of `GridapPETSc`, you can also force the installation of these default dependencies by setting the environment variable `JULIA_PETSC_LIBRARY` to an empty value.
 
 - **Choose a specific installation of `MPI` and `PETSc` available in the system [recommended in HPC clusters]**.
-  - First, choose a `MPI` installation. See the documentation of  [`MPI.jl`](https://github.com/JuliaParallel/MPI.jl) for further details. An easy way to achieve this is to create the environment variable `JULIA_MPI_BINARY` containing the path to the  `MPI` binary.
+  - First, choose a `MPI` installation. See the documentation of  [`MPI.jl`](https://github.com/JuliaParallel/MPI.jl) for further details.
   - Second, choose a `PETSc` installation. To this end, create an environment variable `JULIA_PETSC_LIBRARY` containing the path to the dynamic library object of the `PETSC` installation (i.e., the `.so` file in linux systems). **Very important: The chosen `PETSc` library needs to be configured with the `MPI` installation considered in the previous step**.
 
 
