@@ -637,6 +637,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:KSPSetUp,PetscErrorCode,(KSP,),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetUp.html")
 @wrapper(:KSPSetOperators,PetscErrorCode,(KSP,Mat,Mat),(ksp,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetOperators.html")
 @wrapper(:KSPSetTolerances,PetscErrorCode,(KSP,PetscReal,PetscReal,PetscReal,PetscInt),(ksp,rtol,abstol,dtol,maxits),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetTolerances.html")
+@wrapper(:KSPGetOperators,PetscErrorCode,(KSP,Ptr{Mat},Ptr{Mat}),(ksp,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetOperators.html")
 @wrapper(:KSPSolve,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolve.html")
 @wrapper(:KSPSolveTranspose,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolveTranspose.html")
 @wrapper(:KSPGetIterationNumber,PetscErrorCode,(KSP,Ptr{PetscInt}),(ksp,its),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetIterationNumber.html")
@@ -644,12 +645,15 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:KSPSetInitialGuessNonzero,PetscErrorCode,(KSP,PetscBool),(ksp,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetInitialGuessNonzero.html")
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
 @wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
+
 @wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
 @wrapper(:PCView,PetscErrorCode,(PC,PetscViewer),(pc,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCView.html")
 @wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
 @wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
 @wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
 @wrapper(:PCSetCoordinates,PetscErrorCode,(PC,PetscInt,PetscInt,Ptr{PetscScalar}),(pc,dim,nloc,coords),"https://petsc.org/release/manualpages/PC/PCSetCoordinates.html")
+@wrapper(:PCSetOperators,PetscErrorCode,(PC,Mat,Mat),(pc,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/PCSetOperators.html")
+@wrapper(:PCGetOperators,PetscErrorCode,(PC,Ptr{Mat},Ptr{Mat}),(pc,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/PCGetOperators.html")
 
 """
 Julia alias for the `SNES` C type.
