@@ -8,11 +8,27 @@ using Test
 using SparseMatricesCSR
 
 
+function snes_convergence_test(snes::SNES,
+                               it::PetscInt,
+                               xnorm::PetscReal,
+                               gnorm::PetscReal,
+                               f::PetscReal,
+                               reason::Ptr{PETSC.SNESConvergedReason},
+                               user::Ptr{Cvoid})::PetscInt
+  PETSC.SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, user)
+end
+
 function mysnessetup(snes)
   ksp      = Ref{GridapPETSc.PETSC.KSP}()
   pc       = Ref{GridapPETSc.PETSC.PC}()
   mumpsmat = Ref{GridapPETSc.PETSC.Mat}()
+
+  fconvptr = @cfunction($snes_convergence_test, 
+                        PetscInt, 
+                        (SNES, PetscInt, PetscReal, PetscReal, PetscReal, Ptr{PETSC.SNESConvergedReason}, Ptr{Cvoid}))
+
   @check_error_code GridapPETSc.PETSC.SNESSetFromOptions(snes[])
+  @check_error_code GridapPETSc.PETSC.SNESSetConvergenceTest(snes[],fconvptr,C_NULL,C_NULL)
   @check_error_code GridapPETSc.PETSC.SNESGetKSP(snes[],ksp)
   #@check_error_code GridapPETSc.PETSC.KSPView(ksp[],C_NULL)
   @check_error_code GridapPETSc.PETSC.KSPSetType(ksp[],GridapPETSc.PETSC.KSPPREONLY)
