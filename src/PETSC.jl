@@ -685,6 +685,32 @@ const SNESASPIN            = "aspin"
 const SNESCOMPOSITE        = "composite"
 const SNESPATCH            = "patch"
 
+"""
+Julia alias to `SNESConvergedReason` C enum.
+
+See [PETSc manual](https://petsc.org/release/manualpages/SNES/SNESConvergedReason/).
+"""
+@enum SNESConvergedReason begin
+    SNES_CONVERGED_FNORM_ABS      = 2         # ||F|| < atol 
+    SNES_CONVERGED_FNORM_RELATIVE = 3         # ||F|| < rtol*||F_initial|| 
+    SNES_CONVERGED_SNORM_RELATIVE = 4         # Newton computed step size small; || delta x || < stol || x ||
+    SNES_CONVERGED_ITS            = 5         # maximum iterations reached 
+    SNES_BREAKOUT_INNER_ITER      = 6         # Flag to break out of inner loop after checking custom convergence. 
+                                              # it is used in multi-phase flow when state changes diverged 
+    SNES_DIVERGED_FUNCTION_DOMAIN      = -1   # the new x location passed the function is not in the domain of F 
+    SNES_DIVERGED_FUNCTION_COUNT       = -2
+    SNES_DIVERGED_LINEAR_SOLVE         = -3   # the linear solve failed 
+    SNES_DIVERGED_FNORM_NAN            = -4
+    SNES_DIVERGED_MAX_IT               = -5
+    SNES_DIVERGED_LINE_SEARCH          = -6   # the line search failed 
+    SNES_DIVERGED_INNER                = -7   # inner solve failed 
+    SNES_DIVERGED_LOCAL_MIN            = -8   # || J^T b || is small, implies converged to local minimum of F() 
+    SNES_DIVERGED_DTOL                 = -9   # || F || > divtol*||F_initial|| 
+    SNES_DIVERGED_JACOBIAN_DOMAIN      = -10  # Jacobian calculation does not make sense 
+    SNES_DIVERGED_TR_DELTA             = -11
+
+    SNES_CONVERGED_ITERATING = 0
+end
 
 @wrapper(:SNESCreate,PetscErrorCode,(MPI.Comm,Ptr{SNES}),(comm,snes),"https://petsc.org/release/docs/manualpages/SNES/SNESCreate.html")
 @wrapper(:SNESSetFunction,PetscErrorCode,(SNES,Vec,Ptr{Cvoid},Ptr{Cvoid}),(snes,vec,fptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFunction.html")
@@ -700,6 +726,9 @@ const SNESPATCH            = "patch"
 @wrapper(:SNESSetCountersReset,PetscErrorCode,(SNES,PetscBool),(snes,reset),"https://petsc.org/release/docs/manualpages/SNES/SNESSetCountersReset.html")
 @wrapper(:SNESGetNumberFunctionEvals,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfuncs),"https://petsc.org/release/docs/manualpages/SNES/SNESGetNumberFunctionEvals.html")
 @wrapper(:SNESGetLinearSolveFailures,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfails),"https://petsc.org/release/docs/manualpages/SNES/SNESGetLinearSolveFailures.html")
+@wrapper(:SNESSetConvergenceTest,PetscErrorCode,(SNES,Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid}),(snes,convtest,cctx,destroy),"https://petsc.org/release/manualpages/SNES/SNESSetConvergenceTest/")
+@wrapper(:SNESConvergedDefault,PetscErrorCode,(SNES,PetscInt,PetscReal,PetscReal,PetscReal,Ptr{SNESConvergedReason},Ptr{Cvoid}),(snes,it,xnorm,gnorm,f,reason,user),"https://petsc.org/release/manualpages/SNES/SNESConvergedDefault/")
+
 
 # Garbage collection of PETSc objects
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
