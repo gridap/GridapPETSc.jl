@@ -69,10 +69,10 @@ end
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
-using GridapPETSc.PETSC: PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC, SNES
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscReal, PetscScalar, Vec, Mat, KSP, PC, SNES
 #export PETSC
 export @check_error_code
-export PetscBool, PetscInt, PetscScalar, Vec, Mat, KSP, PC
+export PetscBool, PetscInt, PetscReal, PetscScalar, Vec, Mat, KSP, PC, SNES
 
 include("Environment.jl")
 
