@@ -98,10 +98,28 @@ function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   x
 end
 
+# NOTE: 
+# We previously threw away PETSc's matrix `ns.B`, and re-set the KSP object (commented code). 
+# This is not only unnecessary, but can also cause some issues with MUMPS. 
+# I am not completely sure why, but here are some notes on the issue: 
+#   - It is matrix-dependent, and only happens in parallel (nprocs > 1). 
+#   - It has to do with the re-use of the symmetric permutation created by MUMPS to 
+#     find the pivots.
+# I think it probably re-orders the matrix internally, and does not re-order it again when we swap it
+# using `KSPSetOperators`. So when accessing the new (non-permuted) matrix using the old permutation, 
+# it throws a stack overflow error.
+# In fact, when updating the SNES setups in the nonlinear solvers, we do not re-set the matrix,
+# but use `copy!` instead.
+#
+# TODO: 
+# I've added a check to ensure the input matrix `A` is always teh initial one. 
+# Is this strictly necessary? Could we check the sparsity pattern instead? 
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
-  ns.A = A
-  ns.B = convert(PETScMatrix,A)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+  # ns.A = A
+  # ns.B = convert(PETScMatrix,A)
+  # @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+  @assert ns.A === A
+  copy!(ns.B,A)
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
   ns
 end
