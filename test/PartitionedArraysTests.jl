@@ -8,24 +8,6 @@ using LinearAlgebra
 
 using PartitionedArrays: assemble_coo!
 
-function set_mumps_options(ksp)
-  pc       = Ref{GridapPETSc.PETSC.PC}()
-  mumpsmat = Ref{GridapPETSc.PETSC.Mat}()
-  @check_error_code GridapPETSc.PETSC.KSPView(ksp[],C_NULL)
-  @check_error_code GridapPETSc.PETSC.KSPSetType(ksp[],GridapPETSc.PETSC.KSPPREONLY)
-  @check_error_code GridapPETSc.PETSC.KSPGetPC(ksp[],pc)
-  @check_error_code GridapPETSc.PETSC.PCSetType(pc[],GridapPETSc.PETSC.PCLU)
-  @check_error_code GridapPETSc.PETSC.PCFactorSetMatSolverType(pc[],GridapPETSc.PETSC.MATSOLVERMUMPS)
-  @check_error_code GridapPETSc.PETSC.PCFactorSetUpMatSolverType(pc[])
-  @check_error_code GridapPETSc.PETSC.PCFactorGetMatrix(pc[],mumpsmat)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[],  4, 1)
-  # percentage increase in the estimated working space
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[],  14, 1000)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
-end
-
 function partitioned_tests(distribute,nparts)
   parts = distribute(LinearIndices((prod(nparts),)))
 
@@ -158,7 +140,7 @@ function partitioned_tests(distribute,nparts)
 
     nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
     ypetsc = convert(PETScVector,y)
-    zpetsc = PETScVector(0.0,partition(axes(A,2)))
+    zpetsc = PETScVector(0.0,axes(A,2))
     zpetsc = solve!(zpetsc,nspetsc,ypetsc)
 
     test_vectors(y,ypetsc,axes(A,1))
@@ -181,3 +163,7 @@ function partitioned_tests(distribute,nparts)
   GridapPETSc.Finalize(x)
   GridapPETSc.Finalize()
 end
+
+
+partitioned_tests(DebugArray,3)
+
