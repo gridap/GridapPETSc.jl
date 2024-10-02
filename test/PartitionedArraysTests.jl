@@ -147,23 +147,22 @@ function partitioned_tests(distribute,nparts)
 
   function solve_system_and_check_solution(A::PSparseMatrix,B::PETScMatrix,v)
     solver = PETScLinearSolver()
-    ss = symbolic_setup(solver,A)
-    ns = numerical_setup(ss,A)
+
+    ns = numerical_setup(symbolic_setup(solver,A),A)
     consistent!(v) |> fetch
-    y = pfill(0.0,partition(ids))
-    z = pfill(0.0,partition(ids))
+    y = pfill(0.0,partition(axes(A,1)))
+    z = pfill(0.0,partition(axes(A,2)))
     mul!(y,A,v)
-    consistent!(y) |> fetch
     z = solve!(z,ns,y)
     consistent!(z) |> fetch
 
     nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
     ypetsc = convert(PETScVector,y)
-    zpetsc = PETScVector(0.0,ids)
+    zpetsc = PETScVector(0.0,partition(axes(A,2)))
     zpetsc = solve!(zpetsc,nspetsc,ypetsc)
 
-    test_vectors(y,ypetsc,ids)
-    test_vectors(z,zpetsc,ids)
+    test_vectors(y,ypetsc,axes(A,1))
+    test_vectors(z,zpetsc,axes(A,2))
     
     map(parts,partition(z),partition(v)) do p,z,v
       @test maximum(abs.(z-v)) < 1e-5

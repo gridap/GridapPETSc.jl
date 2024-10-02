@@ -88,8 +88,8 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
 end
 
 function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
-  X = similar(b,(axes(ns.A)[2],))
-  B = similar(b,(axes(ns.A)[2],))
+  X = similar(b,(axes(ns.A,2),))
+  B = similar(b,(axes(ns.A,1),))
   copy!(X,x)
   copy!(B,b)
   Y = convert(PETScVector,X)
