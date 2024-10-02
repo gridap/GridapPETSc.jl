@@ -306,6 +306,13 @@ function Base.copy(a::PETScMatrix)
   Init(v)
 end
 
+function Base.copy!(a::PETScMatrix,b::PETScMatrix)
+  if a !== b
+    @check_error_code PETSC.MatCopy(b.mat[],a.mat[],PETSC.SAME_NONZERO_PATTERN)
+  end
+  a
+end
+
 function Base.copy!(a::PETScMatrix,b::AbstractMatrix)
   _copy!(a.mat[],b)
 end
@@ -362,9 +369,6 @@ function _copy!(petscmat::Mat,mat::AbstractSparseMatrix)
   @check_error_code PETSC.MatAssemblyBegin(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
   @check_error_code PETSC.MatAssemblyEnd(petscmat, PETSC.MAT_FINAL_ASSEMBLY)
 end
-
-
-
 
 function Base.convert(::Type{PETScMatrix},a::PETScMatrix)
   a
