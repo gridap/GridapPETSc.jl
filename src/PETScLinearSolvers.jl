@@ -110,12 +110,25 @@ end
 # it throws a stack overflow error.
 # In fact, when updating the SNES setups in the nonlinear solvers, we do not re-set the matrix,
 # but use `copy!` instead.
+#function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
+#  # ns.A = A
+#  # ns.B = convert(PETScMatrix,A)
+#  # @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+#  @assert nnz(ns.A) == nnz(A) # This is weak, but it might catch some errors
+#  copy!(ns.B,A)
+#  @check_error_code PETSC.KSPSetUp(ns.ksp[])
+#  ns
+#end
+
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
-  # ns.A = A
-  # ns.B = convert(PETScMatrix,A)
-  # @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
-  @assert nnz(ns.A) == nnz(A) # This is weak, but it might catch some errors
-  copy!(ns.B,A)
-  @check_error_code PETSC.KSPSetUp(ns.ksp[])
+  if ns.A === A
+    copy!(ns.B,A)
+    @check_error_code PETSC.KSPSetUp(ns.ksp[])
+  else
+    ns.A = A
+    ns.B = convert(PETScMatrix,A)
+    @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+    @check_error_code PETSC.KSPSetUp(ns.ksp[])
+  end
   ns
 end
