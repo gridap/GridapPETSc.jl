@@ -135,12 +135,8 @@ function partitioned_tests(distribute,nparts)
     y = pfill(0.0,partition(axes(A,1)))
     z = pfill(0.0,partition(axes(A,2)))
     mul!(y,A,v)
-<<<<<<< Updated upstream
-    z = solve!(z,ns,y)
-=======
     consistent!(y) |> fetch
     solve!(z,ns,y)
->>>>>>> Stashed changes
     consistent!(z) |> fetch
 
     nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
