@@ -1,7 +1,7 @@
 
 function Init(;args=String[],file="",help="",finalize_atexit=true)
   if !MPI.Initialized()
-      MPI.Init()
+    MPI.Init()
   end
   if finalize_atexit
     atexit(Finalize)
@@ -23,7 +23,7 @@ const _NREFS = Ref(0)
 
 function Finalize()
   if Initialized()
-    GC.gc() # Finalize all object out of scope at this point
+    gridap_petsc_gc() # Finalize all object out of scope at this point
     if _NREFS[] != 0
       @warn "$(_NREFS[]) objects still not finalized before calling GridapPETSc.Finalize()"
     end
