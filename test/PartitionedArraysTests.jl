@@ -135,7 +135,12 @@ function partitioned_tests(distribute,nparts)
     y = pfill(0.0,partition(axes(A,1)))
     z = pfill(0.0,partition(axes(A,2)))
     mul!(y,A,v)
+<<<<<<< Updated upstream
     z = solve!(z,ns,y)
+=======
+    consistent!(y) |> fetch
+    solve!(z,ns,y)
+>>>>>>> Stashed changes
     consistent!(z) |> fetch
 
     nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
@@ -146,7 +151,7 @@ function partitioned_tests(distribute,nparts)
     test_vectors(y,ypetsc,axes(A,1))
     test_vectors(z,zpetsc,axes(A,2))
     
-    map(parts,partition(z),partition(v)) do p,z,v
+    map(partition(z),partition(v)) do z,v
       @test maximum(abs.(z-v)) < 1e-5
     end
     GridapPETSc.Finalize(ypetsc)
