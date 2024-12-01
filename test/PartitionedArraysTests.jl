@@ -164,7 +164,3 @@ function partitioned_tests(distribute,nparts)
   GridapPETSc.Finalize(x)
   GridapPETSc.Finalize()
 end
-
-
-partitioned_tests(DebugArray,3)
-
