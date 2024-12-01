@@ -136,7 +136,7 @@ function partitioned_tests(distribute,nparts)
     z = pfill(0.0,partition(axes(A,2)))
     mul!(y,A,v)
     consistent!(y) |> fetch
-    solve!(z,ns,y)
+    z = solve!(z,ns,y)
     consistent!(z) |> fetch
 
     nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
