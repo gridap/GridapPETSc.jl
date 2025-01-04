@@ -23,7 +23,7 @@ const _NREFS = Ref(0)
 
 function Finalize()
   if Initialized()
-    gridap_petsc_gc() # Finalize all object out of scope at this point
+    GC.gc() # Finalize all object out of scope at this point
     if _NREFS[] != 0
       @warn "$(_NREFS[]) objects still not finalized before calling GridapPETSc.Finalize()"
     end
