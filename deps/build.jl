@@ -57,9 +57,12 @@ if scalar_type[] == PETSC_DOUBLE &&  scalar_size[] == 8
   PetscScalar = Float64
 elseif scalar_type[] == PETSC_DOUBLE &&  scalar_size[] == 4
   PetscScalar = Float32
+elseif scalar_type[] == PETSC_COMPLEX &&  scalar_size[] == 16
+  PetscScalar = ComplexF64
 else
   @error scalar_msg
 end
+
 
 int_type = Ref{PetscDataType}()
 int_found = Ref{PetscBool}()
