@@ -641,6 +641,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 @wrapper(:KSPSolve,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolve.html")
 @wrapper(:KSPSolveTranspose,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolveTranspose.html")
 @wrapper(:KSPGetIterationNumber,PetscErrorCode,(KSP,Ptr{PetscInt}),(ksp,its),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetIterationNumber.html")
+@wrapper(:KSPGetResidualNorm,PetscErrorCode,(KSP,Ptr{PetscReal}),(ksp,rnorm),"https://petsc.org/release/manualpages/KSP/KSPGetResidualNorm/")
 @wrapper(:KSPView,PetscErrorCode,(KSP,PetscViewer),(ksp,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPView.html")
 @wrapper(:KSPSetInitialGuessNonzero,PetscErrorCode,(KSP,PetscBool),(ksp,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetInitialGuessNonzero.html")
 @wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
