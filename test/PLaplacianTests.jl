@@ -8,13 +8,15 @@ using Test
 using SparseMatricesCSR
 
 
-function snes_convergence_test(snes::SNES,
-                               it::PetscInt,
-                               xnorm::PetscReal,
-                               gnorm::PetscReal,
-                               f::PetscReal,
-                               reason::Ptr{PETSC.SNESConvergedReason},
-                               user::Ptr{Cvoid})::PetscInt
+function snes_convergence_test(
+  snes::SNES,
+  it::PetscInt,
+  xnorm::PetscReal,
+  gnorm::PetscReal,
+  f::PetscReal,
+  reason::Ptr{PETSC.SNESConvergedReason},
+  user::Ptr{Cvoid}
+)::PetscInt
   PETSC.SNESConvergedDefault(snes, it, xnorm, gnorm, f, reason, user)
 end
 
@@ -39,9 +41,12 @@ function mysnessetup(snes)
   @check_error_code GridapPETSc.PETSC.PCFactorSetUpMatSolverType(pc[])
   @check_error_code GridapPETSc.PETSC.PCFactorGetMatrix(pc[],mumpsmat)
   @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[],  4, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
+  # Jordi: I've had to change to sequential ordering, since the jll binaries do not have pSCOTCH
+  # @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2) # 1-sequential,2-parallel
+  # @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2) # 1-parmetis, 2-pscotch
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 1)
+  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 7, 0)
+  # @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
 end
 
 function main(distribute,nparts)
@@ -60,8 +65,8 @@ function main(distribute,nparts,solver)
     error()
   end
   GridapPETSc.with(args=split(options)) do
-     main(distribute,nparts,solver,FullyAssembledRows())
-     main(distribute,nparts,solver,SubAssembledRows())
+    main(distribute,nparts,solver,FullyAssembledRows())
+    main(distribute,nparts,solver,SubAssembledRows())
   end
 end
 
@@ -87,8 +92,9 @@ function main(distribute,nparts,solver,strategy)
   V = TestFESpace(model,reffe,dirichlet_tags="boundary")
   U = TrialFESpace(u,V)
 
-  assem = SparseMatrixAssembler(SparseMatrixCSR{0,PetscScalar,PetscInt},
-                                Vector{PetscScalar},U,V,strategy)
+  assem = SparseMatrixAssembler(
+    SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{PetscScalar},U,V,strategy
+  )
 
   op = FEOperator(r,j,U,V,assem)
 
