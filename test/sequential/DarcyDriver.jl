@@ -9,8 +9,8 @@ options = "-ksp_converged_reason -ksp_monitor -ksp_type preonly -pc_type lu -pc_
 
 out = GridapPETSc.with(args=split(options)) do
 
-  if PETSC.MatMumpsSetIcntl_handle[] == C_NULL
-    @info "Skipping DarcyDriver since petsc is not configured with mumps."
+  if GridapPETSc.libpetsc_provider == "PETSc_jll"
+    @info "Skipping DarcyDriver since mumps seems not to work with artifacts."
     return nothing
   end
 
