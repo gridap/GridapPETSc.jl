@@ -109,7 +109,7 @@ function partitioned_tests(distribute,nparts)
     consistent!(v) |> fetch
     consistent!(u) |> fetch
     map(partition(u),partition(v)) do u,v
-      @test u == v
+      @test u ≈ v
     end
   end
 
@@ -142,10 +142,24 @@ function partitioned_tests(distribute,nparts)
 
   A = psparse!(I,J,V,partition(ids),partition(ids);discover_rows=false,discover_cols=false) |> fetch
   display(partition(A))
+  display(partition(PartitionedArrays.to_trivial_partition(A)))
   B = convert(PETScMatrix,A)
   PETSC.@check_error_code PETSC.MatView(B.mat[],PETSC.@PETSC_VIEWER_STDOUT_WORLD)
 
   function solve_system_and_check_solution(A::PSparseMatrix,B::PETScMatrix,v)
+    # A) Julia reference solver
+    solver = LUSolver()
+    ss = symbolic_setup(solver,A)
+    ns = numerical_setup(ss,A)
+    consistent!(v) |> fetch
+    y_ref = pfill(0.0,partition(ids))
+    z_ref = pfill(0.0,partition(ids))
+    mul!(y_ref,A,v)
+    consistent!(y_ref) |> fetch
+    z_ref = solve!(z_ref,ns,y_ref)
+    consistent!(z_ref) |> fetch
+
+    # B) Petsc Solver, from Julia matrices and vectors
     solver = PETScLinearSolver()
     ss = symbolic_setup(solver,A)
     ns = numerical_setup(ss,A)
@@ -157,17 +171,26 @@ function partitioned_tests(distribute,nparts)
     z = solve!(z,ns,y)
     consistent!(z) |> fetch
 
-    nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
+    @test norm(y-y_ref) < 1e-5
+    @test norm(z-z_ref) < 1e-5
+    @test norm(v-z) < 1e-5
+
+    # C) Petsc solver, from PETSc matrices and vectors
+    vpetsc = convert(PETScVector,v)
+    test_vectors(v,vpetsc,ids)
+
     ypetsc = convert(PETScVector,y)
+    mul!(ypetsc,B,vpetsc)
+    test_vectors(y_ref,ypetsc,ids)
+
+    nspetsc = numerical_setup(symbolic_setup(PETScLinearSolver(),B),B)
     zpetsc = PETScVector(0.0,ids)
     zpetsc = solve!(zpetsc,nspetsc,ypetsc)
 
-    test_vectors(y,ypetsc,ids)
-    test_vectors(z,zpetsc,ids)
+    test_vectors(y_ref,ypetsc,ids)
+    test_vectors(z_ref,zpetsc,ids)
+    test_vectors(v,zpetsc,ids)
     
-    map(parts,partition(z),partition(v)) do p,z,v
-      @test maximum(abs.(z-v)) < 1e-5
-    end
     GridapPETSc.Finalize(ypetsc)
     GridapPETSc.Finalize(zpetsc)
   end

@@ -207,29 +207,44 @@ function _petsc_matrix(a::PSparseMatrix,::MPIArray)
   map(values,partition(rows),partition(cols)) do values,rows,cols
     @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
     @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
-    Tm  = SparseMatrixCSR{0,PetscScalar,PetscInt}
-    csr = convert(Tm,values)
-    i = csr.rowptr; _j = csr.colval; v = csr.nzval
-    if values === csr
-      j = copy(_j)
-    else
-      j = _j
-    end
-    u = PetscInt(1)
-    cols_lid_to_gid = local_to_global(cols)
-    for k in 1:length(j)
-      lid = j[k] + u
-      gid = cols_lid_to_gid[lid]
-      j[k] = gid - u
-    end
+
     m = own_length(rows)
     n = own_length(cols)
+    i, j, v = _petsc_local_matrix_entries(values,rows,cols)
+
     @check_error_code PETSC.MatCreateMPIAIJWithArrays(comm,m,n,M,N,i,j,v,b.mat)
     @check_error_code PETSC.MatAssemblyBegin(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     @check_error_code PETSC.MatAssemblyEnd(b.mat[],PETSC.MAT_FINAL_ASSEMBLY)
     Init(b)
   end
   return b
+end
+
+function _petsc_local_matrix_entries(mat::SparseMatrixCSR{B,PetscScalar,PetscInt},rows,cols) where B
+  @check isa(rows,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
+  @check isa(cols,OwnAndGhostIndices) "Not supported partition for PETSc matrices"
+  @check isone(B) || iszero(B) "Only 0/1-indexed CSR matrices supported"
+  u = PetscInt(1)
+
+  m = own_length(rows)
+  i = mat.rowptr[1:m+1]
+  isone(B) && (i .-= u)
+
+  n_nz = i[end]
+  cols_l2g = local_to_global(cols)
+  if iszero(B)
+    j = [cols_l2g[j + u] - u for j in view(mat.colval,1:n_nz)]
+  else
+    j = [cols_l2g[j] - u for j in view(mat.colval,1:n_nz)]
+  end
+  v = mat.nzval[1:n_nz]
+
+  return i, j, v
+end
+
+function _petsc_local_matrix_entries(mat,rows,cols)
+  csr = convert(SparseMatrixCSR{0,PetscScalar,PetscInt},mat)
+  return _petsc_local_matrix_entries(csr,rows,cols)
 end
 
 function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:DebugArray}) where {T}
