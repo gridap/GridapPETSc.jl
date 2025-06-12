@@ -24,31 +24,31 @@ mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
   jac_petsc_mat_A::E
   jac_petsc_mat_P::E
 
-  function PETScNonlinearSolverCache(comm::MPI.Comm, snes::Ref{SNES}, op::NonlinearOperator,
-                                     x_fe_space_layout::A,
-                                     x_sys_layout::B, res_sys_layout::B,
-                                     jac_mat_A::C, jac_mat_P::C,
-                                     x_petsc::D, res_petsc::D,
-                                     jac_petsc_mat_A::E, jac_petsc_mat_P::E) where {A,B,C,D,E}
-      cache=new{A,B,C,D,E}(true, comm,
-                         snes, op,
-                         x_fe_space_layout,
-                         x_sys_layout, res_sys_layout,
-                         jac_mat_A, jac_mat_P,
-                         x_petsc, res_petsc,
-                         jac_petsc_mat_A, jac_petsc_mat_P)
-
-      @assert Threads.threadid() == 1
-      _NREFS[] += 1
-      finalizer(Finalize,cache)
+  function PETScNonlinearSolverCache(
+    comm::MPI.Comm, snes::Ref{SNES}, op::NonlinearOperator,
+    x_fe_space_layout::A,
+    x_sys_layout::B, res_sys_layout::B,
+    jac_mat_A::C, jac_mat_P::C,
+    x_petsc::D, res_petsc::D,
+    jac_petsc_mat_A::E, jac_petsc_mat_P::E
+  ) where {A,B,C,D,E}
+    cache = new{A,B,C,D,E}(
+      true, comm, snes, op,
+      x_fe_space_layout,
+      x_sys_layout, res_sys_layout,
+      jac_mat_A, jac_mat_P,
+      x_petsc, res_petsc,
+      jac_petsc_mat_A, jac_petsc_mat_P
+    )
+    @assert Threads.threadid() == 1
+    _NREFS[] += 1
+    finalizer(Finalize,cache)
    end
 end
 
-
-function snes_residual(csnes::Ptr{Cvoid},
-                       cx::Ptr{Cvoid},
-                       cfx::Ptr{Cvoid},
-                       ctx::Ptr{Cvoid})::PetscInt
+function snes_residual(
+  csnes::Ptr{Cvoid}, cx::Ptr{Cvoid}, cfx::Ptr{Cvoid}, ctx::Ptr{Cvoid}
+) :: PetscInt
   cache  = unsafe_pointer_to_objref(ctx)
 
   # 1. Transfer cx to Julia data structures
@@ -64,11 +64,9 @@ function snes_residual(csnes::Ptr{Cvoid},
   return PetscInt(0)
 end
 
-function snes_jacobian(csnes:: Ptr{Cvoid},
-                       cx   :: Ptr{Cvoid},
-                       cA   :: Ptr{Cvoid},
-                       cP   :: Ptr{Cvoid},
-                       ctx::Ptr{Cvoid})::PetscInt
+function snes_jacobian(
+  csnes:: Ptr{Cvoid}, cx :: Ptr{Cvoid}, cA :: Ptr{Cvoid}, cP :: Ptr{Cvoid}, ctx::Ptr{Cvoid}
+) :: PetscInt
 
   cache = unsafe_pointer_to_objref(ctx)
 
@@ -88,20 +86,20 @@ end
 
 function Finalize(cache::PETScNonlinearSolverCache)
   if GridapPETSc.Initialized() && cache.initialized
-     GridapPETSc.Finalize(cache.x_petsc)
-     GridapPETSc.Finalize(cache.res_petsc)
-     GridapPETSc.Finalize(cache.jac_petsc_mat_A)
-     if !(cache.jac_petsc_mat_P === cache.jac_petsc_mat_A)
-       GridapPETSc.Finalize(cache.jac_petsc_mat_P)
-     end
-     if cache.comm == MPI.COMM_SELF
-       @check_error_code PETSC.SNESDestroy(cache.snes)
-     else
-       @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
-     end
-     @assert Threads.threadid() == 1
-     cache.initialized=false
-     _NREFS[] -= 1
+    GridapPETSc.Finalize(cache.x_petsc)
+    GridapPETSc.Finalize(cache.res_petsc)
+    GridapPETSc.Finalize(cache.jac_petsc_mat_A)
+    if !(cache.jac_petsc_mat_P === cache.jac_petsc_mat_A)
+      GridapPETSc.Finalize(cache.jac_petsc_mat_P)
+    end
+    if cache.comm == MPI.COMM_SELF
+      @check_error_code PETSC.SNESDestroy(cache.snes)
+    else
+      @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
+    end
+    @assert Threads.threadid() == 1
+    cache.initialized=false
+    _NREFS[] -= 1
   end
   nothing
 end
@@ -127,7 +125,7 @@ end
 function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator)
 
   res_sys_layout, jac_mat_A = residual_and_jacobian(op,x)
-  res_petsc   = convert(PETScVector,res_sys_layout)
+  res_petsc = convert(PETScVector,res_sys_layout)
   jac_petsc_mat_A = convert(PETScMatrix,jac_mat_A)
 
   # In a parallel MPI context, x is a vector with a data layout typically different from
@@ -144,32 +142,28 @@ function _setup_cache(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearO
   copy!(x_sys_layout,x)
   x_petsc = convert(PETScVector,x_sys_layout)
 
-  snes_ref=Ref{SNES}()
+  snes_ref = Ref{SNES}()
   @check_error_code PETSC.SNESCreate(jac_petsc_mat_A.comm,snes_ref)
 
-  PETScNonlinearSolverCache(jac_petsc_mat_A.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
-                           jac_mat_A, jac_mat_A,
-                           x_petsc, res_petsc,
-                           jac_petsc_mat_A, jac_petsc_mat_A)
+  PETScNonlinearSolverCache(
+    jac_petsc_mat_A.comm, snes_ref, op, x, x_sys_layout, res_sys_layout,
+    jac_mat_A, jac_mat_A, x_petsc, res_petsc, jac_petsc_mat_A, jac_petsc_mat_A
+  )
 end
 
-function Algebra.solve!(x::T,
-                        nls::PETScNonlinearSolver,
-                        op::NonlinearOperator,
-                        cache::PETScNonlinearSolverCache{<:T}) where T <: AbstractVector
-
+function Algebra.solve!(
+  x::T, nls::PETScNonlinearSolver, op::NonlinearOperator, cache::PETScNonlinearSolverCache{<:T}
+) where T <: AbstractVector
   @assert cache.op === op
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   copy!(x,cache.x_petsc)
-  cache
+  return cache
 end
 
-function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing)
-  cache=_setup_cache(x,nls,op)
-
-  if (cache.comm != MPI.COMM_SELF)
-    gridap_petsc_gc() # Do garbage collection of PETSc objects
-  end
+function Algebra.solve!(
+  x::AbstractVector,nls::PETScNonlinearSolver,op::NonlinearOperator,::Nothing
+)
+  cache = _setup_cache(x,nls,op)
 
   # set petsc residual function
   ctx  = pointer_from_objref(cache)
@@ -184,5 +178,5 @@ function Algebra.solve!(x::AbstractVector,nls::PETScNonlinearSolver,op::Nonlinea
 
   @check_error_code PETSC.SNESSolve(cache.snes[],C_NULL,cache.x_petsc.vec[])
   copy!(x,cache.x_petsc)
-  cache
+  return cache
 end

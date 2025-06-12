@@ -4,32 +4,31 @@ using Gridap.Algebra
 using Gridap.FESpaces
 using GridapDistributed
 using GridapPETSc
-using GridapPETSc: PETSC
+using GridapPETSc.PETSC
 using PartitionedArrays
 using Test
 using SparseMatricesCSR
 
-
 # Setup solver via low level PETSC API calls
 function mykspsetup(ksp)
-  pc       = Ref{GridapPETSc.PETSC.PC}()
-  mumpsmat = Ref{GridapPETSc.PETSC.Mat}()
-  @check_error_code GridapPETSc.PETSC.KSPSetType(ksp[],GridapPETSc.PETSC.KSPPREONLY)
-  @check_error_code GridapPETSc.PETSC.KSPGetPC(ksp[],pc)
-  @check_error_code GridapPETSc.PETSC.PCSetType(pc[],GridapPETSc.PETSC.PCLU)
-  @check_error_code GridapPETSc.PETSC.PCFactorSetMatSolverType(pc[],GridapPETSc.PETSC.MATSOLVERMUMPS)
-  @check_error_code GridapPETSc.PETSC.PCFactorSetUpMatSolverType(pc[])
-  @check_error_code GridapPETSc.PETSC.PCFactorGetMatrix(pc[],mumpsmat)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[],  4, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2)
-  @check_error_code GridapPETSc.PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
-  @check_error_code GridapPETSc.PETSC.KSPSetFromOptions(ksp[])
+  pc       = Ref{PETSC.PC}()
+  mumpsmat = Ref{PETSC.Mat}()
+  @check_error_code PETSC.KSPSetType(ksp[],PETSC.KSPPREONLY)
+  @check_error_code PETSC.KSPGetPC(ksp[],pc)
+  @check_error_code PETSC.PCSetType(pc[],PETSC.PCLU)
+  @check_error_code PETSC.PCFactorSetMatSolverType(pc[],PETSC.MATSOLVERMUMPS)
+  @check_error_code PETSC.PCFactorSetUpMatSolverType(pc[])
+  @check_error_code PETSC.PCFactorGetMatrix(pc[],mumpsmat)
+  @check_error_code PETSC.MatMumpsSetIcntl(mumpsmat[],  4, 2)
+  @check_error_code PETSC.MatMumpsSetIcntl(mumpsmat[], 28, 2)
+  @check_error_code PETSC.MatMumpsSetIcntl(mumpsmat[], 29, 2)
+  @check_error_code PETSC.MatMumpsSetCntl(mumpsmat[], 3, 1.0e-6)
+  @check_error_code PETSC.KSPSetFromOptions(ksp[])
 end
 
 function main(distribute,nparts)
   main(distribute,nparts,:cg)
-  if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
+  if GridapPETSc.libpetsc_provider === "JULIA_PETSC_LIBRARY"
     main(distribute,nparts,:mumps)
   end
 end
@@ -81,6 +80,7 @@ function main(distribute,nparts,solver)
       v_petsc = convert(PETScVector,v_julia)
       copy!(v_julia,v_petsc)
       copy!(v_petsc,v_julia)
+      GridapPETSc.Finalize(v_petsc)
 
       # Checking that convert performs deep copies and does not modify A
       A = get_matrix(op)
@@ -97,6 +97,7 @@ function main(distribute,nparts,solver)
         @test all(j .== A.colval)
         @test all(a .== A.nzval)
       end
+      GridapPETSc.Finalize(Apetsc)
 
       if solver == :mumps
         ls = PETScLinearSolver(mykspsetup)
@@ -108,4 +109,4 @@ function main(distribute,nparts,solver)
       eh = u - uh
       @test sqrt(sum( ∫(abs2(eh))dΩ )) < 1.0e-9
   end
- end
+end

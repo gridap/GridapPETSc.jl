@@ -8,7 +8,7 @@ using PartitionedArrays
 function main(distribute,nparts)
   parts = distribute(LinearIndices((prod(nparts),)))
 
-  if PETSC.MatMumpsSetIcntl_handle[] == C_NULL
+  if GridapPETSc.libpetsc_provider !== "JULIA_PETSC_LIBRARY"
     @info "Skipping DarcyTests since petsc is not configured with mumps."
     return nothing
   end
@@ -59,4 +59,3 @@ function main(distribute,nparts)
   uh, ph = xh
 
 end
-

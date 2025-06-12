@@ -61,41 +61,63 @@ end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::PETScVector)
   @check_error_code PETSC.KSPSolve(ns.ksp[],b.vec[],x.vec[])
-  x
+  return x
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  if (x.comm != MPI.COMM_SELF)
-    gridap_petsc_gc() # Do garbage collection of PETSc objects
-  end
+  # Jordi: Somehow, I think this destroys PETSc objects that are 
+  # still in use. This then leads to a PETSc error 62 when calling KSPSolve.
+  # Instead, I have added GridapPETSc.Finalize(...) calls for the specific PETSc 
+  # objects that we are creating internally.
+  #
+  # if (x.comm != MPI.COMM_SELF)
+  #   gridap_petsc_gc() # Do garbage collection of PETSc objects
+  # end
 
   B = convert(PETScVector,b)
   solve!(x,ns,B)
-  x
-end
-
-function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
-  X = convert(PETScVector,x)
-  solve!(X,ns,b)
-  x
+  GridapPETSc.Finalize(B)
+  return x
 end
 
 function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  X = convert(Vector{PetscScalar},x)
+  X = convert(PETScVector,x)
   solve!(X,ns,b)
-  x .= X
-  x
+  copy!(x,X)
+  GridapPETSc.Finalize(X)
+  return x
 end
 
+# When x is a Vector{PetscScalar}, the memory is aliased with the PETSc Vec object, i.e 
+# we do not need to copy the data back into x.
+function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
+  X = convert(PETScVector,x)
+  solve!(X,ns,b)
+  return x
+end
+
+# In the case of PVectors, we need to ensure that ghost layouts match. In the case they 
+# do not, we have to create a new vector and copy (which is less efficient, but necessary).
 function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
-  X = similar(b,(axes(ns.A)[2],))
-  B = similar(b,(axes(ns.A)[2],))
-  copy!(X,x)
-  copy!(B,b)
-  Y = convert(PETScVector,X)
-  solve!(Y,ns,B)
-  copy!(x,Y)
-  x
+  rows, cols = axes(ns.A)
+  if partition(axes(x,1)) !== partition(cols)
+    y = pzeros(PetscScalar,partition(cols))
+    copy!(y,x)
+  else
+    y = x
+  end
+  if partition(axes(b,1)) !== partition(rows)
+    c = pzeros(PetscScalar,partition(rows))
+    copy!(c,b)
+  else
+    c = b
+  end
+  
+  X = convert(PETScVector,y)
+  solve!(X,ns,c)
+  copy!(x,X)
+  GridapPETSc.Finalize(X)
+  return x
 end
 
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
@@ -103,5 +125,5 @@ function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
   ns.B = convert(PETScMatrix,A)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
   @check_error_code PETSC.KSPSetUp(ns.ksp[])
-  ns
+  return ns
 end

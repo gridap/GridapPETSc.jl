@@ -46,7 +46,7 @@ end
 
 function main(distribute,nparts)
   main(distribute,nparts,:gmres)
-  if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
+  if GridapPETSc.libpetsc_provider === "JULIA_PETSC_LIBRARY"
     main(distribute,nparts,:mumps)
   end
 end
