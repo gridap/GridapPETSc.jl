@@ -9,7 +9,6 @@ using PartitionedArrays
 using Test
 using SparseMatricesCSR
 
-
 # Setup solver via low level PETSC API calls
 function mykspsetup(ksp)
   pc       = Ref{PETSC.PC}()
@@ -29,7 +28,7 @@ end
 
 function main(distribute,nparts)
   main(distribute,nparts,:cg)
-  if PETSC.MatMumpsSetIcntl_handle[] != C_NULL
+  if GridapPETSc.libpetsc_provider === "JULIA_PETSC_LIBRARY"
     main(distribute,nparts,:mumps)
   end
 end
