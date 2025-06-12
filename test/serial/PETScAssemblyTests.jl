@@ -114,6 +114,4 @@ GridapPETSc.with(args=split(options)) do
 
 end
 
-
-
 end # module
