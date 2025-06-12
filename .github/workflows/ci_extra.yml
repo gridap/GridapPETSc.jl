@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.11'
+          - '1.10'
         os:
           - ubuntu-latest
         arch:
@@ -30,10 +30,6 @@ jobs:
           ${{ runner.os }}-build-${{ env.JULIA_PETSC_LIBRARY }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-  
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
       - name: Install petsc dependencies
         run: |
            sudo apt-get update 
@@ -61,17 +57,18 @@ jobs:
              --with-mpi=1 --with-64-bit-indices
           make
           make install
-      - name: add MPIPreferences
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - name: Set system MPI with MPIPreferences
         shell: julia --color=yes --project=. {0}
         run: |
           using Pkg
           Pkg.add("MPIPreferences")
-      - name: use MPI system binary 
-        shell: julia --color=yes --project=. {0}
-        run: |
           using MPIPreferences
           MPIPreferences.use_system_binary()
-      - run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.precompile()'
+      - uses: julia-actions/julia-buildpkg@v1
       - run: julia --project=. --color=yes --check-bounds=yes test/serial/runtests.jl
       - run: julia --project=. --color=yes --check-bounds=yes test/sequential/runtests.jl
       - run: julia --project=. --color=yes --check-bounds=yes test/mpi/runtests.jl
