@@ -1,7 +1,6 @@
 module GridapPETScSerialTests
 
 using Test
-using MPI
 
 @time @testset "PETSC" begin include("PETSCTests.jl") end
 
@@ -20,9 +19,5 @@ using MPI
 @time @testset "PLaplacianDriver" begin include("PLaplacianDriver.jl") end
 
 @time @testset "PoissonDriver" begin include("PoissonDriver.jl") end
-
-if MPI.Initialized()
-  MPI.Finalize()
-end
 
 end # module

@@ -3,6 +3,10 @@ module GridapPETScSequentialTests
 using Test
 using MPI
 
+if !MPI.Initialized()
+    MPI.Init()
+end
+
 @time @testset "PartitionedArrays (sequential)" begin include("PartitionedArraysTests.jl") end
 
 @time @testset "PoissonTests" begin include("PoissonTests.jl") end
