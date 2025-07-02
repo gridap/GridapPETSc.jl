@@ -67,7 +67,7 @@ end
 u(x) = x[1] + x[2]
 
 np = (2,1)
-ranks = with_debug() do distribute
+ranks = with_mpi() do distribute
   distribute(LinearIndices((prod(np),)))
 end
 
@@ -109,3 +109,5 @@ x_as = pzeros(Float64,partition(axes(A_as,1)))
 mul!(x_as,A_as,y_as,1.0,0.0)
 
 map(≈,own_values(x_sa), own_values(x_sa))
+
+x_as = A_as \ b_as
