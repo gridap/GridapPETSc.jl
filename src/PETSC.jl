@@ -748,4 +748,9 @@ end
 @wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations.html")
 @wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors.html")
 @wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes.html")
+
+# HPDDM
+
+@wrapper(:PCHPDDMSetAuxiliaryMat,PetscErrorCode,(PC,IS,Mat,Ptr{Cvoid},Ptr{Cvoid}),(pc,is,mat,fptr,ctx),"https://petsc.org/release/docs/manualpages/PC/PCHPDDMSetAuxiliaryMat.html")
+
 end # module
