@@ -2,10 +2,9 @@
 mutable struct PETScIndexSet
   is :: Base.RefValue{IS}
   initialized::Bool
-  ownership::Any
   length::Int
   comm::MPI.Comm
-  PETScIndexSet(comm::MPI.Comm) = new(Ref{IS}(),false,nothing,-1,comm)
+  PETScIndexSet(comm::MPI.Comm) = new(Ref{IS}(),false,-1,comm)
 end
 
 function Init(a::PETScIndexSet)
@@ -58,8 +57,8 @@ end
 function _petsc_index_set(prange,::MPIArray)
   n = length(prange)
   is = PETScIndexSet(partition(prange).comm)
-  map(own_to_global(prange)) do o2g
-    indices = collect(PetscInt,o2g)
+  map(local_to_global(prange)) do l2g
+    indices = collect(PetscInt,l2g)
     @check_error_code PETSC.ISCreateGeneral(MPI.COMM_SELF,n,indices,PETSC.PETSC_COPY_VALUES,is.is)
   end
   Init(is)
