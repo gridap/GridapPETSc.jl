@@ -69,8 +69,8 @@ end
 include("PETSC.jl")
 
 using GridapPETSc.PETSC: @check_error_code
-using GridapPETSc.PETSC: PetscBool, PetscInt, PetscReal, PetscScalar, Vec, Mat, KSP, PC, SNES
-#export PETSC
+using GridapPETSc.PETSC: PetscBool, PetscInt, PetscReal, PetscScalar, Vec, Mat, KSP, PC, SNES, IS
+
 export @check_error_code
 export PetscBool, PetscInt, PetscReal, PetscScalar, Vec, Mat, KSP, PC, SNES
 
@@ -78,8 +78,10 @@ include("Environment.jl")
 
 export PETScVector
 export PETScMatrix
+export PETScIndexSet
 export petsc_sparse
 include("PETScArrays.jl")
+include("PETScIndexSets.jl")
 include("PartitionedArrays.jl")
 
 export PETScLinearSolver

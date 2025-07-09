@@ -1,8 +1,8 @@
 
 struct HPDDMLinearSolver <: LinearSolver
   setup
-  mats
-  gids
+  mats :: AbstractVector{PETScMatrix}
+  index_sets :: AbstractVector{Ref{PETSC.IS}}
 end
 
 struct HPDDMLinearSolverSS <: SymbolicSetup

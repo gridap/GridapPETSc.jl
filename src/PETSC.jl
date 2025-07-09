@@ -771,6 +771,7 @@ const ISBLOCK   = "block"
 @wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},PetscCopyMode,Ptr{IS}),(comm,bs,n,idx,mode,is),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISCreateBlock.html")
 @wrapper(:ISSetType,PetscErrorCode,(IS,ISType),(is,method),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISSetType.html")
 @wrapper(:ISDuplicate,PetscErrorCode,(IS,Ptr{IS}),(is,newis),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISDuplicate.html")
+@wrapper(:ISGetSize,PetscErrorCode,(IS,Ptr{PetscInt}),(is,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISGetSize.html")
 @wrapper(:ISGetIndices,PetscErrorCode,(IS,Ptr{Ptr{PetscInt}}),(is,ptr),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISGetIndices.html")
 @wrapper(:ISGeneralSetIndices,PetscErrorCode,(IS,PetscInt,Ptr{PetscInt},PetscCopyMode),(is,n,idx,mode),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISGeneralSetIndices.html")
 @wrapper(:ISBlockSetIndices,PetscErrorCode,(IS,PetscInt,PetscInt,Ptr{PetscInt},PetscCopyMode),(is,bs,n,idx,mode),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/IS/ISBlockSetIndices.html")
