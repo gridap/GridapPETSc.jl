@@ -6,39 +6,38 @@ struct HPDDMLinearSolver <: LinearSolver
   setup :: Function
 end
 
-function HPDDMLinearSolver(indices::PRange,mats::MPIArray,setup::Function)
+function HPDDMLinearSolver(indices::MPIArray,mats::MPIArray,setup::Function)
   ranks = linear_indices(mats)
-  # is  = PETScIndexSet(indices)
-  is  = PETScIndexSet(PartitionedArrays.getany(local_to_global(indices)))
+  is  = PETScIndexSet(PartitionedArrays.getany(indices))
   mat = PETScMatrix(PartitionedArrays.getany(mats))
-  display(local_to_global(indices))
+  display(indices)
   display(mats)
   HPDDMLinearSolver(ranks,mat,is,setup)
 end
 
-function HPDDMLinearSolver(indices::PRange,mats::AbstractArray,setup::Function)
+function HPDDMLinearSolver(indices::AbstractArray,mats::AbstractArray,setup::Function)
   @error """
     HPDDMLinearSolver only makes sense in a distributed context.
   """
 end
 
 function HPDDMLinearSolver(space::FESpace,biform::Function,setup::Function)
-  assem = SparseMatrixAssembler(
-    SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{PetscScalar},space,space
-  )
-  indices, mats = subassemble_matrices(space,biform,assem)
+  assems = map(local_views(space)) do space 
+    SparseMatrixAssembler(
+      SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{PetscScalar},space,space
+    )
+  end
+  indices, mats = subassemble_matrices(space,biform,assems)
   HPDDMLinearSolver(indices,mats,setup)
 end
 
-function subassemble_matrices(space,biform,assem)
-  @assert PartitionedArrays.matching_local_indices(get_rows(assem),get_cols(assem))
-  @assert PartitionedArrays.matching_local_indices(get_rows(assem),get_free_dof_ids(space))
+function subassemble_matrices(space,biform,assems)
 
   u, v = get_trial_fe_basis(space), get_fe_basis(space)
   data = collect_cell_matrix(space,space,biform(u,v))
 
-  indices = get_cols(assem)
-  mats = map(assemble_matrix, local_views(assem), data)
+  indices = local_to_global(get_free_dof_ids(space))
+  mats = map(assemble_matrix, assems, data)
 
   return indices, mats
 end
