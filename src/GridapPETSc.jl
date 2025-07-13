@@ -92,4 +92,9 @@ include("PETScNonlinearSolvers.jl")
 
 include("PETScAssembly.jl")
 
+using Gridap.FESpaces
+using GridapDistributed
+export HPDDMLinearSolver
+include("HPDDM.jl")
+
 end # module

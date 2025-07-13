@@ -1,16 +1,22 @@
 
-struct HPDDMLinearSolver{A} <: LinearSolver
-  ranks :: A
+struct HPDDMLinearSolver <: LinearSolver
+  ranks :: MPIArray
   mat   :: PETScMatrix
   is    :: PETScIndexSet
   setup :: Function
 end
 
+function HPDDMLinearSolver(indices::PRange,mats::MPIArray,setup::Function)
+  ranks = linear_indices(mats)
+  is  = PETScIndexSet(indices)
+  mat = PETScMatrix(PartitionedArrays.getany(mats))
+  HPDDMLinearSolver(ranks,mat,is,setup)
+end
+
 function HPDDMLinearSolver(indices::PRange,mats::AbstractArray,setup::Function)
-  ranks = linear_indices(indices)
-  is = PETScIndexSet(indices)
-  
-  HPDDMLinearSolver(ranks,is,PETScMatrix(mats,indices),setup)
+  @error """
+    HPDDMLinearSolver only makes sense in a distributed context.
+  """
 end
 
 function HPDDMLinearSolver(space::FESpace,biform::Function,setup::Function)
@@ -60,5 +66,5 @@ function hpddm_setup(solver::HPDDMLinearSolver,ksp)
   @check_error_code PETSC.PCSetType(pc[],GridapPETSc.PETSC.PCHPDDM)
 
   mat, is = solver.mat.mat, solver.is.is
-  @check_error_code PETSC.HPDDMSetAuxiliaryMat(pc[],is[],mat[],C_NULL,C_NULL)
+  @check_error_code PETSC.PCHPDDMSetAuxiliaryMat(pc[],is[],mat[],C_NULL,C_NULL)
 end
