@@ -8,8 +8,11 @@ end
 
 function HPDDMLinearSolver(indices::PRange,mats::MPIArray,setup::Function)
   ranks = linear_indices(mats)
-  is  = PETScIndexSet(indices)
+  # is  = PETScIndexSet(indices)
+  is  = PETScIndexSet(PartitionedArrays.getany(local_to_global(indices)))
   mat = PETScMatrix(PartitionedArrays.getany(mats))
+  display(local_to_global(indices))
+  display(mats)
   HPDDMLinearSolver(ranks,mat,is,setup)
 end
 
