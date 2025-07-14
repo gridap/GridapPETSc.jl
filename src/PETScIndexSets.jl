@@ -35,7 +35,8 @@ end
 function PETScIndexSet(indices::Vector{PetscInt})
   is = PETScIndexSet(MPI.COMM_SELF)
   n = length(indices)
-  @check_error_code PETSC.ISCreateGeneral(MPI.COMM_SELF,n,indices,PETSC.PETSC_COPY_VALUES,is.is)
+  petsc_indices = indices .- one(PetscInt)
+  @check_error_code PETSC.ISCreateGeneral(MPI.COMM_SELF,n,petsc_indices,PETSC.PETSC_COPY_VALUES,is.is)
   Init(is)
 end
 
@@ -48,7 +49,7 @@ function _petsc_index_set(prange,::DebugArray)
   indices = zeros(PetscInt,length(prange))
   map(own_to_global(prange)) do o2g
     n = length(o2g)
-    indices[k:k+n-1] .= o2g
+    indices[k:k+n-1] .= o2g .- one(PetscInt)
     k += n
   end
   PETScIndexSet(indices)
@@ -58,7 +59,7 @@ function _petsc_index_set(prange,::MPIArray)
   n = length(prange)
   is = PETScIndexSet(partition(prange).comm)
   map(local_to_global(prange)) do l2g
-    indices = collect(PetscInt,l2g)
+    indices = collect(PetscInt,l2g) .- one(PetscInt)
     @check_error_code PETSC.ISCreateGeneral(MPI.COMM_SELF,n,indices,PETSC.PETSC_COPY_VALUES,is.is)
   end
   Init(is)

@@ -26,9 +26,9 @@ f(x) = -Δ(u)(x)
 a(u,v) = ∫(∇(u)⋅∇(v))dΩ
 l(v) = ∫(f⋅v)dΩ
 
-assem = SparseMatrixAssembler(
-  SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{PetscScalar},U,V
-)
+Ωg = Triangulation(with_ghost,model)
+dΩg = Measure(Ωg,qdegree)
+a_g(u,v) = ∫(∇(u)⋅∇(v))dΩg
 
 function setup(ksp)
   rtol = GridapPETSc.PETSC.PETSC_DEFAULT
@@ -41,11 +41,14 @@ function setup(ksp)
   @check_error_code GridapPETSc.PETSC.KSPView(ksp[],C_NULL)
 end
 
+assem = SparseMatrixAssembler(
+  SparseMatrixCSR{0,PetscScalar,PetscInt},Vector{PetscScalar},U,V
+)
 op = AffineFEOperator(a,l,U,V,assem)
 
 options = "-ksp_error_if_not_converged true -ksp_converged_reason -ksp_monitor -pc_hpddm_levels_1_eps_nev 10 -pc_hpddm_levels_1_st_share_sub_ksp -pc_hpddm_levels_1_sub_pc_type cholesky -pc_hpddm_has_neumann -pc_hpddm_define_subdomains"
 GridapPETSc.with(args=split(options)) do
-  solver = HPDDMLinearSolver(V,a,setup)
+  solver = HPDDMLinearSolver(V,a_g,setup)
   uh = solve(solver,op)
 
   eh = u - uh
