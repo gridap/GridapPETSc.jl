@@ -69,4 +69,5 @@ function hpddm_setup(solver::HPDDMLinearSolver,ksp)
 
   mat, is = solver.mat.mat, solver.is.is
   @check_error_code PETSC.PCHPDDMSetAuxiliaryMat(pc[],is[],mat[],C_NULL,C_NULL)
+  @check_error_code PETSC.KSPSetFromOptions(ksp[])
 end

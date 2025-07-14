@@ -43,7 +43,7 @@ end
 
 op = AffineFEOperator(a,l,U,V,assem)
 
-options = "-ksp_error_if_not_converged true -ksp_converged_reason -ksp_monitor"
+options = "-ksp_error_if_not_converged true -ksp_converged_reason -ksp_monitor -pc_hpddm_levels_1_eps_nev 10 -pc_hpddm_levels_1_st_share_sub_ksp -pc_hpddm_levels_1_sub_pc_type cholesky -pc_hpddm_has_neumann -pc_hpddm_define_subdomains"
 GridapPETSc.with(args=split(options)) do
   solver = HPDDMLinearSolver(V,a,setup)
   uh = solve(solver,op)
