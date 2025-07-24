@@ -156,6 +156,17 @@ See [PETSc manual](https://petsc.org/release/manualpages/Sys/InsertMode/).
 end
 
 """
+Julia alias for the `PetscCopyMode` C enum.
+
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscCopyMode/).
+"""
+@enum PetscCopyMode begin
+  PETSC_COPY_VALUES
+  PETSC_OWN_POINTER
+  PETSC_USE_POINTER
+end
+
+"""
 Julia alias for the `VecOption` C enum.
 
 See [PETSc manual](https://petsc.org/release/manualpages/Vec/VecSetOption/).
@@ -739,6 +750,33 @@ end
 
 @wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/manualpages/Sys/PetscObjectRegisterDestroy/")
 @wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/manualpages/Sys/PetscObjectRegisterDestroyAll/")
+
+# IS - Index sets
+
+"""
+Julia alias for the `IS` C type.
+
+See [PETSc manual](https://petsc.org/release/manualpages/IS/IS/).
+"""
+struct IS
+  ptr::Ptr{Cvoid}
+end
+
+const ISType = Cstring
+const ISGENERAL = "general"
+const ISSTRIDE  = "stride"
+const ISBLOCK   = "block"
+
+@wrapper(:ISCreateGeneral,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{PetscInt},PetscCopyMode,Ptr{IS}),(comm,n,idx,mode,is),"https://petsc.org/release/manualpages/IS/ISCreateGeneral/")
+@wrapper(:ISCreateStride,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{IS}),(comm,n,first,step,is),"https://petsc.org/release/manualpages/IS/ISCreateStride/")
+@wrapper(:ISCreateBlock,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},PetscCopyMode,Ptr{IS}),(comm,bs,n,idx,mode,is),"https://petsc.org/release/manualpages/IS/ISCreateBlock/")
+@wrapper(:ISSetType,PetscErrorCode,(IS,ISType),(is,method),"https://petsc.org/release/manualpages/IS/ISSetType/")
+@wrapper(:ISDuplicate,PetscErrorCode,(IS,Ptr{IS}),(is,newis),"https://petsc.org/release/manualpages/IS/ISDuplicate/")
+@wrapper(:ISGetSize,PetscErrorCode,(IS,Ptr{PetscInt}),(is,n),"https://petsc.org/release/manualpages/IS/ISGetSize/")
+@wrapper(:ISGetIndices,PetscErrorCode,(IS,Ptr{Ptr{PetscInt}}),(is,ptr),"https://petsc.org/release/manualpages/IS/ISGetIndices/")
+@wrapper(:ISGeneralSetIndices,PetscErrorCode,(IS,PetscInt,Ptr{PetscInt},PetscCopyMode),(is,n,idx,mode),"https://petsc.org/release/manualpages/IS/ISGeneralSetIndices/")
+@wrapper(:ISBlockSetIndices,PetscErrorCode,(IS,PetscInt,PetscInt,Ptr{PetscInt},PetscCopyMode),(is,bs,n,idx,mode),"https://petsc.org/release/manualpages/IS/ISBlockSetIndices/")
+@wrapper(:ISDestroy,PetscErrorCode,(Ptr{IS},),(is,),"https://petsc.org/release/manualpages/IS/ISDestroy/")
 
 # HYPRE
 
