@@ -69,18 +69,18 @@ end
 
 #Petsc init related functions
 
-@wrapper(:PetscInitializeNoArguments,PetscErrorCode,(),(),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitializeNoArguments.html")
+@wrapper(:PetscInitializeNoArguments,PetscErrorCode,(),(),"https://petsc.org/release/manualpages/Sys/PetscInitializeNoArguments/")
 @wrapper(:PetscInitializeNoPointers,PetscErrorCode,(Cint,Ptr{Cstring},Cstring,Cstring),(argc,args,filename,help),"")
-@wrapper(:PetscFinalize,PetscErrorCode,(),(),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalize.html")
-@wrapper(:PetscFinalized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscFinalized.html")
-@wrapper(:PetscInitialized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscInitialized.html")
+@wrapper(:PetscFinalize,PetscErrorCode,(),(),"https://petsc.org/release/manualpages/Sys/PetscFinalize/")
+@wrapper(:PetscFinalized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://petsc.org/release/manualpages/Sys/PetscFinalized/")
+@wrapper(:PetscInitialized,PetscErrorCode,(Ptr{PetscBool},),(flag,),"https://petsc.org/release/manualpages/Sys/PetscInitialized/")
 
 # viewer related functions
 
 """
 Julia alias for `PetscViewer` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PetscViewer.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Viewer/PetscViewer/).
 """
 struct PetscViewer
   ptr::Ptr{Cvoid}
@@ -89,13 +89,13 @@ PetscViewer() = PetscViewer(Ptr{Cvoid}())
 Base.convert(::Type{PetscViewer},p::Ptr{Cvoid}) = PetscViewer(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PetscViewer) = v.ptr
 
-@wrapper(:PETSC_VIEWER_STDOUT_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_.html")
-@wrapper(:PETSC_VIEWER_DRAW_,PetscViewer,(MPI.Comm,),(comm,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_.html")
+@wrapper(:PETSC_VIEWER_STDOUT_,PetscViewer,(MPI.Comm,),(comm,),"https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_STDOUT_/")
+@wrapper(:PETSC_VIEWER_DRAW_,PetscViewer,(MPI.Comm,),(comm,),"https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_DRAW_/")
 
 """
     @PETSC_VIEWER_STDOUT_SELF
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_SELF.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_STDOUT_SELF/).
 """
 macro PETSC_VIEWER_STDOUT_SELF()
   quote
@@ -106,7 +106,7 @@ end
 """
     @PETSC_VIEWER_STDOUT_WORLD
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_STDOUT_WORLD.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_STDOUT_WORLD/).
 """
 macro PETSC_VIEWER_STDOUT_WORLD()
   quote
@@ -117,7 +117,7 @@ end
 """
     @PETSC_VIEWER_DRAW_SELF
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_SELF.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_DRAW_SELF/).
 """
 macro PETSC_VIEWER_DRAW_SELF()
   quote
@@ -128,7 +128,7 @@ end
 """
     @PETSC_VIEWER_DRAW_WORLD
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Viewer/PETSC_VIEWER_DRAW_WORLD.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Viewer/PETSC_VIEWER_DRAW_WORLD/).
 """
 macro PETSC_VIEWER_DRAW_WORLD()
   quote
@@ -141,7 +141,7 @@ end
 """
 Julia alias for the `InsertMode` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/InsertMode.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/InsertMode/).
 """
 @enum InsertMode begin
   NOT_SET_VALUES
@@ -158,7 +158,7 @@ end
 """
 Julia alias for the `VecOption` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Vec/VecSetOption/).
 """
 @enum VecOption begin
   VEC_IGNORE_OFF_PROC_ENTRIES
@@ -169,7 +169,7 @@ end
 """
 Julia alias for the `NormType` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/NormType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Vec/NormType/).
 """
 @enum NormType begin
   NORM_1=0
@@ -182,7 +182,7 @@ end
 """
 Julia alias for the `Vec` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/Vec.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Vec/Vec/).
 """
 struct Vec
   ptr::Ptr{Cvoid}
@@ -191,46 +191,46 @@ Vec() = Vec(Ptr{Cvoid}())
 Base.convert(::Type{Vec},p::Ptr{Cvoid}) = Vec(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::Vec) = v.ptr
 
-@wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeq.html")
-@wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCreateSeqWithArray.html")
-@wrapper(:VecCreateGhost,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Vec}),(comm,n,N,nghost,ghosts,vv),"https://petsc.org/release/docs/manualpages/Vec/VecCreateGhost.html")
-@wrapper(:VecCreateGhostWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},Ptr{Vec}),(comm,n,N,nghost,ghosts,array,vv),"https://petsc.org/release/docs/manualpages/Vec/VecCreateGhostWithArray.html")
-@wrapper(:VecCreateMPI,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Vec),(comm,n,N,v),"https://petsc.org/release/docs/manualpages/Vec/VecCreateMPI.html")
-@wrapper(:VecDestroy,PetscErrorCode,(Ptr{Vec},),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDestroy.html")
-@wrapper(:VecView,PetscErrorCode,(Vec,PetscViewer),(vec,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecView.html")
-@wrapper(:VecSetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(x,ni,ix,y,iora),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetValues.html")
-@wrapper(:VecGetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(x,ni,ix,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetValues.html")
-@wrapper(:VecGetArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArray.html")
-@wrapper(:VecGetArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArrayRead.html")
-@wrapper(:VecGetArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecGetArrayWrite.html")
-@wrapper(:VecRestoreArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArray.html")
-@wrapper(:VecRestoreArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArrayRead.html")
-@wrapper(:VecRestoreArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/docs/manualpages/Vec/VecRestoreArrayWrite.html")
-@wrapper(:VecGetSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecGetSize.html")
-@wrapper(:VecGetLocalSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://petsc.org/release/docs/manualpages/Vec/VecGetLocalSize.html")
-@wrapper(:VecAssemblyBegin,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyBegin.html")
-@wrapper(:VecAssemblyEnd,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAssemblyEnd.html")
-@wrapper(:VecPlaceArray,PetscErrorCode,(Vec,Ptr{PetscScalar}),(vec,array),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecPlaceArray.html")
-@wrapper(:VecResetArray,PetscErrorCode,(Vec,),(vec,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecResetArray.html")
-@wrapper(:VecScale,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecScale.html")
-@wrapper(:VecSet,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSet.html")
-@wrapper(:VecDuplicate,PetscErrorCode,(Vec,Ptr{Vec}),(v,newv),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecDuplicate.html")
-@wrapper(:VecCopy,PetscErrorCode,(Vec,Vec),(x,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecCopy.html")
-@wrapper(:VecAXPY,PetscErrorCode,(Vec,PetscScalar,Vec),(y,alpha,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPY.html")
-@wrapper(:VecAYPX,PetscErrorCode,(Vec,PetscScalar,Vec),(y,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAYPX.html")
-@wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecAXPBY.html")
-@wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecSetOption.html")
-@wrapper(:VecNorm,PetscErrorCode,(Vec,NormType,Ptr{PetscReal}),(x,typ,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Vec/VecNorm.html")
-@wrapper(:VecGhostGetLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostGetLocalForm.html")
-@wrapper(:VecGhostRestoreLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/docs/manualpages/Vec/VecGhostRestoreLocalForm.html")
-@wrapper(:VecSetBlockSize,PetscErrorCode,(Vec,PetscInt),(v,bs),"https://petsc.org/release/manualpages/Vec/VecSetBlockSize.html")
+@wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://petsc.org/release/manualpages/Vec/VecCreateSeq/")
+@wrapper(:VecCreateSeqWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscScalar},Ptr{Vec}),(comm,bs,n,array,vec),"https://petsc.org/release/manualpages/Vec/VecCreateSeqWithArray/")
+@wrapper(:VecCreateGhost,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Vec}),(comm,n,N,nghost,ghosts,vv),"https://petsc.org/release/manualpages/Vec/VecCreateGhost/")
+@wrapper(:VecCreateGhostWithArray,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},Ptr{Vec}),(comm,n,N,nghost,ghosts,array,vv),"https://petsc.org/release/manualpages/Vec/VecCreateGhostWithArray/")
+@wrapper(:VecCreateMPI,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Vec),(comm,n,N,v),"https://petsc.org/release/manualpages/Vec/VecCreateMPI/")
+@wrapper(:VecDestroy,PetscErrorCode,(Ptr{Vec},),(vec,),"https://petsc.org/release/manualpages/Vec/VecDestroy/")
+@wrapper(:VecView,PetscErrorCode,(Vec,PetscViewer),(vec,viewer),"https://petsc.org/release/manualpages/Vec/VecView/")
+@wrapper(:VecSetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(x,ni,ix,y,iora),"https://petsc.org/release/manualpages/Vec/VecSetValues/")
+@wrapper(:VecGetValues,PetscErrorCode,(Vec,PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(x,ni,ix,y),"https://petsc.org/release/manualpages/Vec/VecGetValues/")
+@wrapper(:VecGetArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecGetArray/")
+@wrapper(:VecGetArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecGetArrayRead/")
+@wrapper(:VecGetArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecGetArrayWrite/")
+@wrapper(:VecRestoreArray,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecRestoreArray/")
+@wrapper(:VecRestoreArrayRead,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecRestoreArrayRead/")
+@wrapper(:VecRestoreArrayWrite,PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),(x,a),"https://petsc.org/release/manualpages/Vec/VecRestoreArrayWrite/")
+@wrapper(:VecGetSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://petsc.org/release/manualpages/Vec/VecGetSize/")
+@wrapper(:VecGetLocalSize,PetscErrorCode,(Vec,Ptr{PetscInt}),(vec,n),"https://petsc.org/release/manualpages/Vec/VecGetLocalSize/")
+@wrapper(:VecAssemblyBegin,PetscErrorCode,(Vec,),(vec,),"https://petsc.org/release/manualpages/Vec/VecAssemblyBegin/")
+@wrapper(:VecAssemblyEnd,PetscErrorCode,(Vec,),(vec,),"https://petsc.org/release/manualpages/Vec/VecAssemblyEnd/")
+@wrapper(:VecPlaceArray,PetscErrorCode,(Vec,Ptr{PetscScalar}),(vec,array),"https://petsc.org/release/manualpages/Vec/VecPlaceArray/")
+@wrapper(:VecResetArray,PetscErrorCode,(Vec,),(vec,),"https://petsc.org/release/manualpages/Vec/VecResetArray/")
+@wrapper(:VecScale,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://petsc.org/release/manualpages/Vec/VecScale/")
+@wrapper(:VecSet,PetscErrorCode,(Vec,PetscScalar),(x,alpha),"https://petsc.org/release/manualpages/Vec/VecSet/")
+@wrapper(:VecDuplicate,PetscErrorCode,(Vec,Ptr{Vec}),(v,newv),"https://petsc.org/release/manualpages/Vec/VecDuplicate/")
+@wrapper(:VecCopy,PetscErrorCode,(Vec,Vec),(x,y),"https://petsc.org/release/manualpages/Vec/VecCopy/")
+@wrapper(:VecAXPY,PetscErrorCode,(Vec,PetscScalar,Vec),(y,alpha,x),"https://petsc.org/release/manualpages/Vec/VecAXPY/")
+@wrapper(:VecAYPX,PetscErrorCode,(Vec,PetscScalar,Vec),(y,beta,x),"https://petsc.org/release/manualpages/Vec/VecAYPX/")
+@wrapper(:VecAXPBY,PetscErrorCode,(Vec,PetscScalar,PetscScalar,Vec),(y,alpha,beta,x),"https://petsc.org/release/manualpages/Vec/VecAXPBY/")
+@wrapper(:VecSetOption,PetscErrorCode,(Vec,VecOption,PetscBool),(x,op,flg),"https://petsc.org/release/manualpages/Vec/VecSetOption/")
+@wrapper(:VecNorm,PetscErrorCode,(Vec,NormType,Ptr{PetscReal}),(x,typ,val),"https://petsc.org/release/manualpages/Vec/VecNorm/")
+@wrapper(:VecGhostGetLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/manualpages/Vec/VecGhostGetLocalForm/")
+@wrapper(:VecGhostRestoreLocalForm,PetscErrorCode,(Vec,Ptr{Vec}),(g,l),"https://petsc.org/release/manualpages/Vec/VecGhostRestoreLocalForm/")
+@wrapper(:VecSetBlockSize,PetscErrorCode,(Vec,PetscInt),(v,bs),"https://petsc.org/release/manualpages/Vec/VecSetBlockSize/")
 
 # Matrix related functions
 
 """
 Julia alias for the `MatAssemblyType` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatAssemblyType/).
 """
 @enum MatAssemblyType begin
   MAT_FINAL_ASSEMBLY=0
@@ -240,7 +240,7 @@ end
 """
 Julia alias for the `MatDuplicateOption` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDuplicateOption.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatDuplicateOption/).
 """
 @enum MatDuplicateOption begin
   MAT_DO_NOT_COPY_VALUES
@@ -251,7 +251,7 @@ end
 """
 Julia alias for the `MatReuse` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatReuse.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatReuse/).
 """
 @enum MatReuse begin
   MAT_INITIAL_MATRIX
@@ -263,7 +263,7 @@ end
 """
 Julia alias for the `MatInfoType` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatInfoType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatInfoType/).
 """
 @enum MatInfoType begin
   MAT_LOCAL=1
@@ -274,7 +274,7 @@ end
 """
 Julia alias for the `MatStructure` C enum.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatStructure.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatStructure/).
 """
 @enum MatStructure begin
   DIFFERENT_NONZERO_PATTERN
@@ -286,14 +286,14 @@ end
 """
 Julia alias to `PetscLogDouble` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PetscLogDouble.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscLogDouble/).
 """
 const PetscLogDouble = Cdouble
 
 """
 Julia alias for the `MatInfo` C struct.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatInfo.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatInfo/).
 """
 struct MatInfo
   block_size         ::PetscLogDouble
@@ -311,28 +311,28 @@ end
 """
 Julia constant storing the `PETSC_DEFAULT` value.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PETSC_DEFAULT.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PETSC_DEFAULT/).
 """
 const PETSC_DEFAULT = Cint(-2)
 
 """
 Julia constant storing the `PETSC_DECIDE` value.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PETSC_DECIDE.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PETSC_DECIDE/).
 """
 const PETSC_DECIDE = Cint(-1)
 
 """
 Julia constant storing the `PETSC_DETERMINE` value.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Sys/PETSC_DETERMINE.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Sys/PETSC_DETERMINE/).
 """
 const PETSC_DETERMINE = PETSC_DECIDE
 
 """
 Julia alias for `MatType` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatType/).
 """
 const MatType = Cstring
 const MATSAME            = "same"
@@ -443,7 +443,7 @@ const MATSOLVERCUSPARSE         = "cusparse"
 """
 Julia alias for the `Mat` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/Mat.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/Mat/).
 """
 struct Mat
   ptr::Ptr{Cvoid}
@@ -452,35 +452,35 @@ Mat() = Mat(Ptr{Cvoid}())
 Base.convert(::Type{Mat},p::Ptr{Cvoid}) = Mat(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::Mat) = v.ptr
 
-@wrapper(:MatCreateAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,M,N,d_nz,d_nnz,o_nz,o_nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateAIJ.html")
-@wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJ.html")
-@wrapper(:MatCreateSeqAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,i,j,a,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCreateSeqAIJWithArrays.html")
-@wrapper(:MatCreateMPIAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,M,N,i,j,a,mat),"https://petsc.org/release/docs/manualpages/Mat/MatCreateMPIAIJWithArrays.html")
-@wrapper(:MatDestroy,PetscErrorCode,(Ptr{Mat},),(A,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatDestroy.html")
-@wrapper(:MatView,PetscErrorCode,(Mat,PetscViewer),(mat,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatView.html")
-@wrapper(:MatSetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(mat,m,idxm,n,idxn,v,addv),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetValues.html")
-@wrapper(:MatGetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(mat,m,idxm,n,idxn,v),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetValues.html")
-@wrapper(:MatAssemblyBegin,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyBegin.html")
-@wrapper(:MatAssemblyEnd,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatAssemblyEnd.html")
-@wrapper(:MatGetSize,PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),(mat,m,n),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetSize.html")
-@wrapper(:MatEqual,PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),(A,B,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatEqual.html")
-@wrapper(:MatMultAdd,PetscErrorCode,(Mat,Vec,Vec,Vec),(mat,v1,v2,v3),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMultAdd.html")
-@wrapper(:MatMult,PetscErrorCode,(Mat,Vec,Vec),(mat,x,y),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMult.html")
-@wrapper(:MatScale,PetscErrorCode,(Mat,PetscScalar),(mat,alpha),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatScale.html")
-@wrapper(:MatConvert,PetscErrorCode,(Mat,MatType,MatReuse,Ptr{Mat}),(mat,newtype,reuse,M),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatConvert.html")
-@wrapper(:MatGetInfo,PetscErrorCode,(Mat,MatInfoType,Ptr{MatInfo}),(mat,flag,info),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatGetInfo.html")
-@wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatZeroEntries.html")
-@wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatCopy.html")
-@wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetBlockSize.html")
-@wrapper(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetIcntl.html")
-@wrapper(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMumpsSetCntl.html")
+@wrapper(:MatCreateAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,M,N,d_nz,d_nnz,o_nz,o_nnz,mat),"https://petsc.org/release/manualpages/Mat/MatCreateAIJ/")
+@wrapper(:MatCreateSeqAIJ,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{Mat}),(comm,m,n,nz,nnz,mat),"https://petsc.org/release/manualpages/Mat/MatCreateSeqAIJ/")
+@wrapper(:MatCreateSeqAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,i,j,a,mat),"https://petsc.org/release/manualpages/Mat/MatCreateSeqAIJWithArrays/")
+@wrapper(:MatCreateMPIAIJWithArrays,PetscErrorCode,(MPI.Comm,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{PetscInt},Ptr{PetscInt},Ptr{PetscScalar},Ptr{Mat}),(comm,m,n,M,N,i,j,a,mat),"https://petsc.org/release/manualpages/Mat/MatCreateMPIAIJWithArrays/")
+@wrapper(:MatDestroy,PetscErrorCode,(Ptr{Mat},),(A,),"https://petsc.org/release/manualpages/Mat/MatDestroy/")
+@wrapper(:MatView,PetscErrorCode,(Mat,PetscViewer),(mat,viewer),"https://petsc.org/release/manualpages/Mat/MatView/")
+@wrapper(:MatSetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar},InsertMode),(mat,m,idxm,n,idxn,v,addv),"https://petsc.org/release/manualpages/Mat/MatSetValues/")
+@wrapper(:MatGetValues,PetscErrorCode,(Mat,PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),(mat,m,idxm,n,idxn,v),"https://petsc.org/release/manualpages/Mat/MatGetValues/")
+@wrapper(:MatAssemblyBegin,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://petsc.org/release/manualpages/Mat/MatAssemblyBegin/")
+@wrapper(:MatAssemblyEnd,PetscErrorCode,(Mat,MatAssemblyType),(mat,typ),"https://petsc.org/release/manualpages/Mat/MatAssemblyEnd/")
+@wrapper(:MatGetSize,PetscErrorCode,(Mat,Ptr{PetscInt},Ptr{PetscInt}),(mat,m,n),"https://petsc.org/release/manualpages/Mat/MatGetSize/")
+@wrapper(:MatEqual,PetscErrorCode,(Mat,Mat,Ptr{PetscBool}),(A,B,flg),"https://petsc.org/release/manualpages/Mat/MatEqual/")
+@wrapper(:MatMultAdd,PetscErrorCode,(Mat,Vec,Vec,Vec),(mat,v1,v2,v3),"https://petsc.org/release/manualpages/Mat/MatMultAdd/")
+@wrapper(:MatMult,PetscErrorCode,(Mat,Vec,Vec),(mat,x,y),"https://petsc.org/release/manualpages/Mat/MatMult/")
+@wrapper(:MatScale,PetscErrorCode,(Mat,PetscScalar),(mat,alpha),"https://petsc.org/release/manualpages/Mat/MatScale/")
+@wrapper(:MatConvert,PetscErrorCode,(Mat,MatType,MatReuse,Ptr{Mat}),(mat,newtype,reuse,M),"https://petsc.org/release/manualpages/Mat/MatConvert/")
+@wrapper(:MatGetInfo,PetscErrorCode,(Mat,MatInfoType,Ptr{MatInfo}),(mat,flag,info),"https://petsc.org/release/manualpages/Mat/MatGetInfo/")
+@wrapper(:MatZeroEntries,PetscErrorCode,(Mat,),(mat,),"https://petsc.org/release/manualpages/Mat/MatZeroEntries/")
+@wrapper(:MatCopy,PetscErrorCode,(Mat,Mat,MatStructure),(A,B,str),"https://petsc.org/release/manualpages/Mat/MatCopy/")
+@wrapper(:MatSetBlockSize,PetscErrorCode,(Mat,PetscInt),(mat,bs),"https://petsc.org/release/manualpages/Mat/MatSetBlockSize/")
+@wrapper(:MatMumpsSetIcntl,PetscErrorCode,(Mat,PetscInt,PetscInt),(mat,icntl,val),"https://petsc.org/release/manualpages/Mat/MatMumpsSetIcntl/")
+@wrapper(:MatMumpsSetCntl,PetscErrorCode,(Mat,PetscInt,PetscReal),(mat,icntl,val),"https://petsc.org/release/manualpages/Mat/MatMumpsSetCntl/")
 
 # Null space related
 
 """
 Julia alias for the `MatNullSpace` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpace.html).
+See [PETSc manual](https://petsc.org/release/manualpages/Mat/MatNullSpace/).
 """
 struct MatNullSpace
   ptr::Ptr{Cvoid}
@@ -489,18 +489,18 @@ MatNullSpace() = MatNullSpace(Ptr{Cvoid}())
 Base.convert(::Type{MatNullSpace},p::Ptr{Cvoid}) = MatNullSpace(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::MatNullSpace) = v.ptr
 
-@wrapper(:MatSetNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNullSpace.html")
-@wrapper(:MatSetNearNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatSetNearNullSpace.html")
-@wrapper(:MatNullSpaceCreateRigidBody,PetscErrorCode,(Vec,Ptr{MatNullSpace}),(coords,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreateRigidBody.html")
-@wrapper(:MatNullSpaceCreate,PetscErrorCode,(MPI.Comm,PetscBool,PetscInt,Ptr{Vec},Ptr{MatNullSpace}),(comm,has_cnst,n,vecs,sp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceCreate.html")
-@wrapper(:MatNullSpaceDestroy,PetscErrorCode,(Ptr{MatNullSpace},),(ns,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatNullSpaceDestroy.html")
+@wrapper(:MatSetNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://petsc.org/release/manualpages/Mat/MatSetNullSpace/")
+@wrapper(:MatSetNearNullSpace,PetscErrorCode,(Mat,MatNullSpace),(mat,nullsp),"https://petsc.org/release/manualpages/Mat/MatSetNearNullSpace/")
+@wrapper(:MatNullSpaceCreateRigidBody,PetscErrorCode,(Vec,Ptr{MatNullSpace}),(coords,sp),"https://petsc.org/release/manualpages/Mat/MatNullSpaceCreateRigidBody/")
+@wrapper(:MatNullSpaceCreate,PetscErrorCode,(MPI.Comm,PetscBool,PetscInt,Ptr{Vec},Ptr{MatNullSpace}),(comm,has_cnst,n,vecs,sp),"https://petsc.org/release/manualpages/Mat/MatNullSpaceCreate/")
+@wrapper(:MatNullSpaceDestroy,PetscErrorCode,(Ptr{MatNullSpace},),(ns,),"https://petsc.org/release/manualpages/Mat/MatNullSpaceDestroy/")
 
 # KSP and PC related things
 
 """
 Julia alias for `KSPType` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/KSP/KSPType/).
 """
 const KSPType = Cstring
 const KSPRICHARDSON = "richardson"
@@ -553,7 +553,7 @@ const KSPHPDDM      = "hpddm"
 """
 Julia alias for `PCType` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCType.html).
+See [PETSc manual](https://petsc.org/release/manualpages/PC/PCType/).
 """
 const PCType = Cstring
 const PCNONE            = "none"
@@ -609,7 +609,7 @@ const PCHARA            = "hara"
 """
 Julia alias for the `KSP` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSP.html).
+See [PETSc manual](https://petsc.org/release/manualpages/KSP/KSP/).
 """
 struct KSP
   ptr::Ptr{Cvoid}
@@ -621,7 +621,7 @@ Base.unsafe_convert(::Type{Ptr{Cvoid}},v::KSP) = v.ptr
 """
 Julia alias for the `PC` C type.
 
-See [PETSc manual](https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PC.html).
+See [PETSc manual](https://petsc.org/release/manualpages/PC/PC/).
 """
 struct PC
   ptr::Ptr{Cvoid}
@@ -630,36 +630,37 @@ PC() = PC(Ptr{Cvoid}())
 Base.convert(::Type{PC},p::Ptr{Cvoid}) = PC(p)
 Base.unsafe_convert(::Type{Ptr{Cvoid}},v::PC) = v.ptr
 
-@wrapper(:KSPCreate,PetscErrorCode,(MPI.Comm,Ptr{KSP}),(comm,inksp),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPCreate.html")
-@wrapper(:KSPDestroy,PetscErrorCode,(Ptr{KSP},),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPDestroy.html")
-@wrapper(:KSPSetFromOptions,PetscErrorCode,(KSP,),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetFromOptions.html")
-@wrapper(:KSPSetOptionsPrefix,PetscErrorCode,(KSP,Cstring),(ksp,prefix),"https://petsc.org/release/docs/manualpages/KSP/KSPSetOptionsPrefix.html")
-@wrapper(:KSPSetUp,PetscErrorCode,(KSP,),(ksp,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetUp.html")
-@wrapper(:KSPSetOperators,PetscErrorCode,(KSP,Mat,Mat),(ksp,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetOperators.html")
-@wrapper(:KSPSetTolerances,PetscErrorCode,(KSP,PetscReal,PetscReal,PetscReal,PetscInt),(ksp,rtol,abstol,dtol,maxits),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetTolerances.html")
-@wrapper(:KSPGetOperators,PetscErrorCode,(KSP,Ptr{Mat},Ptr{Mat}),(ksp,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetOperators.html")
-@wrapper(:KSPSolve,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolve.html")
-@wrapper(:KSPSolveTranspose,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSolveTranspose.html")
-@wrapper(:KSPGetIterationNumber,PetscErrorCode,(KSP,Ptr{PetscInt}),(ksp,its),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetIterationNumber.html")
+@wrapper(:KSPCreate,PetscErrorCode,(MPI.Comm,Ptr{KSP}),(comm,inksp),"https://petsc.org/release/manualpages/KSP/KSPCreate/")
+@wrapper(:KSPDestroy,PetscErrorCode,(Ptr{KSP},),(ksp,),"https://petsc.org/release/manualpages/KSP/KSPDestroy/")
+@wrapper(:KSPSetFromOptions,PetscErrorCode,(KSP,),(ksp,),"https://petsc.org/release/manualpages/KSP/KSPSetFromOptions/")
+@wrapper(:KSPSetOptionsPrefix,PetscErrorCode,(KSP,Cstring),(ksp,prefix),"https://petsc.org/release/manualpages/KSP/KSPSetOptionsPrefix/")
+@wrapper(:KSPSetUp,PetscErrorCode,(KSP,),(ksp,),"https://petsc.org/release/manualpages/KSP/KSPSetUp/")
+@wrapper(:KSPSetOperators,PetscErrorCode,(KSP,Mat,Mat),(ksp,Amat,Pmat),"https://petsc.org/release/manualpages/KSP/KSPSetOperators/")
+@wrapper(:KSPSetTolerances,PetscErrorCode,(KSP,PetscReal,PetscReal,PetscReal,PetscInt),(ksp,rtol,abstol,dtol,maxits),"https://petsc.org/release/manualpages/KSP/KSPSetTolerances/")
+@wrapper(:KSPGetOperators,PetscErrorCode,(KSP,Ptr{Mat},Ptr{Mat}),(ksp,Amat,Pmat),"https://petsc.org/release/manualpages/KSP/KSPGetOperators/")
+@wrapper(:KSPSolve,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://petsc.org/release/manualpages/KSP/KSPSolve/")
+@wrapper(:KSPSolveTranspose,PetscErrorCode,(KSP,Vec,Vec),(ksp,b,x),"https://petsc.org/release/manualpages/KSP/KSPSolveTranspose/")
+@wrapper(:KSPGetIterationNumber,PetscErrorCode,(KSP,Ptr{PetscInt}),(ksp,its),"https://petsc.org/release/manualpages/KSP/KSPGetIterationNumber/")
 @wrapper(:KSPGetResidualNorm,PetscErrorCode,(KSP,Ptr{PetscReal}),(ksp,rnorm),"https://petsc.org/release/manualpages/KSP/KSPGetResidualNorm/")
-@wrapper(:KSPView,PetscErrorCode,(KSP,PetscViewer),(ksp,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPView.html")
-@wrapper(:KSPSetInitialGuessNonzero,PetscErrorCode,(KSP,PetscBool),(ksp,flg),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetInitialGuessNonzero.html")
-@wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPSetType.html")
-@wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/KSPGetPC.html")
+@wrapper(:KSPView,PetscErrorCode,(KSP,PetscViewer),(ksp,viewer),"https://petsc.org/release/manualpages/KSP/KSPView/")
+@wrapper(:KSPSetInitialGuessNonzero,PetscErrorCode,(KSP,PetscBool),(ksp,flg),"https://petsc.org/release/manualpages/KSP/KSPSetInitialGuessNonzero/")
+@wrapper(:KSPSetType,PetscErrorCode,(KSP,KSPType),(ksp,typ),"https://petsc.org/release/manualpages/KSP/KSPSetType/")
+@wrapper(:KSPGetPC,PetscErrorCode,(KSP,Ptr{PC}),(ksp,pc),"https://petsc.org/release/manualpages/KSP/KSPGetPC/")
 
-@wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCSetType.html")
-@wrapper(:PCView,PetscErrorCode,(PC,PetscViewer),(pc,viewer),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCView.html")
-@wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetMatSolverType.html")
-@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorSetUpMatSolverType.html")
-@wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/PC/PCFactorGetMatrix.html")
-@wrapper(:PCSetCoordinates,PetscErrorCode,(PC,PetscInt,PetscInt,Ptr{PetscScalar}),(pc,dim,nloc,coords),"https://petsc.org/release/manualpages/PC/PCSetCoordinates.html")
-@wrapper(:PCSetOperators,PetscErrorCode,(PC,Mat,Mat),(pc,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/PCSetOperators.html")
-@wrapper(:PCGetOperators,PetscErrorCode,(PC,Ptr{Mat},Ptr{Mat}),(pc,Amat,Pmat),"https://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/KSP/PCGetOperators.html")
+@wrapper(:PCSetFromOptions,PetscErrorCode,(PC,),(pc,),"https://petsc.org/release/manualpages/PC/PCSetFromOptions/")
+@wrapper(:PCSetType,PetscErrorCode,(PC,PCType),(pc,typ),"https://petsc.org/release/manualpages/PC/PCSetType/")
+@wrapper(:PCView,PetscErrorCode,(PC,PetscViewer),(pc,viewer),"https://petsc.org/release/manualpages/PC/PCView/")
+@wrapper(:PCFactorSetMatSolverType,PetscErrorCode,(PC,PCType),(pc,typ),"https://petsc.org/release/manualpages/PC/PCFactorSetMatSolverType/")
+@wrapper(:PCFactorSetUpMatSolverType,PetscErrorCode,(PC,),(pc,),"https://petsc.org/release/manualpages/PC/PCFactorSetUpMatSolverType/")
+@wrapper(:PCFactorGetMatrix,PetscErrorCode,(PC,Ptr{Mat}),(ksp,mat),"https://petsc.org/release/manualpages/PC/PCFactorGetMatrix/")
+@wrapper(:PCSetCoordinates,PetscErrorCode,(PC,PetscInt,PetscInt,Ptr{PetscScalar}),(pc,dim,nloc,coords),"https://petsc.org/release/manualpages/PC/PCSetCoordinates/")
+@wrapper(:PCSetOperators,PetscErrorCode,(PC,Mat,Mat),(pc,Amat,Pmat),"https://petsc.org/release/manualpages/PC/PCSetOperators/")
+@wrapper(:PCGetOperators,PetscErrorCode,(PC,Ptr{Mat},Ptr{Mat}),(pc,Amat,Pmat),"https://petsc.org/release/manualpages/PC/PCGetOperators/")
 
 """
 Julia alias for the `SNES` C type.
 
-See [PETSc manual](https://petsc.org/release/docs/manualpages/SNES/SNES.html).
+See [PETSc manual](https://petsc.org/release/manualpages/SNES/SNES/).
 """
 struct SNES
   ptr::Ptr{Cvoid}
@@ -696,56 +697,56 @@ Julia alias to `SNESConvergedReason` C enum.
 See [PETSc manual](https://petsc.org/release/manualpages/SNES/SNESConvergedReason/).
 """
 @enum SNESConvergedReason begin
-    SNES_CONVERGED_FNORM_ABS      = 2         # ||F|| < atol 
-    SNES_CONVERGED_FNORM_RELATIVE = 3         # ||F|| < rtol*||F_initial|| 
-    SNES_CONVERGED_SNORM_RELATIVE = 4         # Newton computed step size small; || delta x || < stol || x ||
-    SNES_CONVERGED_ITS            = 5         # maximum iterations reached 
-    SNES_BREAKOUT_INNER_ITER      = 6         # Flag to break out of inner loop after checking custom convergence. 
-                                              # it is used in multi-phase flow when state changes diverged 
-    SNES_DIVERGED_FUNCTION_DOMAIN      = -1   # the new x location passed the function is not in the domain of F 
-    SNES_DIVERGED_FUNCTION_COUNT       = -2
-    SNES_DIVERGED_LINEAR_SOLVE         = -3   # the linear solve failed 
-    SNES_DIVERGED_FNORM_NAN            = -4
-    SNES_DIVERGED_MAX_IT               = -5
-    SNES_DIVERGED_LINE_SEARCH          = -6   # the line search failed 
-    SNES_DIVERGED_INNER                = -7   # inner solve failed 
-    SNES_DIVERGED_LOCAL_MIN            = -8   # || J^T b || is small, implies converged to local minimum of F() 
-    SNES_DIVERGED_DTOL                 = -9   # || F || > divtol*||F_initial|| 
-    SNES_DIVERGED_JACOBIAN_DOMAIN      = -10  # Jacobian calculation does not make sense 
-    SNES_DIVERGED_TR_DELTA             = -11
+  SNES_CONVERGED_FNORM_ABS      = 2         # ||F|| < atol 
+  SNES_CONVERGED_FNORM_RELATIVE = 3         # ||F|| < rtol*||F_initial|| 
+  SNES_CONVERGED_SNORM_RELATIVE = 4         # Newton computed step size small; || delta x || < stol || x ||
+  SNES_CONVERGED_ITS            = 5         # maximum iterations reached 
+  SNES_BREAKOUT_INNER_ITER      = 6         # Flag to break out of inner loop after checking custom convergence. 
+                                            # it is used in multi-phase flow when state changes diverged 
+  SNES_DIVERGED_FUNCTION_DOMAIN      = -1   # the new x location passed the function is not in the domain of F 
+  SNES_DIVERGED_FUNCTION_COUNT       = -2
+  SNES_DIVERGED_LINEAR_SOLVE         = -3   # the linear solve failed 
+  SNES_DIVERGED_FNORM_NAN            = -4
+  SNES_DIVERGED_MAX_IT               = -5
+  SNES_DIVERGED_LINE_SEARCH          = -6   # the line search failed 
+  SNES_DIVERGED_INNER                = -7   # inner solve failed 
+  SNES_DIVERGED_LOCAL_MIN            = -8   # || J^T b || is small, implies converged to local minimum of F() 
+  SNES_DIVERGED_DTOL                 = -9   # || F || > divtol*||F_initial|| 
+  SNES_DIVERGED_JACOBIAN_DOMAIN      = -10  # Jacobian calculation does not make sense 
+  SNES_DIVERGED_TR_DELTA             = -11
 
-    SNES_CONVERGED_ITERATING = 0
+  SNES_CONVERGED_ITERATING = 0
 end
 
-@wrapper(:SNESCreate,PetscErrorCode,(MPI.Comm,Ptr{SNES}),(comm,snes),"https://petsc.org/release/docs/manualpages/SNES/SNESCreate.html")
-@wrapper(:SNESSetFunction,PetscErrorCode,(SNES,Vec,Ptr{Cvoid},Ptr{Cvoid}),(snes,vec,fptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFunction.html")
-@wrapper(:SNESSetJacobian,PetscErrorCode,(SNES,Mat,Mat,Ptr{Cvoid},Ptr{Cvoid}),(snes,A,P,jacptr,ctx),"https://petsc.org/release/docs/manualpages/SNES/SNESSetJacobian.html")
-@wrapper(:SNESSolve,PetscErrorCode,(SNES,Vec,Vec),(snes,b,x),"https://petsc.org/release/docs/manualpages/SNES/SNESSolve.html")
-@wrapper(:SNESDestroy,PetscErrorCode,(Ptr{SNES},),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESDestroy.html")
-@wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/docs/manualpages/SNES/SNESSetFromOptions.html")
-@wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/docs/manualpages/SNES/SNESView.html")
-@wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/docs/manualpages/SNES/SNESSetType.html")
-@wrapper(:SNESGetKSP,PetscErrorCode,(SNES,Ptr{KSP}),(snes,ksp),"https://petsc.org/release/docs/manualpages/SNES/SNESGetKSP.html")
-@wrapper(:SNESGetIterationNumber,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/docs/manualpages/SNES/SNESGetIterationNumber.html")
-@wrapper(:SNESGetLinearSolveIterations,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/docs/manualpages/SNES/SNESGetLinearSolveIterations.html")
-@wrapper(:SNESSetCountersReset,PetscErrorCode,(SNES,PetscBool),(snes,reset),"https://petsc.org/release/docs/manualpages/SNES/SNESSetCountersReset.html")
-@wrapper(:SNESGetNumberFunctionEvals,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfuncs),"https://petsc.org/release/docs/manualpages/SNES/SNESGetNumberFunctionEvals.html")
-@wrapper(:SNESGetLinearSolveFailures,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfails),"https://petsc.org/release/docs/manualpages/SNES/SNESGetLinearSolveFailures.html")
+@wrapper(:SNESCreate,PetscErrorCode,(MPI.Comm,Ptr{SNES}),(comm,snes),"https://petsc.org/release/manualpages/SNES/SNESCreate/")
+@wrapper(:SNESSetFunction,PetscErrorCode,(SNES,Vec,Ptr{Cvoid},Ptr{Cvoid}),(snes,vec,fptr,ctx),"https://petsc.org/release/manualpages/SNES/SNESSetFunction/")
+@wrapper(:SNESSetJacobian,PetscErrorCode,(SNES,Mat,Mat,Ptr{Cvoid},Ptr{Cvoid}),(snes,A,P,jacptr,ctx),"https://petsc.org/release/manualpages/SNES/SNESSetJacobian/")
+@wrapper(:SNESSolve,PetscErrorCode,(SNES,Vec,Vec),(snes,b,x),"https://petsc.org/release/manualpages/SNES/SNESSolve/")
+@wrapper(:SNESDestroy,PetscErrorCode,(Ptr{SNES},),(snes,),"https://petsc.org/release/manualpages/SNES/SNESDestroy/")
+@wrapper(:SNESSetFromOptions,PetscErrorCode,(SNES,),(snes,),"https://petsc.org/release/manualpages/SNES/SNESSetFromOptions/")
+@wrapper(:SNESView,PetscErrorCode,(SNES,PetscViewer),(snes,viewer),"https://petsc.org/release/manualpages/SNES/SNESView/")
+@wrapper(:SNESSetType,PetscErrorCode,(SNES,SNESType),(snes,type),"https://petsc.org/release/manualpages/SNES/SNESSetType/")
+@wrapper(:SNESGetKSP,PetscErrorCode,(SNES,Ptr{KSP}),(snes,ksp),"https://petsc.org/release/manualpages/SNES/SNESGetKSP/")
+@wrapper(:SNESGetIterationNumber,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/manualpages/SNES/SNESGetIterationNumber/")
+@wrapper(:SNESGetLinearSolveIterations,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,iter),"https://petsc.org/release/manualpages/SNES/SNESGetLinearSolveIterations/")
+@wrapper(:SNESSetCountersReset,PetscErrorCode,(SNES,PetscBool),(snes,reset),"https://petsc.org/release/manualpages/SNES/SNESSetCountersReset/")
+@wrapper(:SNESGetNumberFunctionEvals,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfuncs),"https://petsc.org/release/manualpages/SNES/SNESGetNumberFunctionEvals/")
+@wrapper(:SNESGetLinearSolveFailures,PetscErrorCode,(SNES,Ptr{PetscInt}),(snes,nfails),"https://petsc.org/release/manualpages/SNES/SNESGetLinearSolveFailures/")
 @wrapper(:SNESSetConvergenceTest,PetscErrorCode,(SNES,Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid}),(snes,convtest,cctx,destroy),"https://petsc.org/release/manualpages/SNES/SNESSetConvergenceTest/")
 @wrapper(:SNESConvergedDefault,PetscErrorCode,(SNES,PetscInt,PetscReal,PetscReal,PetscReal,Ptr{SNESConvergedReason},Ptr{Cvoid}),(snes,it,xnorm,gnorm,f,reason,user),"https://petsc.org/release/manualpages/SNES/SNESConvergedDefault/")
 
-
 # Garbage collection of PETSc objects
-@wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroy.html")
-@wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/docs/manualpages/Sys/PetscObjectRegisterDestroyAll.html")
+
+@wrapper(:PetscObjectRegisterDestroy,PetscErrorCode,(Ptr{Cvoid},),(obj,),"https://petsc.org/release/manualpages/Sys/PetscObjectRegisterDestroy/")
+@wrapper(:PetscObjectRegisterDestroyAll,PetscErrorCode,(),(),"https://petsc.org/release/manualpages/Sys/PetscObjectRegisterDestroyAll/")
 
 # HYPRE
 
-@wrapper(:PCHYPRESetDiscreteGradient,PetscErrorCode,(PC,Mat),(pc,G),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteGradient.html")
-@wrapper(:PCHYPRESetDiscreteCurl,PetscErrorCode,(PC,Mat),(pc,C),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteCurl.html")
-@wrapper(:PCHYPRESetAlphaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetAlphaPoissonMatrix.html")
-@wrapper(:PCHYPRESetBetaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetBetaPoissonMatrix.html")
-@wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations.html")
-@wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors.html")
-@wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes.html")
+@wrapper(:PCHYPRESetDiscreteGradient,PetscErrorCode,(PC,Mat),(pc,G),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteGradient/")
+@wrapper(:PCHYPRESetDiscreteCurl,PetscErrorCode,(PC,Mat),(pc,C),"https://petsc.org/release/manualpages/PC/PCHYPRESetDiscreteCurl/")
+@wrapper(:PCHYPRESetAlphaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetAlphaPoissonMatrix/")
+@wrapper(:PCHYPRESetBetaPoissonMatrix,PetscErrorCode,(PC,Mat),(pc,A),"https://petsc.org/release/manualpages/PC/PCHYPRESetBetaPoissonMatrix/")
+@wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations/")
+@wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors/")
+@wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes/")
 end # module
