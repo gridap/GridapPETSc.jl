@@ -787,4 +787,12 @@ const ISBLOCK   = "block"
 @wrapper(:PCHYPRESetInterpolations,PetscErrorCode,(PC,PetscInt,Mat,Ptr{Mat},Mat,Ptr{Mat}),(pc,dim,RT_PiFull,RT_Pi,ND_PiFull,ND_Pi),"https://petsc.org/release/manualpages/PC/PCHYPRESetInterpolations/")
 @wrapper(:PCHYPRESetEdgeConstantVectors,PetscErrorCode,(PC,Vec,Vec,Vec),(pc,ozz,zoz,zzo),"https://petsc.org/release/manualpages/PC/PCHYPRESetEdgeConstantVectors/")
 @wrapper(:PCHYPREAMSSetInteriorNodes,PetscErrorCode,(PC,Vec),(pc,interior),"https://petsc.org/release/manualpages/PC/PCHYPREAMSSetInteriorNodes/")
+
+# HPDDM
+
+@wrapper(:PCHPDDMSetRHSMat,PetscErrorCode,(PC,Mat),(pc,mat),"https://petsc.org/release/manualpages/PC/PCHPDDMSetRHSMat/")
+@wrapper(:PCHPDDMSetAuxiliaryMat,PetscErrorCode,(PC,IS,Mat,Ptr{Cvoid},Ptr{Cvoid}),(pc,is,mat,setup,ctx),"https://petsc.org/release/manualpages/PC/PCHPDDMSetAuxiliaryMat/")
+@wrapper(:PCHPDDMHasNeumannMat,PetscErrorCode,(PC,PetscBool),(pc,has),"https://petsc.org/release/manualpages/PC/PCHPDDMHasNeumannMat/")
+@wrapper(:PCHPDDMSetSTShareSubKSP,PetscErrorCode,(PC,PetscBool),(pc,share),"https://petsc.org/release/manualpages/PC/PCHPDDMSetSTShareSubKSP/")
+
 end # module
