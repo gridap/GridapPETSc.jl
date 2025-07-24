@@ -124,6 +124,10 @@ function partitioned_tests(distribute,nparts)
   test_get_local_vector(v,x)
   test_vectors(v,x,ids)
 
+  is = PETScIndexSet(ids)
+  @test isa(is,PETScIndexSet)
+  GridapPETSc.Finalize(is)
+
   if isa(partition(v),MPIArray)
     # Copy v into v1 to circumvent (potentia) aliasing of v and x
     v1 = copy(v)
