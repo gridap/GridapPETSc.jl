@@ -7,7 +7,6 @@ using GridapPETSc
 using GridapPETSc.PETSC
 using PartitionedArrays
 using Test
-using SparseMatricesCSR
 
 # Setup solver via low level PETSC API calls
 function mykspsetup(ksp)
@@ -35,7 +34,7 @@ end
 
 function main(distribute,nparts,solver)
   parts = distribute(LinearIndices((prod(nparts),)))
-  
+
   if solver == :mumps
     options = "-ksp_error_if_not_converged true -ksp_converged_reason"
   elseif solver == :cg

@@ -262,7 +262,7 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:DebugArray}) where {T}
     rows_own_to_local    = own_to_local(rows)
     rows_local_to_global = local_to_global(rows)
     cols_local_to_global = local_to_global(cols)
-  
+
     maxnnz = maximum(map(i -> ia[i+1]-ia[i], 1:csr.m))
     petsc_row  = Vector{PetscInt}(undef,1)
     petsc_cols = Vector{PetscInt}(undef,maxnnz)
@@ -305,7 +305,7 @@ function _copy!(petscmat::Mat,mat::PSparseMatrix{T,<:MPIArray}) where T
     rows_own_to_local    = own_to_local(rows)
     rows_local_to_global = local_to_global(rows)
     cols_local_to_global = local_to_global(cols)
-  
+
     maxnnz = maximum(map(i -> ia[i+1]-ia[i], 1:csr.m))
     petsc_row  = Vector{PetscInt}(undef,1)
     petsc_cols = Vector{PetscInt}(undef,maxnnz)

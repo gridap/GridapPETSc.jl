@@ -190,7 +190,7 @@ function partitioned_tests(distribute,nparts)
     test_vectors(y_ref,ypetsc,ids)
     test_vectors(z_ref,zpetsc,ids)
     test_vectors(v,zpetsc,ids)
-    
+
     GridapPETSc.Finalize(ypetsc)
     GridapPETSc.Finalize(zpetsc)
   end

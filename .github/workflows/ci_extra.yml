@@ -29,11 +29,11 @@ jobs:
          restore-keys: |
           ${{ runner.os }}-build-${{ env.JULIA_PETSC_LIBRARY }}-
           ${{ runner.os }}-build-
-          ${{ runner.os }}-  
+          ${{ runner.os }}-
       - name: Install petsc dependencies
         run: |
-           sudo apt-get update 
-           sudo apt-get install -y wget gfortran g++ openmpi-bin libopenmpi-dev  
+           sudo apt-get update
+           sudo apt-get install -y wget gfortran g++ openmpi-bin libopenmpi-dev
       - name: Install petsc
         ##if: steps.cache-petsc.outputs.cache-hit != 'true'
         run: |
