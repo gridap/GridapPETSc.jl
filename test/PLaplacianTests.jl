@@ -23,8 +23,8 @@ function mysnessetup(snes)
   pc       = Ref{GridapPETSc.PETSC.PC}()
   mumpsmat = Ref{GridapPETSc.PETSC.Mat}()
 
-  fconvptr = @cfunction($snes_convergence_test, 
-                        PetscInt, 
+  fconvptr = @cfunction($snes_convergence_test,
+                        PetscInt,
                         (SNES, PetscInt, PetscReal, PetscReal, PetscReal, Ptr{PETSC.SNESConvergedReason}, Ptr{Cvoid}))
 
   @check_error_code GridapPETSc.PETSC.SNESSetFromOptions(snes[])

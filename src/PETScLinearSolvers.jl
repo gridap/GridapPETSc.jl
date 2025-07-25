@@ -65,9 +65,9 @@ function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::PETScVector)
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  # Jordi: Somehow, I think this destroys PETSc objects that are 
+  # Jordi: Somehow, I think this destroys PETSc objects that are
   # still in use. This then leads to a PETSc error 62 when calling KSPSolve.
-  # Instead, I have added GridapPETSc.Finalize(...) calls for the specific PETSc 
+  # Instead, I have added GridapPETSc.Finalize(...) calls for the specific PETSc
   # objects that we are creating internally.
   #
   # if (x.comm != MPI.COMM_SELF)
@@ -88,7 +88,7 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
   return x
 end
 
-# When x is a Vector{PetscScalar}, the memory is aliased with the PETSc Vec object, i.e 
+# When x is a Vector{PetscScalar}, the memory is aliased with the PETSc Vec object, i.e
 # we do not need to copy the data back into x.
 function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
   X = convert(PETScVector,x)
@@ -96,7 +96,7 @@ function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::Abstra
   return x
 end
 
-# In the case of PVectors, we need to ensure that ghost layouts match. In the case they 
+# In the case of PVectors, we need to ensure that ghost layouts match. In the case they
 # do not, we have to create a new vector and copy (which is less efficient, but necessary).
 function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   rows, cols = axes(ns.A)
@@ -112,7 +112,7 @@ function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   else
     c = b
   end
-  
+
   X = convert(PETScVector,y)
   solve!(X,ns,c)
   copy!(x,X)

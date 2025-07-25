@@ -91,6 +91,9 @@ out_2 = GridapPETSc.with(args=split(options)) do
   @test typeof(C*aj) == PETScVector
   @test C*ap == C*aj
 
+  is = PETScIndexSet(I)
+  @test isa(is,PETScIndexSet)
+
   out_1
 end
 

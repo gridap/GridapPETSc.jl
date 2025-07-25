@@ -7,6 +7,6 @@ LocalPreferences.toml
 /dev/
 /docs/build/
 /docs/site/
-deps/build.log 
+deps/build.log
 deps/deps.jl
 deps/PetscDataTypes.jl
