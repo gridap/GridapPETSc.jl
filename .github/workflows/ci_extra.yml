@@ -17,7 +17,7 @@ jobs:
         arch:
           - x64
         petsc_version:
-          - '3.23.0'
+          - '3.23.4'
     steps:
       - uses: actions/checkout@v4
       - name: Cache petsc
@@ -35,7 +35,6 @@ jobs:
            sudo apt-get update
            sudo apt-get install -y wget gfortran g++ openmpi-bin libopenmpi-dev
       - name: Install petsc
-        ##if: steps.cache-petsc.outputs.cache-hit != 'true'
         run: |
           CURR_DIR=$(pwd)
           PACKAGE=petsc
