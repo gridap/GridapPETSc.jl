@@ -38,6 +38,22 @@ let types_jl = joinpath(@__DIR__,"..","deps","PetscDataTypes.jl")
   include(types_jl)
 end
 
+"""
+    macro wrapper(fn,rt,argts,args,url)
+
+Wrapper macro for PETSc's C functions.
+
+## Usage: 
+
+To create a wrapper for PETSc's C function `VecCreateSeq`:
+
+```julia
+@wrapper(:VecCreateSeq,PetscErrorCode,(MPI.Comm,PetscInt,Ptr{Vec}),(comm,n,vec),"https://petsc.org/release/manualpages/Vec/VecCreateSeq/")
+```
+
+Many more examples can be found in the source code of the PETSc module.
+
+"""
 macro wrapper(fn,rt,argts,args,url)
   hn = Symbol("$(fn.value)_handle")
   sargs = "$(args)"

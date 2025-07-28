@@ -64,15 +64,6 @@ function Finalize(ns::PETScLinearSolverNS)
   nothing
 end
 
-function Algebra.numerical_setup(ss::PETScLinearSolverSS,B::PETScMatrix)
-  ns = PETScLinearSolverNS(B,B)
-  @check_error_code PETSC.KSPCreate(B.comm,ns.ksp)
-  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
-  ss.solver.setup(ns.ksp)
-  @check_error_code PETSC.KSPSetUp(ns.ksp[])
-  Init(ns)
-end
-
 function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
   B = convert(PETScMatrix,A)
   ns = PETScLinearSolverNS(A,B)
@@ -89,15 +80,6 @@ function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::PETScVector)
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  # Jordi: Somehow, I think this destroys PETSc objects that are
-  # still in use. This then leads to a PETSc error 62 when calling KSPSolve.
-  # Instead, I have added GridapPETSc.Finalize(...) calls for the specific PETSc
-  # objects that we are creating internally.
-  #
-  # if (x.comm != MPI.COMM_SELF)
-  #   gridap_petsc_gc() # Do garbage collection of PETSc objects
-  # end
-
   B = convert(PETScVector,b)
   solve!(x,ns,B)
   destroy(B)
@@ -117,6 +99,7 @@ end
 function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
   X = convert(PETScVector,x)
   solve!(X,ns,b)
+  destroy(X)
   return x
 end
 
