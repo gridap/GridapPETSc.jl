@@ -44,8 +44,7 @@ numerical_setup!(ns,B)
 solve!(x2,ns,B*x)
 @test x ≈ x2
 
-# Move ns out of scope before calling GridapPETSc.Finalize()
-ns = nothing
+GridapPETSc.destroy(ns)
 
 C = sparsecsr(Val(0),1*I,1*J,2*V,m,n)
 x2 = solve(solver,C,C*x)

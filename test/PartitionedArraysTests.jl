@@ -98,7 +98,7 @@ function partitioned_tests(distribute,nparts)
           @test length(lx)==3
         end
         GridapPETSc._restore_local_vector!(lx,lg)
-        GridapPETSc.Finalize(lg)
+        GridapPETSc.destroy(lg)
       end
     end
   end
@@ -126,7 +126,7 @@ function partitioned_tests(distribute,nparts)
 
   is = PETScIndexSet(ids)
   @test isa(is,PETScIndexSet)
-  GridapPETSc.Finalize(is)
+  GridapPETSc.destroy(is)
 
   if isa(partition(v),MPIArray)
     # Copy v into v1 to circumvent (potentia) aliasing of v and x
@@ -141,7 +141,7 @@ function partitioned_tests(distribute,nparts)
     fill!(x1,PetscScalar(0.0))
     copy!(x1,v)
     test_vectors(v,x1,ids)
-    GridapPETSc.Finalize(x1)
+    GridapPETSc.destroy(x1)
   end
 
   A = psparse!(I,J,V,partition(ids),partition(ids);discover_rows=false,discover_cols=false) |> fetch
@@ -195,8 +195,8 @@ function partitioned_tests(distribute,nparts)
     test_vectors(z_ref,zpetsc,ids)
     test_vectors(v,zpetsc,ids)
 
-    GridapPETSc.Finalize(ypetsc)
-    GridapPETSc.Finalize(zpetsc)
+    GridapPETSc.destroy(ypetsc)
+    GridapPETSc.destroy(zpetsc)
   end
   solve_system_and_check_solution(A,B,v)
 
@@ -205,7 +205,7 @@ function partitioned_tests(distribute,nparts)
   copy!(B,A)
   solve_system_and_check_solution(A,B,v)
 
-  GridapPETSc.Finalize(B)
-  GridapPETSc.Finalize(x)
+  GridapPETSc.destroy(B)
+  GridapPETSc.destroy(x)
   GridapPETSc.Finalize()
 end

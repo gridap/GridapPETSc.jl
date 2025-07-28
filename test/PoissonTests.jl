@@ -79,7 +79,7 @@ function main(distribute,nparts,solver)
       v_petsc = convert(PETScVector,v_julia)
       copy!(v_julia,v_petsc)
       copy!(v_petsc,v_julia)
-      GridapPETSc.Finalize(v_petsc)
+      GridapPETSc.destroy(v_petsc)
 
       # Checking that convert performs deep copies and does not modify A
       A = get_matrix(op)
@@ -96,7 +96,7 @@ function main(distribute,nparts,solver)
         @test all(j .== A.colval)
         @test all(a .== A.nzval)
       end
-      GridapPETSc.Finalize(Apetsc)
+      GridapPETSc.destroy(Apetsc)
 
       if solver == :mumps
         ls = PETScLinearSolver(mykspsetup)

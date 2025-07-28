@@ -84,6 +84,22 @@ function snes_jacobian(
   return PetscInt(0)
 end
 
+function destroy(cache::PETScNonlinearSolverCache)
+  if GridapPETSc.Initialized() && cache.initialized
+    destroy(cache.x_petsc)
+    destroy(cache.res_petsc)
+    destroy(cache.jac_petsc_mat_A)
+    if !(cache.jac_petsc_mat_P === cache.jac_petsc_mat_A)
+      destroy(cache.jac_petsc_mat_P)
+    end
+    @check_error_code PETSC.SNESDestroy(cache.snes)
+    @assert Threads.threadid() == 1
+    cache.initialized = false
+    _NREFS[] -= 1
+  end
+  nothing
+end
+
 function Finalize(cache::PETScNonlinearSolverCache)
   if GridapPETSc.Initialized() && cache.initialized
     GridapPETSc.Finalize(cache.x_petsc)

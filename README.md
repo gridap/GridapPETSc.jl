@@ -23,7 +23,6 @@ It can also be used in the serial case, as shown in this [test](https://github.c
   - First, choose a `MPI` installation. See the documentation of  [`MPI.jl`](https://github.com/JuliaParallel/MPI.jl) for further details.
   - Second, choose a `PETSc` installation. To this end, create an environment variable `JULIA_PETSC_LIBRARY` containing the path to the dynamic library object of the `PETSC` installation (i.e., the `.so` file in linux systems). **Very important: The chosen `PETSc` library needs to be configured with the `MPI` installation considered in the previous step**.
 
-
 ## Notes
 
 * `GridapPETSc` default sparse matrix format is 0-based compressed sparse row. This type of sparse matrix storage format can be described by the `SparseMatrixCSR{0,PetscReal,PetscInt}` and `SymSparseMatrixCSR{0,PetscReal,PetscInt}` Julia types as implemented in the [SparseMatricesCSR](https://gridap.github.io/SparseMatricesCSR.jl/stable/) Julia package.

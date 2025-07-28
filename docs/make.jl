@@ -5,6 +5,8 @@ makedocs(;
     format=Documenter.HTML(),
     pages=[
         "Home" => "index.md",
+        "Julia interfaces" => "library.md",
+        "PETSc wrappers" => "wrappers.md",
     ],
     repo="https://github.com/gridap/GridapPETSc.jl/blob/{commit}{path}#L{line}",
     sitename="GridapPETSc",

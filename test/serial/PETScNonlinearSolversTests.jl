@@ -21,7 +21,7 @@ Gridap.Algebra.test_nonlinear_solver(nls,op,x0,x)
 x0 = zero_initial_guess(op)
 cache = solve!(x0,nls,op)
 
-GridapPETSc.Finalize(cache)
+GridapPETSc.destroy(cache)
 GridapPETSc.Finalize()
 
 end # module

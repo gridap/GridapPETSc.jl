@@ -35,6 +35,16 @@ function Init(a::PETScLinearSolverNS)
   finalizer(Finalize,a)
 end
 
+function destroy(ns::PETScLinearSolverNS)
+  if ns.initialized && GridapPETSc.Initialized()
+    @check_error_code PETSC.KSPDestroy(ns.ksp)
+    ns.initialized = false
+    @assert Threads.threadid() == 1
+    _NREFS[] -= 1
+  end
+  nothing
+end
+
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
     if ns.B.comm == MPI.COMM_SELF
@@ -47,6 +57,15 @@ function Finalize(ns::PETScLinearSolverNS)
     _NREFS[] -= 1
   end
   nothing
+end
+
+function Algebra.numerical_setup(ss::PETScLinearSolverSS,B::PETScMatrix)
+  ns = PETScLinearSolverNS(B,B)
+  @check_error_code PETSC.KSPCreate(B.comm,ns.ksp)
+  @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
+  ss.solver.setup(ns.ksp)
+  @check_error_code PETSC.KSPSetUp(ns.ksp[])
+  Init(ns)
 end
 
 function Algebra.numerical_setup(ss::PETScLinearSolverSS,A::AbstractMatrix)
@@ -76,7 +95,7 @@ function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector
 
   B = convert(PETScVector,b)
   solve!(x,ns,B)
-  GridapPETSc.Finalize(B)
+  destroy(B)
   return x
 end
 
@@ -84,7 +103,7 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
   X = convert(PETScVector,x)
   solve!(X,ns,b)
   copy!(x,X)
-  GridapPETSc.Finalize(X)
+  destroy(X)
   return x
 end
 
@@ -116,11 +135,14 @@ function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   X = convert(PETScVector,y)
   solve!(X,ns,c)
   copy!(x,X)
-  GridapPETSc.Finalize(X)
+  destroy(X)
   return x
 end
 
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
+  if ns.B !== A
+    destroy(ns.B)
+  end
   ns.A = A
   ns.B = convert(PETScMatrix,A)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])
