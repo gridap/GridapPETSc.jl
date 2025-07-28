@@ -1,4 +1,9 @@
 
+"""
+    struct PETScNonlinearSolver{F} <: NonlinearSolver
+
+Julia interface for a PETSc `SNES` object.
+"""
 mutable struct PETScNonlinearSolver{F} <: NonlinearSolver
   setup::F
 end

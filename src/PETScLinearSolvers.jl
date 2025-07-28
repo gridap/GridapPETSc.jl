@@ -1,4 +1,9 @@
 
+"""
+    struct PETScLinearSolver <: LinearSolver
+
+Julia interface for a PETSc `KSP` object.
+"""
 struct PETScLinearSolver{F} <: LinearSolver
   setup::F
 end

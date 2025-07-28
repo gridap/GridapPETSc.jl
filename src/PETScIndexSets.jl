@@ -1,4 +1,9 @@
 
+"""
+    struct PETScIndexSet
+
+Julia interface for a PETSc `IS` object.
+"""
 mutable struct PETScIndexSet
   is :: Base.RefValue{IS}
   initialized::Bool

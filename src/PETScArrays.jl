@@ -1,5 +1,10 @@
 # Vector
 
+"""
+    struct PETScVector <: AbstractVector{PetscScalar}
+
+Julia interface for a PETSc `Vec` object.
+"""
 mutable struct PETScVector <: AbstractVector{PetscScalar}
   vec::Base.RefValue{Vec}
   initialized::Bool
@@ -193,6 +198,11 @@ end
 
 # Matrix
 
+"""
+    struct PETScMatrix <: AbstractMatrix{PetscScalar}
+
+Julia interface for a PETSc `Mat` object.
+"""
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   mat::Base.RefValue{Mat}
   initialized::Bool
