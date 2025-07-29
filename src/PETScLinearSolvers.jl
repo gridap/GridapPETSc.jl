@@ -1,4 +1,9 @@
 
+"""
+    struct PETScLinearSolver <: LinearSolver
+
+Julia interface for a PETSc `KSP` object.
+"""
 struct PETScLinearSolver{F} <: LinearSolver
   setup::F
 end
@@ -35,6 +40,16 @@ function Init(a::PETScLinearSolverNS)
   finalizer(Finalize,a)
 end
 
+function destroy(ns::PETScLinearSolverNS)
+  if ns.initialized && GridapPETSc.Initialized()
+    @check_error_code PETSC.KSPDestroy(ns.ksp)
+    ns.initialized = false
+    @assert Threads.threadid() == 1
+    _NREFS[] -= 1
+  end
+  nothing
+end
+
 function Finalize(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
     if ns.B.comm == MPI.COMM_SELF
@@ -65,18 +80,9 @@ function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::PETScVector)
 end
 
 function Algebra.solve!(x::PETScVector,ns::PETScLinearSolverNS,b::AbstractVector)
-  # Jordi: Somehow, I think this destroys PETSc objects that are
-  # still in use. This then leads to a PETSc error 62 when calling KSPSolve.
-  # Instead, I have added GridapPETSc.Finalize(...) calls for the specific PETSc
-  # objects that we are creating internally.
-  #
-  # if (x.comm != MPI.COMM_SELF)
-  #   gridap_petsc_gc() # Do garbage collection of PETSc objects
-  # end
-
   B = convert(PETScVector,b)
   solve!(x,ns,B)
-  GridapPETSc.Finalize(B)
+  destroy(B)
   return x
 end
 
@@ -84,7 +90,7 @@ function Algebra.solve!(x::AbstractVector,ns::PETScLinearSolverNS,b::AbstractVec
   X = convert(PETScVector,x)
   solve!(X,ns,b)
   copy!(x,X)
-  GridapPETSc.Finalize(X)
+  destroy(X)
   return x
 end
 
@@ -93,6 +99,7 @@ end
 function Algebra.solve!(x::Vector{PetscScalar},ns::PETScLinearSolverNS,b::AbstractVector)
   X = convert(PETScVector,x)
   solve!(X,ns,b)
+  destroy(X)
   return x
 end
 
@@ -116,11 +123,14 @@ function Algebra.solve!(x::PVector,ns::PETScLinearSolverNS,b::PVector)
   X = convert(PETScVector,y)
   solve!(X,ns,c)
   copy!(x,X)
-  GridapPETSc.Finalize(X)
+  destroy(X)
   return x
 end
 
 function Algebra.numerical_setup!(ns::PETScLinearSolverNS,A::AbstractMatrix)
+  if ns.B !== A
+    destroy(ns.B)
+  end
   ns.A = A
   ns.B = convert(PETScMatrix,A)
   @check_error_code PETSC.KSPSetOperators(ns.ksp[],ns.B.mat[],ns.B.mat[])

@@ -137,7 +137,7 @@ function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
       lx = _get_local_vector_read(lg)
       values .= lx[1:own_length(indices)]
       _restore_local_vector!(lx,lg)
-      GridapPETSc.Finalize(lg)
+      destroy(lg)
     else                    # B) petsc_vec is NOT a ghosted vector
       # @assert length(lg)==length(values)
       # values .= lg
@@ -167,7 +167,7 @@ function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
       # layout of petscvec to check this out.
       lx[1:own_length(indices)] .= values
       _restore_local_vector!(lx,lg)
-      GridapPETSc.Finalize(lg)
+      destroy(lg)
     else                     # B) petscvec is NOT a ghosted vector
     #  @assert length(lg)==length(values)
     #  lg .= values

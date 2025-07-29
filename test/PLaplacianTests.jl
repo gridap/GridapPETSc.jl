@@ -60,8 +60,8 @@ function main(distribute,nparts,solver)
     error()
   end
   GridapPETSc.with(args=split(options)) do
-     main(distribute,nparts,solver,FullyAssembledRows())
-     main(distribute,nparts,solver,SubAssembledRows())
+    main(distribute,nparts,solver,FullyAssembledRows())
+    main(distribute,nparts,solver,SubAssembledRows())
   end
 end
 
@@ -125,5 +125,6 @@ function main(distribute,nparts,solver,strategy)
   uh, cache = solve!(uh,nls,op,cache)
   eh = u - uh
   @test sqrt(sum(∫( abs2(eh) )dΩo)) < 1.0e-9
+  GridapPETSc.destroy(cache)
 
 end

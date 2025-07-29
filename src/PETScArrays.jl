@@ -1,5 +1,10 @@
 # Vector
 
+"""
+    struct PETScVector <: AbstractVector{PetscScalar}
+
+Julia interface for a PETSc `Vec` object.
+"""
 mutable struct PETScVector <: AbstractVector{PetscScalar}
   vec::Base.RefValue{Vec}
   initialized::Bool
@@ -19,12 +24,22 @@ function Init(a::PETScVector)
   finalizer(Finalize,a)
 end
 
+function destroy(a::PETScVector)
+  if a.initialized && GridapPETSc.Initialized()
+    @check_error_code PETSC.VecDestroy(a.vec)
+    a.initialized = false
+    @assert Threads.threadid() == 1
+    _NREFS[] -= 1
+  end
+  nothing
+end
+
 function Finalize(a::PETScVector)
   if a.initialized && GridapPETSc.Initialized()
     if a.comm == MPI.COMM_SELF
-       @check_error_code PETSC.VecDestroy(a.vec)
+      @check_error_code PETSC.VecDestroy(a.vec)
     else
-       @check_error_code PETSC.PetscObjectRegisterDestroy(a.vec[])
+      @check_error_code PETSC.PetscObjectRegisterDestroy(a.vec[])
     end
     a.initialized = false
     @assert Threads.threadid() == 1
@@ -183,6 +198,11 @@ end
 
 # Matrix
 
+"""
+    struct PETScMatrix <: AbstractMatrix{PetscScalar}
+
+Julia interface for a PETSc `Mat` object.
+"""
 mutable struct PETScMatrix <: AbstractMatrix{PetscScalar}
   mat::Base.RefValue{Mat}
   initialized::Bool
@@ -201,6 +221,16 @@ function Init(a::PETScMatrix)
   _NREFS[] += 1
   a.initialized = true
   finalizer(Finalize,a)
+end
+
+function destroy(a::PETScMatrix)
+  if a.initialized && GridapPETSc.Initialized()
+    @check_error_code PETSC.MatDestroy(a.mat)
+    a.initialized = false
+    @assert Threads.threadid() == 1
+    _NREFS[] -= 1
+  end
+  nothing
 end
 
 function Finalize(a::PETScMatrix)

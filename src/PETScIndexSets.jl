@@ -1,4 +1,9 @@
 
+"""
+    struct PETScIndexSet
+
+Julia interface for a PETSc `IS` object.
+"""
 mutable struct PETScIndexSet
   is :: Base.RefValue{IS}
   initialized::Bool
@@ -18,6 +23,20 @@ function Init(a::PETScIndexSet)
 end
 
 function Finalize(a::PETScIndexSet)
+  if a.initialized && GridapPETSc.Initialized()
+    if a.comm == MPI.COMM_SELF
+      @check_error_code PETSC.ISDestroy(a.is)
+    else
+      @check_error_code PETSC.PetscObjectRegisterDestroy(a.is[])
+    end
+    a.initialized = false
+    @assert Threads.threadid() == 1
+    _NREFS[] -= 1
+  end
+  nothing
+end
+
+function destroy(a::PETScIndexSet)
   if a.initialized && GridapPETSc.Initialized()
     @check_error_code PETSC.ISDestroy(a.is)
     a.initialized = false
