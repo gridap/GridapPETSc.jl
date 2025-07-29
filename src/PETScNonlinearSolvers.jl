@@ -119,7 +119,7 @@ function Finalize(cache::PETScNonlinearSolverCache)
       @check_error_code PETSC.PetscObjectRegisterDestroy(cache.snes[].ptr)
     end
     @assert Threads.threadid() == 1
-    cache.initialized=false
+    cache.initialized = false
     _NREFS[] -= 1
   end
   nothing
