@@ -19,7 +19,7 @@ jobs:
         petsc_version:
           - '3.23.4'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Cache petsc
         id: cache-petsc
         uses: actions/cache@v4
