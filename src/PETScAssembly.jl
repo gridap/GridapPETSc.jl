@@ -33,7 +33,7 @@ function LinearAlgebra.rmul!(a::PETScMatrix,b::Number)
 end
 
 function Algebra.muladd!(c::PETScVector,a::PETScMatrix,b::PETScVector)
-  @check_error_code PETSC.MatMultAdd(a.mat[],b.vec[],c.vec[],d.vec[])
+  @check_error_code PETSC.MatMultAdd(a.mat[],b.vec[],c.vec[],c.vec[])
   c
 end
 
@@ -184,7 +184,7 @@ end
 Algebra.LoopStyle(::Type{PETScMatrix}) = Loop()
 
 @inline function Algebra.add_entry!(::typeof(+),a::PETScMatrix,v::Nothing,i,j)
-  add_entry(+,a,zero(PetscScalar),i,j)
+  add_entry!(+,a,zero(PetscScalar),i,j)
 end
 
 @noinline function Algebra.add_entry!(::typeof(+),a::PETScMatrix,v,i1,j1)
