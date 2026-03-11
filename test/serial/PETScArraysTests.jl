@@ -68,7 +68,7 @@ out_2 = GridapPETSc.with(args=split(options)) do
   @test typeof(y) == typeof(x)
   @test y == [2,3,3,3]
   muladd!(y,C,x)
-  @test y == [2,3,3,3]
+  @test y == [4,6,6,6]
 
   y = 2*x
   @test typeof(y) == typeof(x)
