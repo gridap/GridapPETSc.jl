@@ -33,6 +33,7 @@ GridapPETSc.with(args=split(options)) do
   c = create_from_nz(b)
   add_entries!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add_entries!(c,nothing,PetscInt[1,1],PetscInt[1,-1])
+  Algebra.add_entry!(+,c,nothing,PetscInt(1),PetscInt(1))
   touch!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   add!(c,PetscScalar[1.0 -1.0; -1.0 1.0],PetscInt[1,-1],PetscInt[-1,1])
   d = create_from_nz(c)
@@ -113,5 +114,6 @@ GridapPETSc.with(args=split(options)) do
   @test d == zeros(PetscScalar,length(d))
 
 end
+
 
 end # module

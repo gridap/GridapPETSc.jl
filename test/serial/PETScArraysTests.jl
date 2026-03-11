@@ -6,6 +6,7 @@ using SparseArrays
 using SparseMatricesCSR
 using GridapPETSc: PetscScalar, PetscInt
 using LinearAlgebra
+using Gridap.Algebra: muladd!
 
 options = "-info"
 out_1 = "some output"
@@ -66,6 +67,8 @@ out_2 = GridapPETSc.with(args=split(options)) do
   y = C*x
   @test typeof(y) == typeof(x)
   @test y == [2,3,3,3]
+  muladd!(y,C,x)
+  @test y == [4,6,6,6]
 
   y = 2*x
   @test typeof(y) == typeof(x)
