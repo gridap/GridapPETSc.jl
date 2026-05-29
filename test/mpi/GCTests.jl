@@ -25,7 +25,7 @@ end
 
 function main_bis(distribute,nparts)
   main(distribute,nparts,:gmres,SubAssembledRows())
-  report_memory_and_random_gc(parts)
+  report_memory_and_random_gc(distribute,nparts)
 end
 
 options = "-snes_type newtonls -snes_linesearch_type basic  -snes_linesearch_damping 1.0 -snes_rtol 1.0e-14 -snes_atol 0.0 -snes_monitor -pc_type jacobi -ksp_type gmres -snes_converged_reason"
