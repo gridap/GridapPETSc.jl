@@ -38,17 +38,22 @@ mutable struct PETScNonlinearSolverCache{A,B,C,D,E}
     jac_petsc_mat_A::E, jac_petsc_mat_P::E
   ) where {A,B,C,D,E}
     cache = new{A,B,C,D,E}(
-      true, comm, snes, op,
+      false, comm, snes, op,
       x_fe_space_layout,
       x_sys_layout, res_sys_layout,
       jac_mat_A, jac_mat_P,
       x_petsc, res_petsc,
       jac_petsc_mat_A, jac_petsc_mat_P
     )
-    @assert Threads.threadid() == 1
-    _NREFS[] += 1
-    finalizer(Finalize,cache)
-   end
+    Init(cache)
+  end
+end
+
+function Init(cache::PETScNonlinearSolverCache)
+  @assert Threads.threadid() == 1
+  _NREFS[] += 1
+  cache.initialized = true
+  finalizer(Finalize,cache)
 end
 
 function snes_residual(
