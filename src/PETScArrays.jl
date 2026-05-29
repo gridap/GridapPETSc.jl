@@ -153,16 +153,23 @@ function _copy!(a::Vec,b::Vector)
   @check_error_code PETSC.VecSetValues(a,ni,ix,v,PETSC.INSERT_VALUES)
 end
 
-function _get_local_oh_vector(a::Vec)
+function _get_local_ghost_vector(a::Vec)
   v=PETScVector(MPI.COMM_SELF)
   @check_error_code PETSC.VecGhostGetLocalForm(a,v.vec)
   if v.vec[] != C_NULL  # a is a ghosted vector
-    v.ownership=a
-    Init(v)
-    return v
+    v.ownership=a       # keep parent alive while view is in use
+    return v            # no Init: this is a borrowed view, not an owned object
   else                  # a is NOT a ghosted vector
     return _get_local_vector(a)
   end
+end
+
+# Paired call to _get_local_ghost_vector for the ghosted-vector branch.
+# Must be called instead of destroy() when the result of _get_local_ghost_vector
+# is a PETScVector (i.e. when the parent was a ghosted vector).
+function _restore_local_ghost_vector!(v::PETScVector)
+  parent = v.ownership::Vec
+  @check_error_code PETSC.VecGhostRestoreLocalForm(parent,v.vec)
 end
 
 function _local_size(a::PETScVector)
