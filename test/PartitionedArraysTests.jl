@@ -87,7 +87,7 @@ function partitioned_tests(distribute,nparts)
   function test_get_local_vector(v::PVector,x::PETScVector)
     if isa(partition(v),MPIArray)
       map(parts) do part
-        lg = GridapPETSc._get_local_oh_vector(x.vec[])
+        lg = GridapPETSc._get_local_ghost_vector(x.vec[])
         @test isa(lg,PETScVector)
         lx = GridapPETSc._get_local_vector(lg)
         if part==1

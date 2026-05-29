@@ -125,7 +125,7 @@ end
 function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
   rows = axes(pvec,1)
   map(own_values(pvec),partition(rows)) do values, indices
-    lg = _get_local_oh_vector(petscvec)
+    lg = _get_local_ghost_vector(petscvec)
     if (isa(lg,PETScVector)) # A) petsc_vec is a ghosted vector
       # Only copying owned DoFs. This should be followed by
       # an exchange if the ghost DoFs of pvec are to be consumed.
@@ -137,7 +137,7 @@ function _copy!(pvec::PVector{T,<:MPIArray},petscvec::Vec) where T
       lx = _get_local_vector_read(lg)
       values .= lx[1:own_length(indices)]
       _restore_local_vector!(lx,lg)
-      destroy(lg)
+      _restore_local_ghost_vector!(lg)
     else                    # B) petsc_vec is NOT a ghosted vector
       # @assert length(lg)==length(values)
       # values .= lg
@@ -157,7 +157,7 @@ function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
   rows = axes(pvec,1)
   map(own_values(pvec),partition(rows)) do values, indices
     @check isa(indices,OwnAndGhostIndices) "Unsupported partition for PETSc vectors"
-    lg = _get_local_oh_vector(petscvec)
+    lg = _get_local_ghost_vector(petscvec)
     if (isa(lg,PETScVector)) # A) petscvec is a ghosted vector
       lx=_get_local_vector(lg)
       # Only copying owned DoFs. This should be followed by
@@ -167,7 +167,7 @@ function _copy!(petscvec::Vec,pvec::PVector{T,<:MPIArray}) where T
       # layout of petscvec to check this out.
       lx[1:own_length(indices)] .= values
       _restore_local_vector!(lx,lg)
-      destroy(lg)
+      _restore_local_ghost_vector!(lg)
     else                     # B) petscvec is NOT a ghosted vector
     #  @assert length(lg)==length(values)
     #  lg .= values
