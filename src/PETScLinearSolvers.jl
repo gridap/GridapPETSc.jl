@@ -42,6 +42,7 @@ end
 
 function destroy(ns::PETScLinearSolverNS)
   if ns.initialized && GridapPETSc.Initialized()
+    destroy(ns.B)
     @check_error_code PETSC.KSPDestroy(ns.ksp)
     ns.initialized = false
     @assert Threads.threadid() == 1
