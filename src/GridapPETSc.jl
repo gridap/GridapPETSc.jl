@@ -48,6 +48,7 @@ end
 end
 
 const libpetsc_handle = Ref{Ptr{Cvoid}}()
+include("Version.jl")
 
 const _PRELOADS = Tuple{Ref{Ptr{Cvoid}},Symbol}[]
 
@@ -60,6 +61,23 @@ function __init__()
   # We always dlopen by path, since PETSc_jll >= 3.25 does not load the library itself
   flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
   libpetsc_handle[] = Libdl.dlopen(path, flags)
+
+  # The PETSc ABI can change between minor versions, but not between patch releases
+  version = get_petsc_version(libpetsc_handle[])
+  if Base.thisminor(version) != Base.thisminor(libpetsc_version)
+    error("""
+    GridapPETSc was built for PETSc v$(libpetsc_version), but is loading PETSc v$(version) from
+
+    $(path)
+
+    Type
+
+    pkg> build GridapPETSc
+
+    and restart Julia.
+    """)
+  end
+
   for (handle,sym) in _PRELOADS
     _handle = Libdl.dlsym(libpetsc_handle[],sym;throw_error=false)
     if _handle !== nothing

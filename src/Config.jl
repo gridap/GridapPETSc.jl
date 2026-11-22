@@ -7,11 +7,11 @@ See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscErrorCode/).
 const PetscErrorCode = Cint
 
 """
-Julia alias to `PetscBool` C enum.
+Julia alias to `PetscBool` C type, which is an enum for PETSc < 3.24 and a `bool` afterwards.
 
 See [PETSc manual](https://petsc.org/release/manualpages/Sys/PetscBool/).
 """
-@enum PetscBool PETSC_FALSE PETSC_TRUE
+@enum PetscBool::(libpetsc_version < v"3.24" ? Cint : UInt8) PETSC_FALSE PETSC_TRUE
 
 """
 Julia alias to `PetscDataType` C enum.

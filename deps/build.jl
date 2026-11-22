@@ -26,6 +26,9 @@ end
 flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
 libpetsc_handle = Ref(Libdl.dlopen(libpetsc_path, flags))
 
+include(joinpath(@__DIR__,"..","src","Version.jl"))
+libpetsc_version = get_petsc_version(libpetsc_handle[])
+
 include(joinpath(@__DIR__,"..","src","Config.jl"))
 
 real_type = Ref{PetscDataType}()
@@ -86,6 +89,7 @@ end
 PETSc configuration summary:
 libpetsc_provider = $(libpetsc_provider)
 libpetsc_path     = $(libpetsc_path)
+libpetsc_version  = $(libpetsc_version)
 PetscReal         = $(PetscReal)
 PetscScalar       = $(PetscScalar)
 PetscInt          = $(PetscInt)
@@ -97,6 +101,7 @@ open(joinpath(@__DIR__,"deps.jl"),"w") do f
   println(f,:(const libpetsc_found = $(libpetsc_found)))
   println(f,:(const libpetsc_provider = $(libpetsc_provider)))
   println(f,:(const libpetsc_path = $(libpetsc_path)))
+  println(f,:(const libpetsc_version = $(libpetsc_version)))
 end
 
 open(joinpath(@__DIR__,"PetscDataTypes.jl"),"w") do f
