@@ -6,11 +6,9 @@ using Libdl
   Trying to use the PETSc installation it points to.
   JULIA_PETSC_LIBRARY=$(ENV["JULIA_PETSC_LIBRARY"])
   """
-  flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
   libpetsc_found = true
   libpetsc_provider = "JULIA_PETSC_LIBRARY"
   libpetsc_path = ENV["JULIA_PETSC_LIBRARY"]
-  libpetsc_handle = Ref(Libdl.dlopen(libpetsc_path, flags))
 
 else
 
@@ -21,9 +19,15 @@ else
   libpetsc_found = true
   libpetsc_provider = "PETSc_jll"
   libpetsc_path = PETSc_jll.libpetsc_path
-  libpetsc_handle = Ref(PETSc_jll.libpetsc_handle)
 
 end
+
+# We always dlopen by path, since PETSc_jll >= 3.25 does not load the library itself
+flags = Libdl.RTLD_LAZY | Libdl.RTLD_DEEPBIND | Libdl.RTLD_GLOBAL
+libpetsc_handle = Ref(Libdl.dlopen(libpetsc_path, flags))
+
+include(joinpath(@__DIR__,"..","src","Version.jl"))
+libpetsc_version = get_petsc_version(libpetsc_handle[])
 
 include(joinpath(@__DIR__,"..","src","Config.jl"))
 
@@ -85,6 +89,7 @@ end
 PETSc configuration summary:
 libpetsc_provider = $(libpetsc_provider)
 libpetsc_path     = $(libpetsc_path)
+libpetsc_version  = $(libpetsc_version)
 PetscReal         = $(PetscReal)
 PetscScalar       = $(PetscScalar)
 PetscInt          = $(PetscInt)
@@ -96,6 +101,7 @@ open(joinpath(@__DIR__,"deps.jl"),"w") do f
   println(f,:(const libpetsc_found = $(libpetsc_found)))
   println(f,:(const libpetsc_provider = $(libpetsc_provider)))
   println(f,:(const libpetsc_path = $(libpetsc_path)))
+  println(f,:(const libpetsc_version = $(libpetsc_version)))
 end
 
 open(joinpath(@__DIR__,"PetscDataTypes.jl"),"w") do f

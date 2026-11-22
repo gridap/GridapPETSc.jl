@@ -16,7 +16,7 @@ Using this rule, [`PETSC.PetscInitialized`](@ref) can be called as
 module PETSC
 
 using Libdl
-using GridapPETSc: libpetsc_handle
+using GridapPETSc: libpetsc_handle, libpetsc_version
 using GridapPETSc: _PRELOADS
 using Gridap.Helpers: @check
 using MPI

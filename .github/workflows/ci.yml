@@ -9,7 +9,8 @@ jobs:
       matrix:
         include:
           - {version: '1.10', os: ubuntu-latest, arch: x64}
-          - {version: '1.10', os: macos-14,      arch: aarch64}
+          - {version: '1',    os: ubuntu-latest, arch: x64}
+          - {version: '1.10', os: macos-latest,  arch: aarch64}
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v2
